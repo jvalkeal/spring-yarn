@@ -1,0 +1,11 @@
+<partintro>
+
+  <title>Document structure</title>
+
+  <para>This part of the reference documentation explains the core functionality
+  that Spring for Apache Hadoop Yarn(SYARN) provides to any Spring based application.</para>
+
+  <para><xref linkend="hadoop"/> describes the Spring support for
+  bootstrapping, initializing and working with core Hadoop Yarn.</para>
+
+</partintro>

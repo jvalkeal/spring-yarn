@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preface xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="preface">
+
+  <title>Preface</title>
+	
+  <para>Spring for Apache Hadoop Yarn provides extensions to Spring to build manageable and robust pipeline solutions around Hadoop Yarn.</para>
+  	
+  <para>This document assumes the reader already has a basic familiarity with the Spring Framework and Hadoop concepts and APIs.</para>
+  
+  <para>While every effort has been made to ensure that this documentation is comprehensive and there are no errors, nevertheless some topics might require more explanation and some typos might have crept in. If you do spot any mistakes or even more serious errors and you can spare a few cycles during lunch, please do bring the error to the attention of the Spring for Apache Hadoop Yarn team by raising an issue. Thank you.</para>
+	
+</preface>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="requirements"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:ns6="http://www.w3.org/1999/xlink">
+  <title>Requirements</title>
+
+  <para>Spring for Apache Hadoop requires JDK level 6.0 (just like Hadoop) and above,
+  Spring <ulink url="http://www.springsource.org/about">Framework</ulink> 3.2
+  and above and <ulink
+  url="http://hadoop.apache.org/">Apache Hadoop</ulink> 2.0.3-alpha and above.</para>
+  
+</chapter>

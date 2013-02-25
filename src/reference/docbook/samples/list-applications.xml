@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="listapplications" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:ns5="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns4="http://www.w3.org/1999/xhtml"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>List Applications example using the Spring Framework</title>
+
+  <para>Please read the <link linkend="sample-prereq">sample
+  prerequistes</link> before following these instructions.</para>
+
+  <section id="spring:listapplications-intro">
+    <title>Introduction</title>
+
+    <para>This sample demonstrates how to use Spring Yarn client functionality
+	to connect to <emphasis>Resource Manager</emphasis> and ask state
+	of the known Yarn applications.</para>
+
+    <para>The example code is located in the sample 
+    <ulink url="http://github.com/jvalkeal/spring-yarn-samples">repository</ulink>
+	under the <literal>basic/list-applications</literal>.</para>
+	
+  </section>
+  
+  <section id="spring:xxx">
+  
+    <title>Application Configuration</title>
+
+    <para>To define a client, everything is pretty much defaults:</para>
+
+    <programlisting language="xml"><![CDATA[<context:property-placeholder location="hadoop.properties" system-properties-mode="OVERRIDE"/>
+
+<yarn:configuration>
+    fs.defaultFS=${hd.fs}
+    yarn.resourcemanager.address=${hd.rm}
+</yarn:configuration>
+    
+<yarn:localresources/>
+        
+<yarn:environment/>
+    
+<yarn:client/>]]></programlisting>
+
+    <para>However we override <emphasis>fs.defaultFS</emphasis> and
+	<emphasis>yarn.resourcemanager.address</emphasis> to read actual
+	values from a <emphasis>hadoop.properties</emphasis>
+	shown below:</para>
+
+    <programlisting language="java"><![CDATA[hd.fs=hdfs://0.0.0.0:9000
+hd.rm=0.0.0.0:8032
+]]></programlisting>
+
+    <para>We do this only one thing in mind, to be able to override
+	these setting by adding a command line parameters.</para>
+
+    <para>All this is then hooked together in <classname>Main</classname>
+	class under the example project:</para>
+	
+    <programlisting language="java"><![CDATA[
+public static void main(String args[]) {
+    ConfigurableApplicationContext context = null;
+    try {
+        context = new ClassPathXmlApplicationContext("application-context.xml");
+        YarnClient client = (YarnClient) context.getBean("yarnClient");
+        List<ApplicationReport> applications = client.listApplications();
+        System.out.println("Listing Applications:");            
+        for (ApplicationReport a : applications) {
+            System.out.println(a.toString());
+            System.out.println("");
+        }
+    } catch (Throwable e) {
+        log.error("Error in main method", e);
+    } finally {
+        if (context != null) {
+            context.close();
+        }
+    }
+}	
+]]></programlisting>	
+	
+    <para>If you have hadoop installed on a same machine where this example
+	is executed, simply run below command:</para>
+
+    <programlisting language="java"><![CDATA[./gradlew -q run-list-applications]]></programlisting>
+
+    <para>Connecting to remote hdfs and resource manage, you can define
+	additional parameters.</para>
+	
+    <programlisting language="java"><![CDATA[./gradlew -q run-list-applications \
+    -Dhd.fs=hdfs://192.168.223.139:9000 \
+    -Dhd.rm=192.168.223.139:8032
+]]></programlisting>
+
+    <para>If there are any existing applications known to a
+	<emphasis>Resource Manager</emphasis> and if the example
+	execution is successful, output would look like this:</para>
+
+    <programlisting language="java"><![CDATA[Listing Applications:
+applicationId {, id: 8, cluster_timestamp: 1360896613214, }, user: "janne", queue: "default", ...
+]]></programlisting>
+		
+  </section>
+  
+</chapter>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="simplecommand" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:ns5="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns4="http://www.w3.org/1999/xhtml"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Simple Command example using the Spring Framework</title>
+
+  <para>Please read the <link linkend="sample-prereq">sample
+  prerequistes</link> before following these instructions.</para>
+
+  <section id="spring:simplecommand-intro">
+    <title>Introduction</title>
+
+    <para>This example shows how <emphasis>Application Client</emphasis>
+	is used to launch the instance of <emphasis>Application Master</emphasis>
+	which then allocates and launches two container where a simple
+	<emphasis>date</emphasis> command is run.</para>
+
+    <para>If you have hadoop installed on a same machine where this example
+	is executed, simply run below command:</para>
+
+    <programlisting language="java"><![CDATA[./gradlew -q run-simple-command]]></programlisting>
+
+    <para>Connecting to remote hdfs and resource manage, you can define
+	additional parameters.</para>
+	
+    <programlisting language="java"><![CDATA[./gradlew -q run-simple-command \
+    -Dhd.fs=hdfs://192.168.223.139:9000 \
+    -Dhd.rm=192.168.223.139:8032 \
+    -Dlocalresources.remote=hdfs://192.168.223.139:9000
+]]></programlisting>
+
+    <para>If example execution is successful, one would see below
+	file structure written under Hadoop's user logs:</para>
+	
+    <programlisting language="java"><![CDATA[# pwd
+/var/hadoop/hadoop/logs/userlogs
+# find .
+./application_1360896613214_0024/container_1360896613214_0024_01_000001
+./application_1360896613214_0024/container_1360896613214_0024_01_000001/AppMaster.stdout
+./application_1360896613214_0024/container_1360896613214_0024_01_000001/AppMaster.stderr
+./application_1360896613214_0024/container_1360896613214_0024_01_000003
+./application_1360896613214_0024/container_1360896613214_0024_01_000003/Container.stderr
+./application_1360896613214_0024/container_1360896613214_0024_01_000003/Container.stdout
+./application_1360896613214_0024/container_1360896613214_0024_01_000002
+./application_1360896613214_0024/container_1360896613214_0024_01_000002/Container.stderr
+./application_1360896613214_0024/container_1360896613214_0024_01_000002/Container.stdout
+# cat ./application_1360896613214_0024/container_1360896613214_0024_01_000003/Container.stdout
+Sat Feb 16 07:33:43 GMT 2013	
+]]></programlisting>	
+	
+    <para>The example code is located in the sample 
+    <ulink url="http://github.com/jvalkeal/spring-yarn-samples">repository</ulink>
+	under the <literal>basic/simple-command</literal>.</para>
+  </section>
+  
+</chapter>

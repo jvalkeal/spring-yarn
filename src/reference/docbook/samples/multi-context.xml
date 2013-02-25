@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="multicontext" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:ns5="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns4="http://www.w3.org/1999/xhtml"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Multi Context example using the Spring Framework</title>
+
+  <para>Please read the <link linkend="sample-prereq">sample
+  prerequistes</link> before following these instructions.</para>
+
+  <section id="spring:multicontext-intro">
+    <title>Introduction</title>
+
+    <para>This is a very similar example compared to
+	<emphasis>simple-command</emphasis> example. Only difference is
+	that instead of asking container to execute a shell command,
+	a Spring Application context is started and a defined bean
+	method inside of it is executed.</para>
+
+    <para>The example code is located in the sample 
+    <ulink url="http://github.com/jvalkeal/spring-yarn-samples">repository</ulink>
+	under the <literal>basic/multi-context</literal>.</para>
+  </section>
+  
+</chapter>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="yarnintro"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:ns6="http://www.w3.org/1999/xlink">
+		 
+  <title>Yarn Introduction</title>
+
+  <para>You've propbably seen a lot of topics around Yarn and next version of
+  Hadoop's Map Reduce called <emphasis>MapReduce Version 2</emphasis>.
+  Originally Yarn was a component of MapReduce itself created to overcome
+  some performance issues in Hadoop's original design. The fundamental idea of
+  MapReduce v2 is to split up the two major functionalities of the JobTracker,
+  resource management and job scheduling/monitoring, into separate daemons.
+  The idea is to have a global <emphasis>Resource Manager</emphasis>
+  (RM) and per-application <emphasis>Application Master</emphasis> (AM).
+  An application is either a single job in the classical sense of 
+  Map-Reduce jobs or a group of jobs.</para>
+
+  <para>Let's take a step back and see how original
+  <emphasis>MapReduce Version 1</emphasis> works.
+  <emphasis>Job Tracker</emphasis> is a global singleton entity responsible
+  for managing resources like per node <emphasis>Task Trackers</emphasis> and
+  job life-cycle. <emphasis>Task Tracker</emphasis> is responsible for
+  executing tasks from a <emphasis>Job Tracker</emphasis> and periodically
+  reporting back the status of the tasks. Naturally there is a much
+  more going on behind the scenes but the main point of this is that the
+  <emphasis>Job Tracker</emphasis> has always been a bottleneck in terms
+  of scalability. This is where Yarn steps in by splitting the load
+  away from a global resource management and job tracking into per
+  application masters. Global resource manager can then concentrate in
+  its main task of handling the management of resources.</para>
+  
+  <note>Yarn is usually referred as a synonym for
+  <emphasis>MapReduce Version 2</emphasis>. This is not exactly true
+  and it's easier to understand the relationship between those two
+  by saying that <emphasis>MapReduce Version 2</emphasis> is an
+  application running on top of <emphasis>Yarn</emphasis>.</note>
+  
+  <section id="yarnintro:concepts">
+  
+    <title>Concepts</title>
+	
+    <para>The <emphasis>Resource Manager</emphasis> and per-node slave,
+	the <emphasis>Node Manager</emphasis> (NM), form the data-computation
+	framework. The <emphasis>Resource Manager</emphasis> is the ultimate
+	authority that arbitrates resources among all the
+	applications in the system.</para>
+	
+    <para>The per-application <emphasis>Application Master</emphasis> is,
+	in effect, a framework specific library and is tasked with negotiating
+	resources from the <emphasis>Resource Manager</emphasis> and working with
+	the <emphasis>Node Manager(s)</emphasis> to execute
+	and monitor the tasks.</para>
+
+    <para><emphasis>Container</emphasis> is an entity of dedicated resources
+	which together form a context where a computation or code
+	execution is run.</para>
+	
+  </section>
+
+  <section id="yarnintro:container">
+  
+    <title>Container</title>
+	
+    <para>In its simplest form, <emphasis>Container</emphasis> is just an entity where
+	a simple command is executed. It'll have a set of environment variables,
+	a reservation of memory what a command may need during the execution and
+	the command itself. Yarn as a system itself may for example prohibit container
+	execution to continue if memory limitation exceeds the given limit.</para>
+	
+  </section>
+  
+  <section id="yarnintro:rm">
+  
+    <title>Resource Manager</title>
+	
+    <para>As Hadoop's documentation says, <emphasis>Resource Manager</emphasis>
+	is a pure <emphasis>scheduler</emphasis>. It's job is to track cluster
+	utilization and other constraints. When a resource request from
+	<emphasis>Application Master</emphasis> is received,
+	<emphasis>Resource Manager</emphasis> will allocate a suiteable
+	resources from a node it finds best. There are a pluggable algorithms
+	which are used to determine how this reservation process works.</para>
+	
+  </section>
+  
+  <section id="yarnintro:nm">
+  
+    <title>Node Manager</title>
+	
+    <para>The <emphasis>Node Manager</emphasis> (NM) is per-node agent. It's keeping
+	up-to date with the <emphasis>Resource Manager</emphasis> (RM), handling containers
+	life-cycle management, monitoring resource usage of individual containers,
+	tracking node-health, log management and auxiliary services which
+	may be exploited by different Yarn applications.</para>
+	
+  </section>
+
+  <section id="yarnintro:appmaster">
+  
+    <title>Application Master</title>
+	
+    <para>Every running application instance has its own instance of
+	<emphasis>Application Master</emphasis>. When launched by
+	a <emphasis>Resource Manager</emphasis>, its simple tasks include keeping
+	its state up-to-date with <emphasis>Resource Manager</emphasis>, allocating
+	new <emphasis>Containers</emphasis>, making container launch requests and
+	finally monitoring the state of the running containers.</para>
+	
+  </section>
+
+  
+</chapter>
