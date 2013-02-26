@@ -11,7 +11,7 @@
 
     <para>In order to run the examples you need a working Hadoop
 	installation based on hadoop 2.0.3 and JDK 1.6+ installed on
-	the machine that runs the samples.</para>
+	a machine that runs the samples.</para>
 
     <para>For instructions on installing Hadoop refer to your distribution
 	documentation or you can refer to the Getting Started section of this for
@@ -19,7 +19,7 @@
   
     <para>Currently some of the demos depends on files which
 	needs to exist on <emphasis>HDFS</emphasis> prior to running
-	examples. </para>
+	the examples.</para>
 
     <programlisting language="java"><![CDATA[# ./hadoop/bin/hdfs dfs -ls -R /
 /app
@@ -45,5 +45,11 @@
 	after below command is run:</para>
 	
     <programlisting language="java"><![CDATA[# gradlew clean build]]></programlisting>
+	
+	<note>
+	    <para>Currently the examples build system doesn't resolve exact
+		runtime dependencies. Needed files are there but you'll see a lot
+		of libraries which are not actually needed.</para>
+    </note>
   
 </chapter>

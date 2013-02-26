@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0"  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="hadoop">
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0"  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="yarn">
   
   <title>Yarn Configuration</title>
 
-  <para>xxx xxx</para>
+  <para>One of the common tasks when using Hadoop is interacting with its
+  <emphasis>runtime</emphasis> - whether it is a local setup or a remote
+  cluster, one needs to properly configure and bootstrap Hadoop in
+  order to submit the applications.</para>
   
   <section id="yarn:ns">
   	<title>Using the Spring for Apache Yarn Namespace</title>  	
@@ -139,17 +142,17 @@
     This can be quite handy when just a few options need to be changed:</para>
     
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-  <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:yarn="http://www.springframework.org/schema/yarn"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:yarn="http://www.springframework.org/schema/yarn"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
         
-    <yarn:configuration>
-      fs.default.name=hdfs://localhost:9000
-      hadoop.tmp.dir=/tmp/hadoop
-      electric=sea
-    </yarn:configuration>
+  <yarn:configuration>
+    fs.defaultFS=hdfs://localhost:9000
+    hadoop.tmp.dir=/tmp/hadoop
+    electric=sea
+  </yarn:configuration>
 </beans>]]></programlisting>
 
     <para>One can further customize the settings by avoiding the so
@@ -158,21 +161,21 @@
     environment without touching the configuration:</para>
      
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-  <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:yarn="http://www.springframework.org/schema/yarn"
-    xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-        http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:yarn="http://www.springframework.org/schema/yarn"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
         
-    <yarn:configuration>
-      fs.default.name=${hd.fs}
-      hadoop.tmp.dir=file://${java.io.tmpdir}
-      hangar=${number:18}
-    </yarn:configuration>
+  <yarn:configuration>
+    fs.defaultFS=${hd.fs}
+    hadoop.tmp.dir=file://${java.io.tmpdir}
+    hangar=${number:18}
+  </yarn:configuration>
      
-    <context:property-placeholder location="classpath:hadoop.properties" />     
+  <context:property-placeholder location="classpath:hadoop.properties" />     
 </beans>]]></programlisting>
      
     <para>Through Spring's property placeholder <ulink url="http://static.springsource.org/spring/docs/3.0.x/reference/beans.html#beans-factory-placeholderconfigurer">support</ulink>, <ulink url="http://static.springsource.org/spring/docs/3.0.x/reference/expressions.html">SpEL</ulink> and the <ulink url="http://blog.springsource.com/2011/06/09/spring-framework-3-1-m2-released/">environment 
@@ -194,23 +197,23 @@
     </para>
      
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-  <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:yarn="http://www.springframework.org/schema/yarn"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:util="http://www.springframework.org/schema/util"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-        http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:yarn="http://www.springframework.org/schema/yarn"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+    http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
 
-   <!-- merge the local properties, the props bean and the two properties files -->        
-    <yarn:configuration properties-ref="props" properties-location="cfg-1.properties, cfg-2.properties">
-      star=chasing
-      captain=eo
-    </yarn:configuration>
+  <!-- merge the local properties, the props bean and the two properties files -->        
+  <yarn:configuration properties-ref="props" properties-location="cfg-1.properties, cfg-2.properties">
+    star=chasing
+    captain=eo
+  </yarn:configuration>
      
-    <util:properties id="props" location="props.properties"/>     
+  <util:properties id="props" location="props.properties"/>     
 </beans>]]></programlisting>
      
     <para>When merging several properties, ones defined locally win. In the example
@@ -221,8 +224,8 @@
 	
     <note>For more properties utilities, including using the System as a source or
 	fallback, or control over the merging order, consider using Spring's <literal>
-    <ulink url="http://static.springsource.org/spring/docs/3.0.x/api/org/springframework/beans/factory/config/PropertiesFactoryBean.html">PropertiesFactoryBean</ulink></literal> (which is what Spring for Apache Hadoop and 
-    <literal>util:properties</literal> use underneath).</note>
+    <ulink url="http://static.springsource.org/spring/docs/3.0.x/api/org/springframework/beans/factory/config/PropertiesFactoryBean.html">PropertiesFactoryBean</ulink></literal> (which is what Spring for
+	Apache Hadoop Yarn and <literal>util:properties</literal> use underneath).</note>
      
     <para><anchor id="yarn:config:inherit"/>It is possible to create configuration
 	based on existing ones - this allows one to create dedicated configurations, slightly
@@ -234,12 +237,12 @@
 
     <programlisting language="xml"><![CDATA[<!-- default name is 'yarnConfiguration' -->
 <yarn:configuration>
-  fs.default.name=${hd.fs}
+  fs.defaultFS=${hd.fs}
   hadoop.tmp.dir=file://${java.io.tmpdir}
 </yarn:configuration>
      
 <yarn:configuration id="custom" configuration-ref="yarnConfiguration">
-  fs.default.name=${custom.hd.fs}
+  fs.defaultFS=${custom.hd.fs}
 </yarn:configuration>     
 
 ...
@@ -266,17 +269,18 @@
 	<emphasis>Container</emphasis> is run in a hadoop cluster, usually there
 	are dependencies to various files. These files needs to be localized into
 	a running <emphasis>Container</emphasis>. Localization is
-	a process where dependent files are copied into container's
-	working directory and thus can be used within the <emphasis>Container</emphasis>
-	itself.</para>
+	a process where dependent files are copied into node's
+	directory structure and thus can be used within the <emphasis>Container</emphasis>
+	itself. Yarn itself tries to provide isolation in a way that multiple
+	containers and applications would not clash.</para>
 
     <para>In order to use local resources, one needs to create an implementation
 	of <interfacename>ResourceLocalizer</interfacename> interface. In its
-	simples form, resource localizer can be defined as:</para>
+	simplest form, resource localizer can be defined as:</para>
 
-    <programlisting language="xml"><![CDATA[<yarn:localresources>
-  <yarn:hdfs path="/path/in/hdfs/my.jar"/>
-</yarn:localresources>
+    <programlisting language="xml"><![CDATA[<localresources>
+  <hdfs path="/path/in/hdfs/my.jar"/>
+</localresources>
 ]]></programlisting>
 
     <para>The declaration above defines a <interfacename>ResourceLocalizer</interfacename>
@@ -301,33 +305,33 @@
 	than the default bean, <emphasis>configuration-ref</emphasis> parameter
 	can be used to make a reference to other defined configurations.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:localresources configuration-ref="yarnConfiguration">
-  <yarn:hdfs path="/path/in/hdfs/my.jar"/>
-</yarn:localresources>
+    <programlisting language="xml"><![CDATA[<localresources configuration-ref="yarnConfiguration">
+  <hdfs path="/path/in/hdfs/my.jar"/>
+</localresources>
 ]]></programlisting>     
 
     <para>For example, client defining a launch context for
-	Application Master needs to access dependent hdfs entries. The one
+	<emphasis>Application Master</emphasis> needs to access dependent hdfs entries. The one
 	defining and using <interfacename>ResourceLocalizer</interfacename> bean
 	may have a different hdfs address than the Node Manager preparing the
 	Container. Effectively hdfs entry given to resource localizer needs to be
-	accessed from a Node Manager.</para>
+	accessed from a <emphasis>Node Manager</emphasis>.</para>
 	
     <para>To overcome this problem, parameters <emphasis>local</emphasis> and
 	<emphasis>remote</emphasis> can be used to define a different hdfs base entries.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:localresources local="hdfs://0.0.0.0:9000" remote="hdfs://0.0.0.0:9000">
-  <yarn:hdfs path="/app/multi-context/multi-context-1.0.0.M1.jar"/>
-  <yarn:hdfs path="/app/spring-yarn-core-1.0.0.BUILD-SNAPSHOT.jar"/>
-</yarn:localresources>
+    <programlisting language="xml"><![CDATA[<localresources local="hdfs://0.0.0.0:9000" remote="hdfs://10.10.10.10:9000">
+  <hdfs path="/app/multi-context/multi-context-1.0.0.M1.jar"/>
+  <hdfs path="/app/spring-yarn-core-1.0.0.BUILD-SNAPSHOT.jar"/>
+</localresources>
 ]]></programlisting>     
 
     <para>Yarn resource localizer is using additional parameters to define entry type
 	and visibility. Usage is described below:</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:localresources>
-  <yarn:hdfs path="/path/in/hdfs/my.jar" type="FILE" visibility="APPLICATION"/>
-</yarn:localresources>
+    <programlisting language="xml"><![CDATA[<localresources>
+  <hdfs path="/path/in/hdfs/my.jar" type="FILE" visibility="APPLICATION"/>
+</localresources>
 ]]></programlisting>
 
     <table id="yarn:localresources:localresourcesflags" pgwide="1" align="center">
@@ -429,7 +433,7 @@
 	read those variable at any time it is considered bad design if
 	one chooce to do so. Spring Yarn will pass variable into application
 	before any business methods are executed, which makes things more
-	clearly and testing becomes much easier.</para>
+	clearly and testing becomes much more easier.</para>
 	
     <programlisting language="xml"><![CDATA[<yarn:environment/>]]></programlisting>	
 	
@@ -445,15 +449,15 @@
 	to run some java code with libraries so classpath needs to
 	be defined anyway.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:environment include-system-env="false">
-  <yarn:classpath default-yarn-app-classpath="true" delimiter=":">
+    <programlisting language="xml"><![CDATA[<environment include-system-env="false">
+  <classpath default-yarn-app-classpath="true" delimiter=":">
     ./*
-  </yarn:classpath>
-</yarn:environment>]]></programlisting>     
+  </classpath>
+</environment>]]></programlisting>     
 	
-    <para>If <emphasis>default-yarn-app-classpath</emphasis> parameter a default
-	yarn entries will be added to classpath automatically. Resulting entries
-	are shown below:</para>
+    <para>If <emphasis>default-yarn-app-classpath</emphasis> parameter is set to
+    <emphasis>true</emphasis>(default value) a default yarn entries will be added to classpath
+	automatically. Resulting entries are shown below:</para>
 
     <programlisting language="xml"><![CDATA[$HADOOP_CONF_DIR:
 $HADOOP_COMMON_HOME/share/hadoop/common/*:
@@ -534,15 +538,16 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	
   	<para>Client is always your entry point when interacting with
 	a Yarn system whether one is about to submit a new application
-	instance or just querying <emphasis>Resource Manager</emphasis>.
+	instance or just querying <emphasis>Resource Manager</emphasis>
+	for running application(s) status.
 	Currently support for client is very limited and a simple
 	command to start <emphasis>Application Master</emphasis>
 	can be defined. If there is just a need to query
 	<emphasis>Resource Manager</emphasis>, command
 	definition is not needed.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:client>
-  <yarn:master-command>
+    <programlisting language="xml"><![CDATA[<client>
+  <master-command>
     <![CDATA[
       /usr/local/java/bin/java
       org.springframework.yarn.am.CommandLineAppmasterRunner
@@ -552,13 +557,15 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
       1><LOG_DIR>/AppMaster.stdout
       2><LOG_DIR>/AppMaster.stderr
     ]]]]><![CDATA[>
-  </yarn:master-command>
-</yarn:client>]]></programlisting>     
+  </master-command>
+</client>]]></programlisting>     
 
     <para>The declaration above defines a <interfacename>YarnClient</interfacename>
 	bean (to be precise a factory bean of type 
 	<classname>YarnClientFactoryBean</classname>) named, by default,
-	<emphasis>yarnClient</emphasis>.</para>
+	<emphasis>yarnClient</emphasis>. It also defines a command launching
+	an <emphasis>Application Master</emphasis> using
+	<literal>&lt;master-command&gt;</literal> entry.</para>
 
     <table id="yarn:client:clientflags" pgwide="1" align="center">
         <title><literal>client</literal> attributes</title>
@@ -612,10 +619,10 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
     <title>Defining Application Master</title>
 	
   	<para>Application master is responsible for container allocation,
-	launcher and monitoring.</para>
+	launching and monitoring.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:master>
-  <yarn:container-command>
+    <programlisting language="xml"><![CDATA[<master>
+  <container-command>
     <![CDATA[
       /usr/local/java/bin/java
       org.springframework.yarn.container.CommandLineContainerRunner
@@ -623,14 +630,21 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
       1><LOG_DIR>/Container.stdout
       2><LOG_DIR>/Container.stderr
     ]]]]><![CDATA[>
-  </yarn:container-command>
-</yarn:master>
+  </container-command>
+</master>
 ]]></programlisting>     
 
     <para>The declaration above defines a <interfacename>YarnAppmaster</interfacename>
 	bean (to be precise a factory bean of type 
 	<classname>AppmasterFactoryBean</classname>) named, by default,
-	<emphasis>yarnAppmaster</emphasis>.</para>
+	<emphasis>yarnAppmaster</emphasis>. It also defines a command launching
+	a <emphasis>Container(s)</emphasis> using
+	<literal>&lt;container-command&gt;</literal> entry.</para>
+	
+	<para>Currently there is a simple implementation of
+	<classname>StaticAppmaster</classname> which is able to allocate and
+	launch a number of containers. These containers are monitored
+	by querying resource manager for container execution completion.</para>
 	
     <table id="yarn:master:masterflags" pgwide="1" align="center">
         <title><literal>master</literal> attributes</title>

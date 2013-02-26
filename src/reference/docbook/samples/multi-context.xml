@@ -19,7 +19,44 @@
 	that instead of asking container to execute a shell command,
 	a Spring Application context is started and a defined bean
 	method inside of it is executed.</para>
+	
+	<para>There is a dedicated <classname>CommandLineContainerRunner</classname>
+	which knows how to launch a container based on a Spring Application
+	Context and then wait for the container to do its tasks. This runner
+	class uses <literal>container-context.xml</literal> file and
+	expects to find a bean implementing
+	<interfacename>YarnContainer</interfacename> interface.</para>
 
+    <programlisting language="java"><![CDATA[<bean id="yarnContainer" class="org.springframework.yarn.examples.MultiContextBeanExample"/>]]></programlisting>
+	
+	<para>Bean then just writes a log message.</para>
+	
+    <programlisting language="java"><![CDATA[public class MultiContextBeanExample implements YarnContainer {
+    private static final Log log = LogFactory.getLog(MultiContextBeanExample.class);
+    @Override
+    public void run() {
+        log.info("Hello from MultiContextBeanExample");
+    }
+}	
+]]></programlisting>
+	
+    <para>If you have hadoop installed on a same machine where this example
+	is executed, simply run below command:</para>
+
+    <programlisting language="java"><![CDATA[./gradlew -q run-multi-context]]></programlisting>
+
+    <para>Connecting to remote hdfs and resource manage, you can define
+	additional parameters.</para>
+	
+    <programlisting language="java"><![CDATA[./gradlew -q run-multi-context \
+    -Dhd.fs=hdfs://192.168.223.139:9000 \
+    -Dhd.rm=192.168.223.139:8032 \
+    -Dlocalresources.remote=hdfs://192.168.223.139:9000
+]]></programlisting>
+	
+    <para>Just like in previous <emphasis>simple-command</emphasis> example
+	you'd see log files written in Hadoop's user logs.</para>	
+	
     <para>The example code is located in the sample 
     <ulink url="http://github.com/jvalkeal/spring-yarn-samples">repository</ulink>
 	under the <literal>basic/multi-context</literal>.</para>

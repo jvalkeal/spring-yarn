@@ -55,7 +55,7 @@
     <xi:include href="samples/multi-context.xml"/>
   </part>
 
-  <part id="yarn">
+  <part id="yarnintroduction">
     <title>Yarn Introduction</title>
     <xi:include href="yarn/introduction.xml"/>      
     <xi:include href="yarn/yarnintro.xml"/>      

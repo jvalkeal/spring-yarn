@@ -16,7 +16,7 @@
 
     <para>This example shows how <emphasis>Application Client</emphasis>
 	is used to launch the instance of <emphasis>Application Master</emphasis>
-	which then allocates and launches two container where a simple
+	which then allocates and launches two containers where a simple
 	<emphasis>date</emphasis> command is run.</para>
 
     <para>If you have hadoop installed on a same machine where this example

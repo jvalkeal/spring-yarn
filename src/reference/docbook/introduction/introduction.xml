@@ -2,11 +2,19 @@
 
 <partintro xmlns="http://docbook.org/ns/docbook" version="5.0">
 
-  <para>Spring for Apache Hadoop Yarn provides integration with the Spring Framework to create and run Hadoop Yarn applications.</para>
+    <para>Spring for Apache Hadoop Yarn provides integration with the Spring
+    Framework to create and run Hadoop Yarn applications.</para>
   
-  <para>This document is the reference guide for Spring for Apache Hadoop project (SYARN). It explains the relationship between the Spring framework and Hadoop
-  The first part describes the integration wtih the Spring framework to define the base concepts and semantics of the 
-  integration and how they can be use effectively.
-  </para>
+    <para>This document is the reference guide for Spring for Apache Hadoop
+	project (SYARN). It explains the relationship between the Spring framework
+	and Hadoop. The first part describes the integration wtih the Spring framework
+	to define the base concepts and semantics of the integration and
+	how they can be use effectively.
+    </para>
+	
+	<note>
+	    <para>This project as well as Apache Hadoop Yarn are still on alpha phase
+		meaning api's, configuration and general usage is subject to change.</para>
+	</note>
   
 </partintro>

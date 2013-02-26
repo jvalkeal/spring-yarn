@@ -28,7 +28,7 @@
   
     <title>Application Configuration</title>
 
-    <para>To define a client, everything is pretty much defaults:</para>
+    <para>To define a client, everything is almost left as defaults:</para>
 
     <programlisting language="xml"><![CDATA[<context:property-placeholder location="hadoop.properties" system-properties-mode="OVERRIDE"/>
 
