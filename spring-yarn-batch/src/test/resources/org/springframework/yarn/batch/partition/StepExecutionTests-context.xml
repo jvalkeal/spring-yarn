@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+    
+    <bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+    <bean id="reader" class="org.springframework.yarn.batch.partition.ExampleItemReader"/>
+    <bean id="writer" class="org.springframework.yarn.batch.partition.ExampleItemWriter"/>
+        
+    <bean id="jobRepository" class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+
+    <bean id="jobExplorer" class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
+        <property name="repositoryFactory" ref="&amp;jobRepository" />
+    </bean>
+    
+    <bean id="stepLocator" class="org.springframework.yarn.batch.partition.BeanFactoryStepLocator"/>
+    <bean id="partitioner" class="org.springframework.batch.core.partition.support.SimplePartitioner"/>
+    <bean id="partitionHandler" class="org.springframework.yarn.batch.partition.StepExecutionTests$ExamplePartitionHandler">
+        <property name="stepLocator" ref="stepLocator"/>
+        <property name="jobExplorer" ref="jobExplorer"/>
+    </bean>
+    
+    <bean id="hello" class="org.springframework.yarn.batch.partition.PrintTasklet">
+        <property name="message" value="Hello"/>
+    </bean>
+    
+    <batch:job id="job">
+        <batch:step id="master">
+            <batch:partition partitioner="partitioner" handler="partitionHandler"/>
+        </batch:step>
+    </batch:job>
+    
+    <!-- for some reason chunk is only executed once -->
+    <!-- 
+    <batch:step id="remoteStep">
+        <batch:tasklet transaction-manager="transactionManager" start-limit="100">
+            <batch:chunk reader="reader" writer="writer" commit-interval="1"/>
+        </batch:tasklet>
+    </batch:step>
+     -->
+    <batch:step id="remoteStep">
+        <batch:tasklet transaction-manager="transactionManager" start-limit="100" ref="hello"/>
+    </batch:step>
+    
+    <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository"/>
+    </bean>
+    
+</beans>

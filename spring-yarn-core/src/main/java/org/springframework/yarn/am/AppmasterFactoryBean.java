@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.yarn.fs.ResourceLocalizer;
@@ -14,7 +17,7 @@ import org.springframework.yarn.fs.ResourceLocalizer;
  * @author Janne Valkealahti
  *
  */
-public class AppmasterFactoryBean implements InitializingBean, FactoryBean<YarnAppmaster> {
+public class AppmasterFactoryBean implements InitializingBean, FactoryBean<YarnAppmaster>, BeanFactoryAware {
 
     private Map<String, String> environment;
     private List<String> commands;
@@ -22,6 +25,7 @@ public class AppmasterFactoryBean implements InitializingBean, FactoryBean<YarnA
     private YarnAppmaster master;
     private AppmasterRmOperations template;
     private ResourceLocalizer resourceLocalizer;
+    private BeanFactory beanFactory;
     
     @Override
     public YarnAppmaster getObject() throws Exception {
@@ -48,6 +52,11 @@ public class AppmasterFactoryBean implements InitializingBean, FactoryBean<YarnA
         }
         
         StaticAppmaster statMaster = new StaticAppmaster();
+        
+        if (statMaster instanceof BeanFactoryAware) {
+            ((BeanFactoryAware) statMaster).setBeanFactory(beanFactory);
+        }        
+        
         statMaster.setConfiguration(configuration);
         statMaster.setCommands(commands);
         statMaster.setTemplate(template);
@@ -55,6 +64,11 @@ public class AppmasterFactoryBean implements InitializingBean, FactoryBean<YarnA
         statMaster.setResourceLocalizer(resourceLocalizer);
         statMaster.afterPropertiesSet();
         master = statMaster;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 
     public void setConfiguration(Configuration configuration) {

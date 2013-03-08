@@ -32,7 +32,7 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
     
     @Override
     public void waitForCompletion() {        
-        for(int i = 0; i<20; i++) {
+        for(int i = 0; i<30; i++) {
             try {
                 if(getMonitor().isCompleted()) {
                     log.debug("got complete from monitor");
@@ -52,6 +52,14 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
         if(getAllocator() instanceof SmartLifecycle) {
             ((SmartLifecycle)getAllocator()).start();
         }
+        
+        AppmasterService service = getAppmasterService();
+        log.info("AppmasterService: " + service);
+        
+        if(getAppmasterService() instanceof SmartLifecycle) {
+            ((SmartLifecycle)getAppmasterService()).start();
+        }
+        
     }
 
 

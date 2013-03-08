@@ -4,6 +4,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -18,7 +21,7 @@ import org.springframework.util.Assert;
  * @author Janne Valkealahti
  * 
  */
-public abstract class LifecycleObjectSupport implements InitializingBean, SmartLifecycle {
+public abstract class LifecycleObjectSupport implements InitializingBean, SmartLifecycle, BeanFactoryAware {
 
     private static final Log log = LogFactory.getLog(LifecycleObjectSupport.class);
 
@@ -34,6 +37,9 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
     private TaskScheduler taskScheduler;
     private TaskExecutor taskExecutor;
 
+    // to access bean factory
+    private volatile BeanFactory beanFactory;
+    
     @Override
     public final void afterPropertiesSet() {
         try {
@@ -44,6 +50,15 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
             }
             throw new BeanInitializationException("failed to initialize", e);
         }
+    }
+    
+    @Override
+    public final void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        Assert.notNull(beanFactory, "beanFactory must not be null");
+        if(log.isDebugEnabled()) {
+            log.debug("Setting bean factory: " + beanFactory + " for " + this);
+        }
+        this.beanFactory = beanFactory;        
     }
 
     @Override
@@ -116,6 +131,15 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
             this.lifecycleLock.unlock();
         }
     }
+    
+    /**
+     * Gets the {@link BeanFactory} for this instance.
+     * 
+     * @return the bean factory.
+     */
+    protected final BeanFactory getBeanFactory() {
+        return beanFactory;
+    }    
 
     /**
      * Sets the used {@link TaskScheduler}.

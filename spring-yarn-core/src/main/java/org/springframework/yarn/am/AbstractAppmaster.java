@@ -19,6 +19,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
 import org.springframework.yarn.fs.ResourceLocalizer;
 import org.springframework.yarn.support.LifecycleObjectSupport;
+import org.springframework.yarn.support.YarnContextUtils;
 
 /**
  * Base class providing functionality for common application
@@ -33,21 +34,27 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
     
     /** Environment variables for the process */
     private Map<String, String> environment;
+
     /** Yarn configuration */
     private Configuration configuration;
+
     /** Commands for container start */
     private List<String> commands;
+
     /** Template operations talking to resource manager */
     private AppmasterRmOperations rmTemplate;
+
     /** Cached app attempt id */
     private ApplicationAttemptId appAttemptId;
+
     /** Parameters passed to application */
     private Properties parameters;
+
     /** Resource localizer for the containers */
     private ResourceLocalizer resourceLocalizer;
-    
-    public AbstractAppmaster() {
-    }
+
+    /** Handle to service if exists */
+    private AppmasterService appmasterService;
     
     /**
      * Global application master instance specific {@link ApplicationAttemptId}
@@ -72,6 +79,19 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
     @Override
     protected void doStop() {
         finishAppmaster();
+    }
+
+    /**
+     * Gets a {@link AppmasterService} set to this instance.
+     * 
+     * @return the instance of {@link AppmasterService}
+     */
+    protected AppmasterService getAppmasterService() {
+        if(appmasterService == null && getBeanFactory() != null) {
+            log.debug("getting appmaster service from bean factory " + getBeanFactory());
+            appmasterService = YarnContextUtils.getAppmasterService(getBeanFactory());
+        }
+        return appmasterService;
     }
 
     public AppmasterRmOperations getTemplate() {

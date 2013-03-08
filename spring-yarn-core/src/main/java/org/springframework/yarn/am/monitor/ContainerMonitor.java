@@ -9,5 +9,6 @@ public interface ContainerMonitor {
     void setTotal(int count);
     boolean isCompleted();
     void monitorContainer(List<ContainerStatus> completedContainers);
+    void setCompleted();
     
 }

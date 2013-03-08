@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/yarn/batch"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:tool="http://www.springframework.org/schema/tool"
+    targetNamespace="http://www.springframework.org/schema/yarn/batch"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    version="1.0.0">
+    
+    <xsd:import namespace="http://www.springframework.org/schema/beans" />
+    <xsd:import namespace="http://www.springframework.org/schema/tool" />
+    
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[
+Defines the configuration elements for Spring Yarn.
+        ]]></xsd:documentation>
+    </xsd:annotation>    
+    
+    <!-- start of top level types -->
+    
+    <xsd:element name="master">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="clientType">             
+                    <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                        <xsd:choice>
+                            <xsd:element name="container-command" type="containerCommandType"/>
+                        </xsd:choice>
+                    </xsd:sequence>                
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    
+
+
+
+    <xsd:complexType name="containerCommandType" mixed="true">
+        <xsd:attribute name="command-impl-class" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="clientType">
+        <xsd:attribute name="id" type="xsd:ID" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+Bean id.
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="configuration-ref" default="yarnConfiguration"/>
+        <xsd:attribute name="resourcelocalizer-ref" default="yarnLocalresources"/>
+        <xsd:attribute name="environment-ref" default="yarnEnvironment"/>
+        <xsd:attribute name="job-ref" default="job"/>
+        <xsd:attribute name="joblauncher-ref" default="jobLauncher"/>
+    </xsd:complexType>
+
+        
+        
+</xsd:schema>

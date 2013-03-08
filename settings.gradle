@@ -1,3 +1,5 @@
 rootProject.name = 'spring-yarn'
 
 include 'spring-yarn-core'
+include 'spring-yarn-integration'
+include 'spring-yarn-batch'

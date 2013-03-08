@@ -59,7 +59,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
         // will pick it up later
         int newCount = numRequestedContainers.addAndGet(count);
         if(log.isDebugEnabled()) {
-            log.debug("Adding " + count + " new containers. New count is" + newCount);
+            log.debug("Adding " + count + " new containers. New count is " + newCount + " object:" + this);
         }
     }
     
@@ -73,7 +73,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
         int count = numRequestedContainers.getAndSet(0);
         
         if(log.isDebugEnabled()) {
-            log.debug("Requesting " + count + " new containers");
+            log.debug("Requesting " + count + " new containers. " + " object:" + this);
         }
         
         List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();

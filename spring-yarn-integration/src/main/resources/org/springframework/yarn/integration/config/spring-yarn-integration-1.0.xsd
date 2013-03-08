@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:tool="http://www.springframework.org/schema/tool"
+    targetNamespace="http://www.springframework.org/schema/yarn/integration"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    version="1.0.0">
+    
+    <xsd:import namespace="http://www.springframework.org/schema/beans" />
+    <xsd:import namespace="http://www.springframework.org/schema/tool" />
+    
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[
+Defines the configuration elements for Spring Yarn.
+        ]]></xsd:documentation>
+    </xsd:annotation>    
+    
+    <!-- start of top level types -->
+    
+    <xsd:element name="amservice">
+        <xsd:complexType>
+            <xsd:attribute name="id" type="xsd:ID" use="optional"/>
+        </xsd:complexType>
+    </xsd:element>
+    
+
+
+        
+        
+</xsd:schema>

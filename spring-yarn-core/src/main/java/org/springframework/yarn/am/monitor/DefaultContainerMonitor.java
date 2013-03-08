@@ -32,4 +32,9 @@ public class DefaultContainerMonitor implements ContainerMonitor {
         return completed >= total;
     }
 
+    @Override
+    public void setCompleted() {
+        completed = total;
+    }
+
 }

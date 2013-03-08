@@ -11,9 +11,12 @@ configure(allprojects) {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'idea'
+	
+	sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 
     group = 'org.springframework.yarn'
-
+	
     [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:none']
 
     repositories {
@@ -71,10 +74,19 @@ project('spring-yarn-core') {
     description = "Spring YARN Core"
     
     dependencies {
-        compile ("org.apache.hadoop:hadoop-yarn-api:$hadoopVersion", provided)
-        compile ("org.apache.hadoop:hadoop-yarn-common:$hadoopVersion", provided)
-        compile ("org.apache.hadoop:hadoop-yarn-client:$hadoopVersion", provided)
-        compile ("org.apache.hadoop:hadoop-common:$hadoopVersion", provided)
+        compile ("org.apache.hadoop:hadoop-yarn-api:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-common:$hadoopVersion") {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-client:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-common:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+		
 		
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
@@ -85,6 +97,38 @@ project('spring-yarn-core') {
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
+    }
+}
+
+project('spring-yarn-integration') {
+
+    description = "Spring YARN integration"
+	
+    dependencies {		
+		compile project(":spring-yarn-core")
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
+		testCompile "junit:junit:$junitVersion"
+		testCompile "org.springframework:spring-test:$springVersion"
+    }
+}
+
+project('spring-yarn-batch') {
+
+    description = "Spring YARN batch"
+    
+    dependencies {		
+		compile project(":spring-yarn-core")
+		compile project(":spring-yarn-integration")
+        compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+        compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		testCompile "junit:junit:$junitVersion"
+		testCompile "org.springframework:spring-test:$springVersion"
+		testRuntime ("io.netty:netty:3.5.9.Final") {
+			exclude group: 'org.jboss.netty'
+		}
     }
 }
 

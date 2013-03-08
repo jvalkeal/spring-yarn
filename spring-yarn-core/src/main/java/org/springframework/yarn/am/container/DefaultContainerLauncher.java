@@ -12,6 +12,7 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.yarn.am.AppmasterCmTemplate;
+import org.springframework.yarn.am.ContainerLauncherInterceptor;
 import org.springframework.yarn.fs.ResourceLocalizer;
 
 /**
@@ -27,6 +28,7 @@ public class DefaultContainerLauncher implements ContainerLauncher {
     private Configuration configuration;
     private ResourceLocalizer resourceLocalizer;
     private Map<String, String> environment;
+    private ContainerLauncherInterceptor launcherInterceptor;
     
     public DefaultContainerLauncher(Configuration configuration, ResourceLocalizer resourceLocalizer, Map<String, String> environment) {
         this.configuration = configuration;
@@ -54,6 +56,10 @@ public class DefaultContainerLauncher implements ContainerLauncher {
         ctx.setCommands(commands);        
         ctx.setEnvironment(environment);
         
+        if(launcherInterceptor != null) {
+            ctx = launcherInterceptor.preLaunch(ctx);
+        }
+        
         StartContainerRequest startReq = Records.newRecord(StartContainerRequest.class);
         startReq.setContainerLaunchContext(ctx);
         
@@ -63,5 +69,11 @@ public class DefaultContainerLauncher implements ContainerLauncher {
     public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
         this.resourceLocalizer = resourceLocalizer;
     }
+
+    public void setContainerLauncherInterceptor(ContainerLauncherInterceptor launcherInterceptor) {
+        this.launcherInterceptor = launcherInterceptor;
+    }
+    
+    
     
 }
