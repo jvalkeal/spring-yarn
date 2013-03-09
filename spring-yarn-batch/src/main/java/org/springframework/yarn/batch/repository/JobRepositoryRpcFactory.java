@@ -1,6 +1,7 @@
 package org.springframework.yarn.batch.repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -225,17 +226,34 @@ public class JobRepositoryRpcFactory {
         return message;
     }
     
-//    public static StepExecutionType buildStepExecutionType(StepExecution stepExecution) {
-//        return buildStepExecutionType(stepExecution, null);
-//    }
-    
+    /**
+     * Creates {@link StepExecutionType} from {@link StepExecution}.
+     * 
+     * @param stepExecution the step execution
+     * @return the step execution type
+     * @see #buildStepExecutionType(StepExecution, JobExecution)
+     */
     public static StepExecutionType buildStepExecutionType(StepExecution stepExecution) {
+        return buildStepExecutionType(stepExecution, null);
+    }
+    
+    /**
+     * Creates {@link StepExecutionType} from {@link StepExecution}. Second
+     * argument {@link JobExecution} is only used as a back reference to
+     * prevent never ending loop for serialization logic due to references
+     * between {@link StepExecution} and {@link JobExecution}.
+     * 
+     * @param stepExecution the step execution
+     * @param jobExecution the job execution
+     * @return the step execution type
+     */
+    public static StepExecutionType buildStepExecutionType(StepExecution stepExecution, JobExecution jobExecution) {
         StepExecutionType type = new StepExecutionType();
         type.id = stepExecution.getId();
         type.version = stepExecution.getVersion();
         type.stepName = stepExecution.getStepName();
 
-        type.jobExecution = buildJobExecutionType(stepExecution.getJobExecution());
+        type.jobExecution = buildJobExecutionType(stepExecution.getJobExecution(), stepExecution);
         
         type.status = stepExecution.getStatus();
         type.readCount = stepExecution.getReadCount();
@@ -290,11 +308,28 @@ public class JobRepositoryRpcFactory {
         return stepExecution;
     }
 
-//    public static JobExecutionType buildJobExecutionType(JobExecution jobExecution) {
-//        return buildJobExecutionType(jobExecution, null);
-//    }
-    
+    /**
+     * Creates {@link JobExecutionType} from {@link JobExecution}.
+     * 
+     * @param jobExecution the job execution
+     * @return the job execution type
+     * @see #buildJobExecutionType(JobExecution, StepExecution)
+     */
     public static JobExecutionType buildJobExecutionType(JobExecution jobExecution) {
+        return buildJobExecutionType(jobExecution, null);
+    }
+    
+    /**
+     * Creates {@link JobExecutionType} from {@link JobExecution}. Second
+     * argument {@link StepExecution} is only used as a back reference to
+     * prevent never ending loop for serialization logic due to references
+     * between {@link StepExecution} and {@link JobExecution}.
+     * 
+     * @param jobExecution the job execution
+     * @param stepExecution the step execution
+     * @return the job execution type
+     */
+    public static JobExecutionType buildJobExecutionType(JobExecution jobExecution, StepExecution stepExecution) {
         JobExecutionType type = new JobExecutionType();
         type.id = jobExecution.getId();
         type.version = jobExecution.getVersion();
@@ -309,10 +344,10 @@ public class JobRepositoryRpcFactory {
         type.exitStatus = jobExecution.getExitStatus().getExitCode();
         
         type.stepExecutions = new ArrayList<StepExecutionType>();
-        for (StepExecution stepExecution : jobExecution.getStepExecutions()) {
-            // TODO: if clause breakes org.springframework.yarn.batch.repository.RemoteStepExecutionDaoTests.testSaveAndFindExecution()
-            if(!jobExecution.getStepExecutions().contains(stepExecution)) {
-                type.stepExecutions.add(buildStepExecutionType(stepExecution));                
+        
+        for (StepExecution stepExecution2 : jobExecution.getStepExecutions()) {
+            if(!jobExecution.getStepExecutions().contains(stepExecution2) || stepExecution == null) {
+                type.stepExecutions.add(buildStepExecutionType(stepExecution2, jobExecution));                
             }
         }
         

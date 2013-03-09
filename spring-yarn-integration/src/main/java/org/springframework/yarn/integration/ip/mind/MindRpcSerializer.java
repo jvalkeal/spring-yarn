@@ -58,10 +58,12 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
     }
 
     /**
+     * Reads the first line as a protocol header and parses sizes of
+     * underlying headers and content.
      * 
-     * @param inputStream
-     * @return
-     * @throws IOException
+     * @param inputStream the input stream
+     * @return int array containing sizes of headers and content
+     * @throws IOException if read error occured
      */
     protected int[] readHeader(InputStream inputStream) throws IOException {
         int[] ret = new int[]{0,0};
@@ -103,11 +105,12 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
     }
     
     /**
+     * Reads a message headers from inputstream with a given length.
      * 
-     * @param inputStream
-     * @param length
-     * @return
-     * @throws IOException
+     * @param inputStream the input stream
+     * @param length how much to read from a stream
+     * @return Map of headers
+     * @throws IOException if error occured
      */
     protected Map<String, String> readHeaders(InputStream inputStream, int length) throws IOException {
         Map<String, String> map = new HashMap<String, String>();
@@ -128,22 +131,12 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
     }
 
     /**
+     * Helper method to read bytes from a stream.
      * 
-     * @param inputStream
-     * @param length
-     * @return
-     * @throws IOException
-     */
-//    protected String readContent(InputStream inputStream, int length) throws IOException {
-//        return new String(readBytes(inputStream, length));
-//    }
-    
-    /**
-     * 
-     * @param inputStream
-     * @param length
-     * @return
-     * @throws IOException
+     * @param inputStream the input stream
+     * @param length how much to read
+     * @return bytes to read
+     * @throws IOException if error occured
      */
     protected byte[] readBytes(InputStream inputStream, int length) throws IOException {
         byte[] buffer = new byte[length];

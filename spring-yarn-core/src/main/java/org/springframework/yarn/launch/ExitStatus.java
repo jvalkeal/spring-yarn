@@ -138,8 +138,10 @@ public class ExitStatus implements Serializable, Comparable<ExitStatus> {
 	}
 
 	/**
-	 * @param status
-	 * @return
+	 * Maps exit status to a return code.
+	 * 
+	 * @param status the exit status
+	 * @return mapped exit code
 	 */
 	private int severity(ExitStatus status) {
 		if (status.exitCode.startsWith(EXECUTING.exitCode)) {

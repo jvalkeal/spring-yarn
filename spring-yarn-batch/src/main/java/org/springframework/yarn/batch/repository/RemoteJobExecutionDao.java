@@ -47,12 +47,20 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     }
 
     @Override
-    public void updateJobExecution(JobExecution jobExecution) {
+    public void updateJobExecution(JobExecution jobExecution) {        
+        validateJobExecution(jobExecution);
+        Assert.notNull(jobExecution.getId(),
+                "JobExecution ID cannot be null. JobExecution must be saved before it can be updated");
+        Assert.notNull(jobExecution.getVersion(),
+                "JobExecution version cannot be null. JobExecution must be saved before it can be updated");
+        
         try {
             RpcMessage<?> request = JobRepositoryRpcFactory.buildUpdateJobExecutionReq(jobExecution);
             RpcMessage<?> response = getAppmasterScOperations().get(request);
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
             UpdateJobExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateJobExecutionRes.class);
+            checkResponseMayThrow(responseBody);
+            jobExecution.setVersion(responseBody.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }                
@@ -135,8 +143,9 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
             RpcMessage<?> response = getAppmasterScOperations().get(request);            
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
             SynchronizeStatusRes responseBody = JobRepositoryRpcFactory.convert(holder, SynchronizeStatusRes.class);            
+            checkResponseMayThrow(responseBody);
             
-            if(jobExecution.getVersion() != responseBody.version) {
+            if(jobExecution.getVersion().intValue() != responseBody.getVersion().intValue()) {
                 jobExecution.upgradeStatus(responseBody.status);
                 jobExecution.setVersion(responseBody.version);
             }

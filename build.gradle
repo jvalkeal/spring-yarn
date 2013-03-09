@@ -108,6 +108,8 @@ project('spring-yarn-integration') {
 		compile project(":spring-yarn-core")
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
@@ -124,6 +126,8 @@ project('spring-yarn-batch') {
         compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
         compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
+		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
 		testRuntime ("io.netty:netty:3.5.9.Final") {

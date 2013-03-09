@@ -8,11 +8,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.partition.PartitionHandler;
-import org.springframework.batch.core.partition.StepExecutionSplitter;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
@@ -20,7 +17,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.yarn.am.AbstractProcessingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
-import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.am.YarnAppmaster;
 
 /**
@@ -125,6 +121,7 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
         return map;
     }
     
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public ContainerLaunchContext preLaunch(ContainerLaunchContext context) {
         AppmasterService service = getAppmasterService();

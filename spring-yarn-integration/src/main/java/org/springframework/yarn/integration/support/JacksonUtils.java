@@ -6,6 +6,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 
 public class JacksonUtils {
 
+    @SuppressWarnings("deprecation")
     public static ObjectMapper getObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);

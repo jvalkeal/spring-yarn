@@ -126,11 +126,9 @@ public class RemoteJobExecutionDaoTests {
      */
     @Test
     public void testGetLastExecution() {
-//        JobExecution exec1 = new JobExecution(jobInstance, jobParameters);
         JobExecution exec1 = new JobExecution(jobInstance);
         exec1.setCreateTime(new Date(0));
 
-//        JobExecution exec2 = new JobExecution(jobInstance, jobParameters);
         JobExecution exec2 = new JobExecution(jobInstance);
         exec2.setCreateTime(new Date(1));
 
@@ -220,10 +218,11 @@ public class RemoteJobExecutionDaoTests {
         assertNull(value);
     }
 
-    /**
-     * Exception should be raised when the version of update argument doesn't
-     * match the version of persisted entity.
-     */
+    // TODO: enable this test when we get errors via remote calls
+//    /**
+//     * Exception should be raised when the version of update argument doesn't
+//     * match the version of persisted entity.
+//     */
 //    @Test
 //    public void testConcurrentModificationException() {
 //
@@ -282,12 +281,10 @@ public class RemoteJobExecutionDaoTests {
     @Test
     public void testSynchronizeStatusDowngrade() {
 
-//        JobExecution exec1 = new JobExecution(jobInstance, jobParameters);
         JobExecution exec1 = new JobExecution(jobInstance);
         exec1.setStatus(BatchStatus.STARTED);
         dao.saveJobExecution(exec1);
 
-//        JobExecution exec2 = new JobExecution(jobInstance, jobParameters);
         JobExecution exec2 = new JobExecution(jobInstance);
         Assert.state(exec1.getId() != null);
         exec2.setId(exec1.getId());
@@ -316,8 +313,7 @@ public class RemoteJobExecutionDaoTests {
         assertEquals(lhs.getEndTime(), rhs.getEndTime());
         assertEquals(lhs.getCreateTime(), rhs.getCreateTime());
         assertEquals(lhs.getLastUpdated(), rhs.getLastUpdated());
-        // TODO: check version field. 
-//        assertEquals(lhs.getVersion(), rhs.getVersion());
+        assertEquals(lhs.getVersion(), rhs.getVersion());
     }
     
 

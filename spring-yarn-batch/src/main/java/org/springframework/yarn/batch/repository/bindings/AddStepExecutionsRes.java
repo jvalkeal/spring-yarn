@@ -1,10 +1,16 @@
 package org.springframework.yarn.batch.repository.bindings;
 
-public class AddStepExecutionsRes extends BaseObject {
+/**
+ * Response for adding step executions.
+ * 
+ * @author Janne Valkealahti
+ *
+ * @see org.springframework.yarn.batch.repository.RemoteStepExecutionDao#addStepExecutions(JobExecution)
+ * @see org.springframework.batch.core.JobExecution
+ * 
+ */
+public class AddStepExecutionsRes extends BaseResponseObject {
 
-    public String message;
-    public String status;
-    
     public JobExecutionType jobExecution;
     
     public AddStepExecutionsRes() {

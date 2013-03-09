@@ -14,6 +14,14 @@ import org.springframework.yarn.batch.repository.bindings.UpdateStepExecutionRes
 import org.springframework.yarn.client.AppmasterScOperations;
 import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
 
+/**
+ * Proxy implementation of {@link StepExecutionDao}. Passes dao
+ * methods to a remote repository via service calls using 
+ * {@link RpcMessage} messages.
+ * 
+ * @author Janne Valkealahti
+ *
+ */
 public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExecutionDao {
 
     public RemoteStepExecutionDao() {
@@ -34,9 +42,9 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
             RpcMessage<?> response = getAppmasterScOperations().get(request);
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
             SaveStepExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, SaveStepExecutionRes.class);
-            // should we get version from a response?
-            stepExecution.setId(responseBody.id);
-            stepExecution.incrementVersion();
+            checkResponseMayThrow(responseBody);
+            stepExecution.setId(responseBody.getId());
+            stepExecution.setVersion(responseBody.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -49,8 +57,9 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
             RpcMessage<?> response = getAppmasterScOperations().get(request);
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
             UpdateStepExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateStepExecutionRes.class);
-            // should we get version from a response?
-            stepExecution.incrementVersion();
+            checkResponseMayThrow(responseBody);
+            stepExecution.setId(responseBody.getId());
+            stepExecution.setVersion(responseBody.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }        
@@ -73,15 +82,19 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
         return stepExecution;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void addStepExecutions(JobExecution jobExecution) {
         try {
             RpcMessage<?> request = JobRepositoryRpcFactory.buildAddStepExecutionReq(jobExecution);
             RpcMessage<?> response = getAppmasterScOperations().get(request);
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            AddStepExecutionsRes responseBody = JobRepositoryRpcFactory.convert(holder, AddStepExecutionsRes.class);
-            JobExecution convertJobExecutionType = JobRepositoryRpcFactory.convertJobExecutionType(responseBody.jobExecution);            
-            jobExecution.addStepExecutions(new ArrayList(convertJobExecutionType.getStepExecutions()));            
+            
+            AddStepExecutionsRes responseBody = JobRepositoryRpcFactory.convert(holder, AddStepExecutionsRes.class);            
+            checkResponseMayThrow(responseBody);
+            
+            JobExecution retrievedJobExecution = JobRepositoryRpcFactory.convertJobExecutionType(responseBody.jobExecution);            
+            jobExecution.addStepExecutions(new ArrayList(retrievedJobExecution.getStepExecutions()));            
         } catch (Exception e) {
             throw convertException(e);
         }        

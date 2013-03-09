@@ -7,7 +7,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,8 +19,14 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.batch.core.repository.support.SimpleJobRepository;
-import org.springframework.dao.OptimisticLockingFailureException;
 
+/**
+ * Tests for {@link org.springframework.batch.core.repository.dao.StepExecutionDao} using
+ * {@link RemoteStepExecutionDao}.
+ * 
+ * @author Janne Valkealahti
+ * 
+ */
 public class RemoteStepExecutionDaoTests {
 
     protected StepExecutionDao dao; 
@@ -192,6 +197,8 @@ public class RemoteStepExecutionDaoTests {
         dao.addStepExecutions(jobExecution);
         assertEquals("Incorrect size of collection", count, jobExecution.getStepExecutions().size());
     }
+    
+    
 
     private void assertStepExecutionsAreEqual(StepExecution expected, StepExecution actual) {
         assertEquals(expected.getId(), actual.getId());

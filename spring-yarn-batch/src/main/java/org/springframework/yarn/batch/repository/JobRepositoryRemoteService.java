@@ -172,7 +172,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleCreateJobInstance
+     * Handles creating a job instance.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleCreateJobInstance(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;
@@ -214,7 +217,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleGetJobInstance
+     * Handles getting a job instance.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetJobInstance(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;
@@ -255,7 +261,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleGetJobInstanceById
+     * Handles getting job instance by id.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetJobInstanceById(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;
@@ -276,7 +285,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleGetJobNames
+     * Handles getting a job names.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetJobNames(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;
@@ -291,7 +303,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleGetJobInstances
+     * Handles getting a job instances.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetJobInstances(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;
@@ -315,7 +330,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleSaveExecutionContext
+     * Handles saving an execution context.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleSaveExecutionContext(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -340,7 +358,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleGetExecutionContext
+     * Handles getting an execution context.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetExecutionContext(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -375,7 +396,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleUpdateExecutionContext
+     * Handles updating an execution context.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleUpdateExecutionContext(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -401,7 +425,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleFindJobExecutions
+     * Handles saving a job executions.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleFindJobExecutions(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -425,7 +452,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }    
 
     /**
-     * handleSaveJobExecution
+     * Handles saving a job execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleSaveJobExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -446,7 +476,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleUpdateJobExecution
+     * Handles updating a job execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleUpdateJobExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -454,7 +487,7 @@ public class JobRepositoryRemoteService implements InitializingBean {
             UpdateJobExecutionReq request = JobRepositoryRpcFactory.convert(holder, UpdateJobExecutionReq.class);
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
             jobExecutionDao.updateJobExecution(jobExecution);
-            UpdateJobExecutionRes response = new UpdateJobExecutionRes();
+            UpdateJobExecutionRes response = new UpdateJobExecutionRes(jobExecution.getVersion());
             
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
@@ -465,7 +498,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleGetLastJobExecution
+     * Handles getting a last job execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetLastJobExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -488,7 +524,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }    
 
     /**
-     * handleFindRunningJobExecutions
+     * Handles finding running job executions.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleFindRunningJobExecutions(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -511,7 +550,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }    
     
     /**
-     * handleGetJobExecution
+     * Handles getting a job execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetJobExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -531,7 +573,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }    
     
     /**
-     * handleSynchronizeStatus
+     * Handles synchronizing a job execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleSynchronizeStatus(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -540,9 +585,7 @@ public class JobRepositoryRemoteService implements InitializingBean {
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
             jobExecutionDao.synchronizeStatus(jobExecution);
             
-            SynchronizeStatusRes response = new SynchronizeStatusRes();
-            response.version = jobExecution.getVersion();
-            response.status = jobExecution.getStatus();
+            SynchronizeStatusRes response = new SynchronizeStatusRes(jobExecution.getVersion(), jobExecution.getStatus());
             
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
@@ -553,7 +596,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
 
     /**
-     * handleSaveStepExecution
+     * Handles saving a step execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleSaveStepExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -561,8 +607,7 @@ public class JobRepositoryRemoteService implements InitializingBean {
             SaveStepExecutionReq request = JobRepositoryRpcFactory.convert(holder, SaveStepExecutionReq.class);
             StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
             stepExecutionDao.saveStepExecution(stepExecution);
-            SaveStepExecutionRes response = new SaveStepExecutionRes();
-            response.id = stepExecution.getId();            
+            SaveStepExecutionRes response = new SaveStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
@@ -572,16 +617,18 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleUpdateStepExecution
+     * Handles updating a step execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleUpdateStepExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+        MindRpcMessageHolder outHolder = null;
         try {
             UpdateStepExecutionReq request = JobRepositoryRpcFactory.convert(holder, UpdateStepExecutionReq.class);
             StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
             stepExecutionDao.updateStepExecution(stepExecution);
-            UpdateStepExecutionRes response = new UpdateStepExecutionRes();
-//            executionRes.id = stepExecution.getId();            
+            UpdateStepExecutionRes response = new UpdateStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
@@ -591,7 +638,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleGetStepExecution
+     * Handles getting a step execution.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleGetStepExecution(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -617,7 +667,10 @@ public class JobRepositoryRemoteService implements InitializingBean {
     }
     
     /**
-     * handleAddStepExecutions
+     * Handles adding a step executions.
+     * 
+     * @param holder Holder containing request
+     * @return holder containing response
      */
     private MindRpcMessageHolder handleAddStepExecutions(MindRpcMessageHolder holder) {
         MindRpcMessageHolder outHolder = null;        
@@ -626,8 +679,9 @@ public class JobRepositoryRemoteService implements InitializingBean {
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);            
             stepExecutionDao.addStepExecutions(jobExecution);            
             AddStepExecutionsRes response = new AddStepExecutionsRes();
-            response.jobExecution = JobRepositoryRpcFactory.buildJobExecutionType(jobExecution);            
-            // add job execution back to response and let caller to merge inlined step executions
+            response.jobExecution = JobRepositoryRpcFactory.buildJobExecutionType(jobExecution);
+            // step executions inside job executions doesn't get set
+            
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
