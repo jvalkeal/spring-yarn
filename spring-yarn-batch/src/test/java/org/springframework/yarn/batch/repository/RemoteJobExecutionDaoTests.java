@@ -3,7 +3,6 @@ package org.springframework.yarn.batch.repository;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,7 +21,6 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.dao.JobExecutionDao;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.util.Assert;
 
 public class RemoteJobExecutionDaoTests {

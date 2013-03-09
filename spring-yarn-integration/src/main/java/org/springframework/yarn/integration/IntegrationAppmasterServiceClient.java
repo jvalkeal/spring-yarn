@@ -1,6 +1,5 @@
 package org.springframework.yarn.integration;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;

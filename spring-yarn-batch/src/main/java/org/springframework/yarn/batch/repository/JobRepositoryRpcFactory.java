@@ -1,7 +1,6 @@
 package org.springframework.yarn.batch.repository;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -580,6 +579,7 @@ public class JobRepositoryRpcFactory {
         return mapper.readValue(holder.getContent(), clazz);
     }
 
+    @SuppressWarnings("rawtypes")
     public static <T> T convert(MindRpcMessageHolder holder, TypeReference valueTypeRef) throws Exception {
         return mapper.readValue(holder.getContent(), valueTypeRef);
     }

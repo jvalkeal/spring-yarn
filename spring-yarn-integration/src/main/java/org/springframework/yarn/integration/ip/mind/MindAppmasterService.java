@@ -1,7 +1,5 @@
 package org.springframework.yarn.integration.ip.mind;
 
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.yarn.integration.IntegrationAppmasterService;

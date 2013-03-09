@@ -1,6 +1,5 @@
 package org.springframework.yarn.integration.ip.mind;
 
-import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.integration.IntegrationAppmasterServiceClient;
 
 public class MindAppmasterServiceClient extends IntegrationAppmasterServiceClient {

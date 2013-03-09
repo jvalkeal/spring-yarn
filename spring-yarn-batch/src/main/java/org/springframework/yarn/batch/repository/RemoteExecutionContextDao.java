@@ -60,7 +60,7 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             RpcMessage<?> response = getAppmasterScOperations().get(request);            
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();            
             SaveExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, SaveExecutionContextRes.class);
-            // TODO: handle error in response
+            checkResponseMayThrow(responseBody);
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -73,7 +73,7 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             RpcMessage<?> response = getAppmasterScOperations().get(request);            
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();            
             SaveExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, SaveExecutionContextRes.class);
-            // TODO: handle error in response
+            checkResponseMayThrow(responseBody);
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -86,7 +86,7 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             RpcMessage<?> response = getAppmasterScOperations().get(request);            
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();            
             UpdateExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateExecutionContextRes.class);
-            // TODO: handle error in response
+            checkResponseMayThrow(responseBody);
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -99,7 +99,7 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             RpcMessage<?> response = getAppmasterScOperations().get(request);            
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();            
             UpdateExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateExecutionContextRes.class);
-            // TODO: handle error in response
+            checkResponseMayThrow(responseBody);
         } catch (Exception e) {
             throw convertException(e);
         }

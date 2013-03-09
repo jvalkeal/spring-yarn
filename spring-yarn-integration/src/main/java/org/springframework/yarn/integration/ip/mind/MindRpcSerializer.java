@@ -24,7 +24,6 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
 
     private final static Log log = LogFactory.getLog(MindRpcSerializer.class);
     
-    private static final byte[] CRLF = "\r\n".getBytes();
     protected int maxMessageSize = 20000;
     
     /**
