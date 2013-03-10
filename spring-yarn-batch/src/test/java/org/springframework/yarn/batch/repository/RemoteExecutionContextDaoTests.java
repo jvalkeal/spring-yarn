@@ -72,11 +72,8 @@ public class RemoteExecutionContextDaoTests {
         ctx.putLong("longKey", 7);
         contextDao.updateExecutionContext(jobExecution);
 
-        ExecutionContext retrieved = contextDao.getExecutionContext(jobExecution);
-        
-//        Set<Entry<String, Object>> entrySet1 = ctx.entrySet();
-//        Set<Entry<String, Object>> entrySet2 = retrieved.entrySet();        
-//        assertEquals(ctx, retrieved);
+        ExecutionContext retrieved = contextDao.getExecutionContext(jobExecution);        
+        assertEquals(ctx, retrieved);
         assertEquals(7, retrieved.getLong("longKey"));
     }
 
@@ -113,7 +110,7 @@ public class RemoteExecutionContextDaoTests {
         contextDao.updateExecutionContext(stepExecution);
 
         ExecutionContext retrieved = contextDao.getExecutionContext(stepExecution);
-//        assertEquals(ctx, retrieved);
+        assertEquals(ctx, retrieved);
         assertEquals(7, retrieved.getLong("longKey"));
     }
 

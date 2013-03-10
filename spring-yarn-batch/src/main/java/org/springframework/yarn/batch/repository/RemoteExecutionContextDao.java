@@ -30,7 +30,8 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
 
             GetExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, GetExecutionContextRes.class);
-            executionContext = new ExecutionContext(responseBody.executionContext.map);
+            executionContext = JobRepositoryRpcFactory.convertExecutionContextType(responseBody.executionContext);
+            
         } catch (Exception e) {
             throw convertException(e);
         }                
@@ -46,7 +47,7 @@ public class RemoteExecutionContextDao extends AbstractRemoteDao implements Exec
             MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
 
             GetExecutionContextRes responseBody = JobRepositoryRpcFactory.convert(holder, GetExecutionContextRes.class);
-            executionContext = new ExecutionContext(responseBody.executionContext.map);
+            executionContext = JobRepositoryRpcFactory.convertExecutionContextType(responseBody.executionContext);            
         } catch (Exception e) {
             throw convertException(e);
         }                

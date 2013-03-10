@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.mortbay.log.Log;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -22,6 +25,7 @@ import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceReq;
 import org.springframework.yarn.batch.repository.bindings.ExecutionContextType;
+import org.springframework.yarn.batch.repository.bindings.ExecutionContextType.ObjectEntry;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.FindRunningJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.GetExecutionContextReq;
@@ -266,16 +270,61 @@ public class JobRepositoryRpcFactory {
         type.endTime = nullsafeToMillis(stepExecution.getEndTime());
         type.lastUpdated = nullsafeToMillis(stepExecution.getLastUpdated());        
         type.terminateOnly = stepExecution.isTerminateOnly();
-        type.filterCount = stepExecution.getFilterCount();
-        
-        type.executionContext = new ExecutionContextType();
-        Map<String, Object> map = new HashMap<String, Object>();
-        for(Entry<String, Object> entry : stepExecution.getExecutionContext().entrySet()) {
-            map.put(entry.getKey(), entry.getValue());
-        }        
-        type.executionContext.map = map;
+        type.filterCount = stepExecution.getFilterCount();        
+        type.executionContext = convertExecutionContext(stepExecution.getExecutionContext());
         
         return type;
+    }
+    
+    /**
+     * Converts a {@link ExecutionContext} to {@link ExecutionContextType}.
+     * 
+     * @param executionContext the execution context
+     * @return converted execution context type
+     */
+    public static ExecutionContextType convertExecutionContext(ExecutionContext executionContext) {
+        ExecutionContextType type = new ExecutionContextType();        
+        type.map = new HashMap<String, ExecutionContextType.ObjectEntry>();        
+        for(Entry<String, Object> entry : executionContext.entrySet()) {
+            Object value = entry.getValue();
+            type.map.put(entry.getKey(), new ExecutionContextType.ObjectEntry(value, value.getClass().getCanonicalName()));
+        }        
+        return type;
+    }
+
+    /**
+     * Converts a {@link ExecutionContextType} to {@link ExecutionContext}.
+     * 
+     * @param executionContextType the execution context type
+     * @return converted execution context
+     */
+    public static ExecutionContext convertExecutionContextType(ExecutionContextType executionContextType) {
+        Map<String, Object> map = new ConcurrentHashMap<String, Object>();
+        
+        for(Entry<String, ObjectEntry> entry : executionContextType.map.entrySet()) {
+            String key = entry.getKey();
+            ObjectEntry objectEntry = entry.getValue();
+            Object value = null;
+            if(String.class.getCanonicalName().equals(objectEntry.clazz)) {
+                value = objectEntry.obj;
+            } else if(Integer.class.getCanonicalName().equals(objectEntry.clazz)) {
+                value = objectEntry.obj;
+            } else if(Long.class.getCanonicalName().equals(objectEntry.clazz)) {
+                if(objectEntry.obj instanceof Integer) {
+                    value = new Long((Integer)objectEntry.obj);
+                } else {
+                    value = objectEntry.obj;                    
+                }
+            } else if(Double.class.getCanonicalName().equals(objectEntry.clazz)) {
+                value = objectEntry.obj;                
+            }
+            if(value != null) {
+                // should we throw error if null?
+                map.put(key, value);                
+            }
+        }
+        
+        return new ExecutionContext(map);
     }
     
     public static StepExecution convertStepExecutionType(StepExecutionType type) {
@@ -301,7 +350,7 @@ public class JobRepositoryRpcFactory {
         }
         stepExecution.setFilterCount(type.filterCount);
         
-        ExecutionContext executionContext = new ExecutionContext(type.executionContext.map);
+        ExecutionContext executionContext = convertExecutionContextType(type.executionContext);
         stepExecution.setExecutionContext(executionContext);
         
         return stepExecution;
@@ -350,13 +399,7 @@ public class JobRepositoryRpcFactory {
             }
         }
         
-        type.executionContext = new ExecutionContextType();
-        Map<String, Object> map = new HashMap<String, Object>();
-        for(Entry<String, Object> entry : jobExecution.getExecutionContext().entrySet()) {
-            map.put(entry.getKey(), entry.getValue());
-        }
-        
-        type.executionContext.map = map;
+        type.executionContext = convertExecutionContext(jobExecution.getExecutionContext());
         
         return type;
     }
@@ -379,7 +422,8 @@ public class JobRepositoryRpcFactory {
         }
         jobExecution.addStepExecutions(stepExecutions);
         
-        ExecutionContext executionContext = new ExecutionContext(type.executionContext.map);
+        ExecutionContext executionContext = convertExecutionContextType(type.executionContext);
+        
         jobExecution.setExecutionContext(executionContext);
         
         return jobExecution;

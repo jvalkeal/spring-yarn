@@ -31,7 +31,6 @@ import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsRes;
 import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceReq;
-import org.springframework.yarn.batch.repository.bindings.ExecutionContextType;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsRes;
 import org.springframework.yarn.batch.repository.bindings.FindRunningJobExecutionsReq;
@@ -378,14 +377,8 @@ public class JobRepositoryRemoteService implements InitializingBean {
                 executionContext = executionContextDao.getExecutionContext(jobExecution);
             }
                         
-            GetExecutionContextRes response = new GetExecutionContextRes();
-            
-            response.executionContext = new ExecutionContextType();
-            Map<String, Object> map = new HashMap<String, Object>();
-            for(Entry<String, Object> entry : executionContext.entrySet()) {
-                map.put(entry.getKey(), entry.getValue());
-            }        
-            response.executionContext.map = map;
+            GetExecutionContextRes response = new GetExecutionContextRes();            
+            response.executionContext = JobRepositoryRpcFactory.convertExecutionContext(executionContext);
             
             byte[] bytes = mapper.writeValueAsBytes(response);            
             outHolder = new MindRpcMessageHolder(null, bytes);            
