@@ -33,6 +33,6 @@
         ref="service"
         method="test" />
 
-    <bean id="service" class="org.springframework.yarn.integration.TestService" />
+    <bean id="service" class="org.springframework.yarn.integration.ServerBindTests$TestService" />
     
 </beans>

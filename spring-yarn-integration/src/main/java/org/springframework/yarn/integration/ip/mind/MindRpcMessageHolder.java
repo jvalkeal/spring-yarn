@@ -14,45 +14,89 @@ import java.util.Map.Entry;
  */
 public class MindRpcMessageHolder {
 
+    /** Map of headers */
     private Map<String, String> headers;
 
+    /** Content of the holder */
     private byte[] content;
 
-    public MindRpcMessageHolder() {
-    }
-
+    /**
+     * Constructs holder instance with a map of headers and a content.
+     * 
+     * @param headers the headers
+     * @param content the content
+     */
     public MindRpcMessageHolder(Map<String, String> headers, String content) {
         super();
         this.headers = headers != null ? headers : new HashMap<String, String>();
         this.content = content.getBytes();
     }
 
+    /**
+     * Constructs holder instance with a map of headers and a content.
+     * 
+     * @param headers the headers
+     * @param content the content
+     */
     public MindRpcMessageHolder(Map<String, String> headers, byte[] content) {
         super();
         this.headers = headers != null ? headers : new HashMap<String, String>();
         this.content = content;
     }
-    
+
+    /**
+     * Sets the headers of this holder. Overrides any
+     * previous headers.
+     * 
+     * @param headers the headers
+     */
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 
+    /**
+     * Sets the content of this holder.
+     * 
+     * @param content the content
+     */
     public void setContent(byte[] content) {
         this.content = content;
     }
     
+    /**
+     * Sets the content of this holder.
+     * 
+     * @param content the content
+     */
     public void setContent(String content) {
         this.content = content.getBytes();
     }
 
+    /**
+     * Gets headers of this holder.
+     * 
+     * @return the map of headers
+     */
     public Map<String, String> getHeaders() {
         return headers;
     }
 
+    /**
+     * Gets the content of this holder.
+     * 
+     * @return content of this holder.
+     */
     public byte[] getContent() {
         return content;
     }
 
+    /**
+     * Gets the complete protocol representation of this
+     * holder as array of bytes. This array is then send
+     * over the channel.
+     * 
+     * @return byte array of protocol message
+     */
     public byte[] toBytes() {
         StringBuilder buf = new StringBuilder();
         for (Entry<String, String> entry : headers.entrySet()) {
@@ -87,7 +131,5 @@ public class MindRpcMessageHolder {
         buf.append(content != null ? new String(content) : "");
         return buf.toString();
     }
-    
-    
 
 }

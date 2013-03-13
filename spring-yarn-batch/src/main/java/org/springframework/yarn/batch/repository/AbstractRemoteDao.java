@@ -5,8 +5,8 @@ import java.rmi.RemoteException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.StringUtils;
-import org.springframework.yarn.batch.repository.bindings.BaseResponseObject;
 import org.springframework.yarn.client.AppmasterScOperations;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
  * Base class for all daos handling remote calls through

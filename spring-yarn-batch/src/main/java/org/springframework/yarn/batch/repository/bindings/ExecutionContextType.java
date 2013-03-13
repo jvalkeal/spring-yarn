@@ -2,6 +2,8 @@ package org.springframework.yarn.batch.repository.bindings;
 
 import java.util.Map;
 
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+
 /**
  * Binding for {@link org.springframework.batch.item.ExecutionContext}.
  * We need to do a trick to also store clazz type of objects in

@@ -2,33 +2,55 @@ package org.springframework.yarn.integration.ip.mind;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.yarn.am.AppmasterService;
+import org.springframework.yarn.am.GenericRpcMessage;
+import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.integration.IntegrationAppmasterService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * 
+ * Implementation of {@link AppmasterService} which handles communication
+ * via Spring Int tcp channels using mind protocol.
  * 
  * @author Janne Valkealahti
  *
  */
-public class MindAppmasterService extends IntegrationAppmasterService {
+public abstract class MindAppmasterService extends IntegrationAppmasterService<MindRpcMessageHolder> {
 
     private static final Log log = LogFactory.getLog(MindAppmasterService.class);
     
-    public MindAppmasterService() {
-        log.info("MindAppmasterService constructor");
+    /** Jackson object mapper */
+    private ObjectMapper objectMapper;
+    
+    @Override
+    public RpcMessage<MindRpcMessageHolder> handleMessageInternal(RpcMessage<MindRpcMessageHolder> message) {
+        try {
+            return new GenericRpcMessage<MindRpcMessageHolder>(handleRpcMessage(message.getBody()));
+        } catch (Exception e) {
+            // TODO: need to handle this error
+            log.error("error", e);
+        }
+        return null;
+    }
+
+    /**
+     * Sets the jackson object mapper.
+     * 
+     * @param objectMapper the instance of object mapper
+     */
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
     
-//    public MindRpcMessageHolder handleMessage(MindRpcMessageHolder holder) {
-//        Map<String, String> headers = holder.getHeaders();
-//        String content = new String(holder.getContent());
-//        content = "echo " + content;
-//        holder.setContent(content);
-//        return holder;
-//    }
-
-    @Override
-    public boolean hasPort() {
-        return true;
+    protected abstract MindRpcMessageHolder handleRpcMessage(MindRpcMessageHolder message) throws Exception;
+    
+    protected <T> T convert(MindRpcMessageHolder holder, Class<T> clazz) throws Exception {
+        return objectMapper.readValue(holder.getContent(), clazz);
     }
 
+    protected String convert(Object object) throws Exception {
+        return objectMapper.writeValueAsString(object);
+    }
+    
 }

@@ -3,6 +3,7 @@ package org.springframework.yarn.batch.repository.bindings;
 import java.util.List;
 
 import org.springframework.batch.core.BatchStatus;
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 
 /**
  * Bindings for {@link org.springframework.batch.core.JobExecution}.

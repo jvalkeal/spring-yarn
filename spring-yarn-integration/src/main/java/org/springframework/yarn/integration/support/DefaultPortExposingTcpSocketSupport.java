@@ -3,7 +3,14 @@ package org.springframework.yarn.integration.support;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class DefaultTcpSocketSupport implements PortExposingTcpSocketSupport {
+/**
+ * Implementation of {@link org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport}
+ * which extends its base functionality by catching socket information, like listen address and port.
+ * 
+ * @author Janne Valkealahti
+ *
+ */
+public class DefaultPortExposingTcpSocketSupport implements PortExposingTcpSocketSupport {
 
     private int serverSocketPort = -1;
     private String serverSocketAddress;

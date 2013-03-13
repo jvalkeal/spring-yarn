@@ -1,4 +1,4 @@
-package org.springframework.yarn.batch.repository.bindings;
+package org.springframework.yarn.integration.ip.mind.binding;
 
 /**
  * Base object of messages meant for pojo mapping.

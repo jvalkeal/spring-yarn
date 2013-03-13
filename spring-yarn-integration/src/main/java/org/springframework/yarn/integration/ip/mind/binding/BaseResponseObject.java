@@ -1,4 +1,4 @@
-package org.springframework.yarn.batch.repository.bindings;
+package org.springframework.yarn.integration.ip.mind.binding;
 
 /**
  * Base object for messages which should have a common

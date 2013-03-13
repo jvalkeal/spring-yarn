@@ -2,6 +2,7 @@ package org.springframework.yarn.batch.repository.bindings;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 
 public class StepExecutionType extends BaseObject {
 

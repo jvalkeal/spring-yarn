@@ -108,6 +108,9 @@ project('spring-yarn-integration') {
 		compile project(":spring-yarn-core")
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+		compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		testCompile project(":spring-yarn-core").sourceSets.test.output
 		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"

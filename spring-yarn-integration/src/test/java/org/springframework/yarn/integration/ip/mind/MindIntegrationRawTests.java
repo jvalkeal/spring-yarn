@@ -5,8 +5,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
+import java.util.Map;
 
-
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.yarn.am.AppmasterService;
-import org.springframework.yarn.am.GenericRpcMessage;
-import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.client.AppmasterScOperations;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
+import org.springframework.yarn.integration.support.JacksonUtils;
 import org.springframework.yarn.integration.support.PortExposingTcpSocketSupport;
 
 /**
@@ -33,7 +34,7 @@ import org.springframework.yarn.integration.support.PortExposingTcpSocketSupport
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MindIntegrationTests {
+public class MindIntegrationRawTests {
 
     @Autowired
     ApplicationContext ctx;
@@ -54,34 +55,37 @@ public class MindIntegrationTests {
     AppmasterService mindAppmasterService;
 
     @Autowired
-    AppmasterScOperations mindAppmasterServiceClient;
+    MindAppmasterServiceClient mindAppmasterServiceClient;
     
     @Test
-    public void testVanillaChannels() {
+    public void testVanillaChannels() throws Exception {
         assertNotNull(socketSupport);
         
-        MindRpcMessageHolder holder = new MindRpcMessageHolder(new HashMap<String, String>(), "jee");
+        SimpleTestRequest req = new SimpleTestRequest();        
+        ObjectMapper objectMapper = JacksonUtils.getObjectMapper();
+        String content = objectMapper.writeValueAsString(req);
+        
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("type", "SimpleTestRequest");
+        MindRpcMessageHolder holder = new MindRpcMessageHolder(headers, content);
         clientRequestChannel.send(MessageBuilder.withPayload(holder).build());
         
         Message<?> receive = clientResponseChannel.receive();
         holder = (MindRpcMessageHolder) receive.getPayload();
-        String content = new String(holder.getContent());
-        assertNotNull(content);        
+        String contentRes = new String(holder.getContent());
+        assertNotNull(contentRes);
     }
     
-//    @Test
-    public void testServiceInterfaces() {
+    @Test
+    public void testServiceInterfaces() throws Exception {
         assertNotNull(mindAppmasterService);        
         assertNotNull(mindAppmasterServiceClient);
         
         assertThat(mindAppmasterService.getPort(), greaterThan(0));
-        
-        MindRpcMessageHolder holder = new MindRpcMessageHolder(new HashMap<String, String>(), "jee");
-        RpcMessage<MindRpcMessageHolder> request = new GenericRpcMessage<MindRpcMessageHolder>(holder);
-        
-        RpcMessage<?> response = mindAppmasterServiceClient.get(request);
-        assertNotNull(response);
-        
+
+        SimpleTestRequest request = new SimpleTestRequest();        
+        BaseResponseObject response = mindAppmasterServiceClient.doMindRequest(request);
+        assertNotNull(response);        
     }
 
 }

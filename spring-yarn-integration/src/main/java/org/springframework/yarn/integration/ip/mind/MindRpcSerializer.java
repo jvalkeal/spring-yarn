@@ -14,8 +14,9 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 
-
 /**
+ * Spring {@link Serializer} and {@link Deserializer} interfaces
+ * for mind protocol.
  * 
  * @author Janne Valkealahti
  *
@@ -36,7 +37,6 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
             log.debug("rpc lenghts: " + lenghts[0] + "/" + lenghts[1]);            
         }
         Map<String, String> headers = readHeaders(inputStream, lenghts[0]); 
-//        String content = readContent(inputStream, lenghts[1]);
         byte[] content = readBytes(inputStream, lenghts[1]);
         if(log.isDebugEnabled()) {            
             log.debug("deserialize: " + content);            
@@ -54,6 +54,15 @@ public class MindRpcSerializer implements Serializer<MindRpcMessageHolder>, Dese
         }        
         outputStream.write(object.toBytes());
         outputStream.flush();                
+    }
+    
+    /**
+     * Sets the max message size for transport.
+     * 
+     * @param maxMessageSize the length of max message
+     */
+    public void setMaxMessageSize(int maxMessageSize) {
+        this.maxMessageSize = maxMessageSize;
     }
 
     /**

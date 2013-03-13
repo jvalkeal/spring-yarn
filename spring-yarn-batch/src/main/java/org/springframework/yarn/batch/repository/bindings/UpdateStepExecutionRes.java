@@ -1,6 +1,7 @@
 package org.springframework.yarn.batch.repository.bindings;
 
 import org.springframework.batch.core.StepExecution;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
  * Response for saving step execution.
