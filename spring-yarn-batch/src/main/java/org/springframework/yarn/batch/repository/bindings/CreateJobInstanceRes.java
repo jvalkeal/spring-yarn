@@ -4,23 +4,23 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
- * Response for getting a job instance.
+ * Response for creating a job instance.
  * 
  * @author Janne Valkealahti
  *
- * @see org.springframework.yarn.batch.repository.RemoteJobInstanceDao#getJobInstance(String,JobParameters)
+ * @see org.springframework.yarn.batch.repository.RemoteJobInstanceDao#createJobInstance(String,JobParameters)
  * @see org.springframework.batch.core.JobInstance
  * 
  */
-public class GetJobInstanceRes extends BaseResponseObject {
+public class CreateJobInstanceRes extends BaseResponseObject {
 
     public JobInstanceType jobInstance;
     
-    public GetJobInstanceRes() {
-        super("GetJobInstanceRes");
+    public CreateJobInstanceRes() {
+        super("CreateJobInstanceRes");
     }
-
-    public GetJobInstanceRes(JobInstanceType jobInstance) {
+    
+    public CreateJobInstanceRes(JobInstanceType jobInstance) {
         this();
         this.jobInstance = jobInstance;
     }

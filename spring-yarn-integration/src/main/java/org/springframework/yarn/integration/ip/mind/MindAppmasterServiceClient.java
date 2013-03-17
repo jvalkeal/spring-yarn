@@ -9,8 +9,6 @@ import org.springframework.yarn.integration.IntegrationAppmasterServiceClient;
 import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Implementation of Appmaster service client extending
  * {@link IntegrationAppmasterServiceClient}.
@@ -18,16 +16,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Janne Valkealahti
  *
  */
-public abstract class MindAppmasterServiceClient extends IntegrationAppmasterServiceClient<MindRpcMessageHolder> {
+public abstract class MindAppmasterServiceClient extends IntegrationAppmasterServiceClient<MindRpcMessageHolder>
+        implements AppmasterMindScOperations {
 
     private static final Log log = LogFactory.getLog(MindAppmasterServiceClient.class);
     
-    private ObjectMapper objectMapper;
-    
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
+    @Override
     public BaseResponseObject doMindRequest(BaseObject request) {
         
         try {            
@@ -65,14 +59,5 @@ public abstract class MindAppmasterServiceClient extends IntegrationAppmasterSer
         }
         return null;
     }
-    
-    public <T> T convert(MindRpcMessageHolder holder, Class<T> clazz) throws Exception {
-        return objectMapper.readValue(holder.getContent(), clazz);
-    }
-
-    public String convert(Object object) throws Exception {
-        return objectMapper.writeValueAsString(object);
-    }
-    
-    
+        
 }

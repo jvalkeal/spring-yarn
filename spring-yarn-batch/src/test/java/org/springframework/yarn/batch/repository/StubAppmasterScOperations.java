@@ -5,8 +5,11 @@ import org.springframework.batch.core.repository.dao.JobExecutionDao;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
+import org.springframework.yarn.am.GenericRpcMessage;
 import org.springframework.yarn.am.RpcMessage;
-import org.springframework.yarn.client.AppmasterScOperations;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
  * Faking appmaster service client operations for
@@ -16,14 +19,14 @@ import org.springframework.yarn.client.AppmasterScOperations;
  * @author Janne Valkealahti
  *
  */
-public class StubAppmasterScOperations implements AppmasterScOperations {
+public class StubAppmasterScOperations implements AppmasterMindScOperations {
 
     private JobExecutionDao jobExecutionDao;
     private JobInstanceDao jobInstanceDao;
     private StepExecutionDao stepExecutionDao;
     private ExecutionContextDao executionContextDao;
-    
-    JobRepositoryRemoteService jobRepositoryRemoteService;
+
+    private JobRepositoryRemoteService jobRepositoryRemoteService;
 
     public StubAppmasterScOperations() {
         MapJobRepositoryFactoryBean factory = new MapJobRepositoryFactoryBean();
@@ -45,7 +48,17 @@ public class StubAppmasterScOperations implements AppmasterScOperations {
 
     @Override
     public RpcMessage<?> get(RpcMessage<?> message) {
-        return jobRepositoryRemoteService.get(message);
+        BaseObject baseObject = (BaseObject) message.getBody();        
+        BaseResponseObject baseResponseObject = jobRepositoryRemoteService.get(baseObject);
+        return new GenericRpcMessage<BaseResponseObject>(baseResponseObject);
+    }
+
+    @Override
+    public BaseResponseObject doMindRequest(BaseObject request) {
+        RpcMessage<?> message = new GenericRpcMessage<BaseObject>(request);
+        RpcMessage<?> rpcMessage = get(message);
+        BaseResponseObject baseResponseObject = (BaseResponseObject) rpcMessage.getBody();        
+        return baseResponseObject;
     }
     
 }

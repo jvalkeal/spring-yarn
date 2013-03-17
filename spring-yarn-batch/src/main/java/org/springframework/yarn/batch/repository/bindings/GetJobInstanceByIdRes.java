@@ -1,15 +1,31 @@
 package org.springframework.yarn.batch.repository.bindings;
 
-import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
-public class GetJobInstanceByIdRes extends BaseObject {
+/**
+ * Response for getting a job instance by id.
+ * 
+ * @author Janne Valkealahti
+ *
+ * @see org.springframework.yarn.batch.repository.RemoteJobInstanceDao#getJobInstance(Long)
+ * @see org.springframework.batch.core.JobInstance
+ * 
+ */
+public class GetJobInstanceByIdRes extends BaseResponseObject {
 
-    public String message;
-    public String status;
     public JobInstanceType jobInstance;
     
     public GetJobInstanceByIdRes() {
-        super("SaveStepExecutionRes");
+        super("GetJobInstanceByIdRes");
+    }
+    
+    public GetJobInstanceByIdRes(JobInstanceType jobInstance) {
+        this();
+        this.jobInstance = jobInstance;
+    }
+
+    public JobInstanceType getJobInstance() {
+        return jobInstance;
     }
 
 }

@@ -3,18 +3,24 @@ package org.springframework.yarn.batch.repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.type.TypeReference;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.RpcMessage;
+import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceReq;
+import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobInstanceByIdReq;
 import org.springframework.yarn.batch.repository.bindings.GetJobInstanceByIdRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobInstanceReq;
 import org.springframework.yarn.batch.repository.bindings.GetJobInstanceRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobInstancesReq;
+import org.springframework.yarn.batch.repository.bindings.GetJobInstancesRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobNamesReq;
+import org.springframework.yarn.batch.repository.bindings.GetJobNamesRes;
 import org.springframework.yarn.batch.repository.bindings.JobInstanceType;
-import org.springframework.yarn.client.AppmasterScOperations;
-import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
 
 /**
  * Proxy implementation of {@link JobInstanceDao}. Simply uses
@@ -30,7 +36,7 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
         super();
     }
 
-    public RemoteJobInstanceDao(AppmasterScOperations appmasterScOperations) {
+    public RemoteJobInstanceDao(AppmasterMindScOperations appmasterScOperations) {
         super(appmasterScOperations);
     }
 
@@ -41,11 +47,9 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
         
         JobInstance jobInstance = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildCreateJobInstanceReq(jobName, jobParameters);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            JobInstanceType jobInstanceType = JobRepositoryRpcFactory.convert(holder, JobInstanceType.class);
-            jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(jobInstanceType);
+            CreateJobInstanceReq request = JobRepositoryRpcFactory.buildCreateJobInstanceReq(jobName, jobParameters);
+            CreateJobInstanceRes response = (CreateJobInstanceRes) getAppmasterScOperations().doMindRequest(request);
+            jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(response.getJobInstance());
         } catch (Exception e) {
             throw convertException(e);
         }        
@@ -59,12 +63,10 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
         
         JobInstance jobInstance = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetJobInstanceReq(jobName, jobParameters);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            GetJobInstanceRes responseBody = JobRepositoryRpcFactory.convert(holder, GetJobInstanceRes.class);
-            if(responseBody.jobInstance != null) {
-                jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(responseBody.jobInstance);                
+            GetJobInstanceReq request = JobRepositoryRpcFactory.buildGetJobInstanceReq(jobName, jobParameters);        
+            GetJobInstanceRes response = (GetJobInstanceRes) getAppmasterScOperations().doMindRequest(request);            
+            if(response.jobInstance != null) {
+                jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(response.jobInstance);
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -76,12 +78,10 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
     public JobInstance getJobInstance(Long instanceId) {
         JobInstance jobInstance = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetJobInstanceByIdReq(instanceId);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            GetJobInstanceByIdRes responseBody = JobRepositoryRpcFactory.convert(holder, GetJobInstanceByIdRes.class);
-            if(responseBody.jobInstance != null) {
-                jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(responseBody.jobInstance);                
+            GetJobInstanceByIdReq request = JobRepositoryRpcFactory.buildGetJobInstanceByIdReq(instanceId);
+            GetJobInstanceByIdRes response = (GetJobInstanceByIdRes) getAppmasterScOperations().doMindRequest(request);            
+            if(response.jobInstance != null) {
+                jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(response.jobInstance);
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -99,12 +99,10 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
     public List<JobInstance> getJobInstances(String jobName, int start, int count) {
         List<JobInstance> jobInstances = new ArrayList<JobInstance>();
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetJobInstancesReq(jobName, start, count);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            List<JobInstanceType> jobInstanceTypes = JobRepositoryRpcFactory.convert(holder, new TypeReference<List<JobInstanceType>>(){});            
-            for(JobInstanceType jobInstanceType : jobInstanceTypes) {
-                jobInstances.add(JobRepositoryRpcFactory.convertJobInstanceType(jobInstanceType));                
+            GetJobInstancesReq request = JobRepositoryRpcFactory.buildGetJobInstancesReq(jobName, start, count);
+            GetJobInstancesRes response = (GetJobInstancesRes) getAppmasterScOperations().doMindRequest(request);                        
+            for(JobInstanceType jobInstanceType : response.getJobInstances()) {
+                jobInstances.add(JobRepositoryRpcFactory.convertJobInstanceType(jobInstanceType));
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -112,16 +110,13 @@ public class RemoteJobInstanceDao extends AbstractRemoteDao implements JobInstan
         return jobInstances;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<String> getJobNames() {
         List<String> jobNames = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetJobNamesReq();
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            jobNames = JobRepositoryRpcFactory.convert(holder, List.class);
+            GetJobNamesReq request = JobRepositoryRpcFactory.buildGetJobNamesReq();
+            GetJobNamesRes response = (GetJobNamesRes) getAppmasterScOperations().doMindRequest(request);
+            jobNames = response.getJobNames();
         } catch (Exception e) {
             throw convertException(e);
         }

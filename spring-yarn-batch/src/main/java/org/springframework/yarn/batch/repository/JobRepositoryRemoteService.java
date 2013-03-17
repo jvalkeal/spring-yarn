@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
@@ -26,11 +25,10 @@ import org.springframework.batch.core.repository.support.MapJobRepositoryFactory
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-import org.springframework.yarn.am.GenericRpcMessage;
-import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsRes;
 import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceReq;
+import org.springframework.yarn.batch.repository.bindings.CreateJobInstanceRes;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsRes;
 import org.springframework.yarn.batch.repository.bindings.FindRunningJobExecutionsReq;
@@ -44,6 +42,9 @@ import org.springframework.yarn.batch.repository.bindings.GetJobInstanceByIdRes;
 import org.springframework.yarn.batch.repository.bindings.GetJobInstanceReq;
 import org.springframework.yarn.batch.repository.bindings.GetJobInstanceRes;
 import org.springframework.yarn.batch.repository.bindings.GetJobInstancesReq;
+import org.springframework.yarn.batch.repository.bindings.GetJobInstancesRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobNamesReq;
+import org.springframework.yarn.batch.repository.bindings.GetJobNamesRes;
 import org.springframework.yarn.batch.repository.bindings.GetLastJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.GetLastJobExecutionRes;
 import org.springframework.yarn.batch.repository.bindings.GetStepExecutionReq;
@@ -65,19 +66,24 @@ import org.springframework.yarn.batch.repository.bindings.UpdateJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.UpdateJobExecutionRes;
 import org.springframework.yarn.batch.repository.bindings.UpdateStepExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.UpdateStepExecutionRes;
-import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
-import org.springframework.yarn.integration.support.JacksonUtils;
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
+/**
+ * Service class handling remote operations for 
+ * Spring Batch job repository.
+ * 
+ * @author Janne Valkealahti
+ *
+ */
 public class JobRepositoryRemoteService implements InitializingBean {
 
     private final static Log log = LogFactory.getLog(JobRepositoryRemoteService.class);
-    private static ObjectMapper mapper = JacksonUtils.getObjectMapper();
     
     private JobExecutionDao jobExecutionDao;
     private JobInstanceDao jobInstanceDao;
     private StepExecutionDao stepExecutionDao;
-    private ExecutionContextDao executionContextDao;
-    
+    private ExecutionContextDao executionContextDao; 
     private MapJobRepositoryFactoryBean mapJobRepositoryFactoryBean;
     
     @Override
@@ -89,97 +95,125 @@ public class JobRepositoryRemoteService implements InitializingBean {
         setExecutionContextDao(mapJobRepositoryFactoryBean.getExecutionContextDao());
     }
 
+    /**
+     * Sets the {@link MapJobRepositoryFactoryBean} for this service class.
+     * 
+     * @param mapJobRepositoryFactoryBean the {@link MapJobRepositoryFactoryBean}
+     */
     public void setMapJobRepositoryFactoryBean(MapJobRepositoryFactoryBean mapJobRepositoryFactoryBean) {
         this.mapJobRepositoryFactoryBean = mapJobRepositoryFactoryBean;
     }
 
+    /**
+     * Sets the {@link JobExecutionDao} for this service class.
+     * 
+     * @param jobExecutionDao the {@link JobExecutionDao}
+     */
     public void setJobExecutionDao(JobExecutionDao jobExecutionDao) {
         this.jobExecutionDao = jobExecutionDao;
     }
 
+    /**
+     * Sets the {@link JobInstanceDao} for this service class.
+     * 
+     * @param jobInstanceDao the {@link JobInstanceDao}
+     */
     public void setJobInstanceDao(JobInstanceDao jobInstanceDao) {
         this.jobInstanceDao = jobInstanceDao;
     }
 
+    /**
+     * Sets the {@link StepExecutionDao} for this service class.
+     * 
+     * @param stepExecutionDao the {@link StepExecutionDao}
+     */
     public void setStepExecutionDao(StepExecutionDao stepExecutionDao) {
         this.stepExecutionDao = stepExecutionDao;
     }
 
+    /**
+     * Sets the {@link ExecutionContextDao} for this service class.
+     * 
+     * @param executionContextDao the {@link ExecutionContextDao}
+     */
     public void setExecutionContextDao(ExecutionContextDao executionContextDao) {
         this.executionContextDao = executionContextDao;
     }
     
-    public RpcMessage<?> get(RpcMessage<?> message) {
-        MindRpcMessageHolder inHolder = (MindRpcMessageHolder) message.getBody();
-        MindRpcMessageHolder outHolder = null;
+    /**
+     * Handles requests.
+     * 
+     * @param request the base object request.
+     * @return response as of type {@link BaseResponseObject}
+     */
+    public BaseResponseObject get(BaseObject request) {
 
-        String type = inHolder.getHeaders().get("type").trim();
+        BaseResponseObject responseObj = null; 
         
         if(log.isDebugEnabled()) {
-            log.debug("Handling rpc request for type=" + type);
+            log.debug("Handling rpc request for type=" + request.getType());
         }
         
-        if (type.equals("CreateJobInstanceReq")) {
-            outHolder = handleCreateJobInstance(inHolder);
-        } else if (type.equals("GetJobInstanceReq")) {
-            outHolder = handleGetJobInstance(inHolder);
-        } else if (type.equals("GetJobInstanceByIdReq")) {
-            outHolder = handleGetJobInstanceById(inHolder);
-        } else if (type.equals("GetJobNamesReq")) {
-            outHolder = handleGetJobNames(inHolder);
-        } else if (type.equals("GetJobInstancesReq")) {
-            outHolder = handleGetJobInstances(inHolder);
-        } else if (type.equals("SaveStepExecutionReq")) {
-            outHolder = handleSaveStepExecution(inHolder);
-        } else if (type.equals("AddStepExecutionsReq")) {
-            outHolder = handleAddStepExecutions(inHolder);
-        } else if (type.equals("UpdateStepExecutionReq")) {
-            outHolder = handleUpdateStepExecution(inHolder);
-        } else if (type.equals("GetStepExecutionReq")) {
-            outHolder = handleGetStepExecution(inHolder);
-        } else if (type.equals("SaveJobExecutionReq")) {
-            outHolder = handleSaveJobExecution(inHolder);
-        } else if (type.equals("SaveExecutionContextReq")) {
-            outHolder = handleSaveExecutionContext(inHolder);
-        } else if (type.equals("UpdateExecutionContextReq")) {
-            outHolder = handleUpdateExecutionContext(inHolder);
-        } else if (type.equals("FindJobExecutionsReq")) {
-            outHolder = handleFindJobExecutions(inHolder);
-        } else if (type.equals("FindRunningJobExecutionsReq")) {
-            outHolder = handleFindRunningJobExecutions(inHolder);
-        } else if (type.equals("GetJobExecutionReq")) {
-            outHolder = handleGetJobExecution(inHolder);
-        } else if (type.equals("GetLastJobExecutionReq")) {
-            outHolder = handleGetLastJobExecution(inHolder);
-        } else if (type.equals("UpdateJobExecutionReq")) {
-            outHolder = handleUpdateJobExecution(inHolder);
-        } else if (type.equals("SynchronizeStatusReq")) {
-            outHolder = handleSynchronizeStatus(inHolder);
-        } else if (type.equals("GetExecutionContextReq")) {
-            outHolder = handleGetExecutionContext(inHolder);
+        if (request.getType().equals("CreateJobInstanceReq")) {
+            responseObj = handleCreateJobInstance((CreateJobInstanceReq)request); 
+        } else if (request.getType().equals("GetJobInstanceReq")) {
+            responseObj = handleGetJobInstance((GetJobInstanceReq)request);             
+        } else if (request.getType().equals("GetJobInstanceByIdReq")) {
+            responseObj = handleGetJobInstanceById((GetJobInstanceByIdReq)request);             
+        } else if (request.getType().equals("GetJobInstancesReq")) {
+            responseObj = handleGetJobInstances((GetJobInstancesReq)request);             
+        } else if (request.getType().equals("GetJobNamesReq")) {
+            responseObj = handleGetJobNames((GetJobNamesReq)request);             
+        } else if (request.getType().equals("SaveStepExecutionReq")) {
+            responseObj = handleSaveStepExecution((SaveStepExecutionReq)request);             
+        } else if (request.getType().equals("AddStepExecutionsReq")) {
+            responseObj = handleAddStepExecutions((AddStepExecutionsReq)request);             
+        } else if (request.getType().equals("UpdateStepExecutionReq")) {
+            responseObj = handleUpdateStepExecution((UpdateStepExecutionReq)request);             
+        } else if (request.getType().equals("GetStepExecutionReq")) {
+            responseObj = handleGetStepExecution((GetStepExecutionReq)request);             
+        } else if (request.getType().equals("SaveJobExecutionReq")) {
+            responseObj = handleSaveJobExecution((SaveJobExecutionReq)request);             
+        } else if (request.getType().equals("SaveExecutionContextReq")) {
+            responseObj = handleSaveExecutionContext((SaveExecutionContextReq)request);             
+        } else if (request.getType().equals("UpdateExecutionContextReq")) {
+            responseObj = handleUpdateExecutionContext((UpdateExecutionContextReq)request);             
+        } else if (request.getType().equals("FindJobExecutionsReq")) {
+            responseObj = handleFindJobExecutions((FindJobExecutionsReq)request);             
+        } else if (request.getType().equals("FindRunningJobExecutionsReq")) {
+            responseObj = handleFindRunningJobExecutions((FindRunningJobExecutionsReq)request);             
+        } else if (request.getType().equals("GetJobExecutionReq")) {
+            responseObj = handleGetJobExecution((GetJobExecutionReq)request);             
+        } else if (request.getType().equals("GetLastJobExecutionReq")) {
+            responseObj = handleGetLastJobExecution((GetLastJobExecutionReq)request);             
+        } else if (request.getType().equals("UpdateJobExecutionReq")) {
+            responseObj = handleUpdateJobExecution((UpdateJobExecutionReq)request);             
+        } else if (request.getType().equals("SynchronizeStatusReq")) {
+            responseObj = handleSynchronizeStatus((SynchronizeStatusReq)request);             
+        } else if (request.getType().equals("GetExecutionContextReq")) {
+            responseObj = handleGetExecutionContext((GetExecutionContextReq)request);             
         }
-        
-        if(outHolder == null) {
+
+        if(responseObj == null) {
             throw new RuntimeException("Error finding defined rpc request type");
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("Handled rpc request for type=" + type + ". Returning holder " + outHolder);
+            log.debug("Handled rpc request for type=" + request.getType() + ". Returning responseObj " + responseObj);
         }
         
-        return new GenericRpcMessage<MindRpcMessageHolder>(outHolder);
+        return responseObj;
     }
 
     /**
      * Handles creating a job instance.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link CreateJobInstanceReq}
+     * @return the {@link CreateJobInstanceRes}
      */
-    private MindRpcMessageHolder handleCreateJobInstance(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private CreateJobInstanceRes handleCreateJobInstance(CreateJobInstanceReq request) {
+        CreateJobInstanceRes response = null;
         try {
-            CreateJobInstanceReq request = JobRepositoryRpcFactory.convert(holder, CreateJobInstanceReq.class);
             String jobName = request.jobName;
             
             Map<String, JobParameter> map = new HashMap<String, JobParameter>();
@@ -187,7 +221,11 @@ public class JobRepositoryRemoteService implements InitializingBean {
             for(Entry<String, JobParameterType> entry : request.jobParameters.entrySet()) {
                 ParameterType parameterType = entry.getValue().parameterType;
                 if(parameterType == ParameterType.DATE) {
-                    map.put(entry.getKey(), new JobParameter(new Date((Integer)entry.getValue().parameter)));
+                    if(entry.getValue().parameter instanceof Integer) {
+                        map.put(entry.getKey(), new JobParameter(new Date((Integer)entry.getValue().parameter)));
+                    } else if(entry.getValue().parameter instanceof Date) {
+                        map.put(entry.getKey(), new JobParameter(((Date)entry.getValue().parameter)));
+                    }
                 } else if(parameterType == ParameterType.DOUBLE) {
                     map.put(entry.getKey(), new JobParameter((Double)entry.getValue().parameter));
                 } else if(parameterType == ParameterType.LONG) {
@@ -206,25 +244,22 @@ public class JobRepositoryRemoteService implements InitializingBean {
             JobInstance createJobInstance = jobInstanceDao.createJobInstance(jobName, jobParameters);
             
             JobInstanceType buildJobInstanceType = JobRepositoryRpcFactory.buildJobInstanceType(createJobInstance);
-            byte[] writeValueAsBytes = mapper.writeValueAsBytes(buildJobInstanceType);            
-            outHolder = new MindRpcMessageHolder(null, writeValueAsBytes);
-            
+            response = new CreateJobInstanceRes(buildJobInstanceType);
         } catch (Exception e) {
             log.error("error handling command", e);
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles getting a job instance.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetJobInstanceReq}
+     * @return the {@link GetJobInstanceRes}
      */
-    private MindRpcMessageHolder handleGetJobInstance(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private GetJobInstanceRes handleGetJobInstance(GetJobInstanceReq request) {
+        GetJobInstanceRes response = null;
         try {
-            GetJobInstanceReq request = JobRepositoryRpcFactory.convert(holder, GetJobInstanceReq.class);
             String jobName = request.jobName;
             
             Map<String, JobParameter> map = new HashMap<String, JobParameter>();
@@ -232,7 +267,11 @@ public class JobRepositoryRemoteService implements InitializingBean {
             for(Entry<String, JobParameterType> entry : request.jobParameters.entrySet()) {
                 ParameterType parameterType = entry.getValue().parameterType;
                 if(parameterType == ParameterType.DATE) {
-                    map.put(entry.getKey(), new JobParameter(new Date((Integer)entry.getValue().parameter)));
+                    if(entry.getValue().parameter instanceof Integer) {
+                        map.put(entry.getKey(), new JobParameter(new Date((Integer)entry.getValue().parameter)));
+                    } else if(entry.getValue().parameter instanceof Date) {
+                        map.put(entry.getKey(), new JobParameter(((Date)entry.getValue().parameter)));
+                    }                    
                 } else if(parameterType == ParameterType.DOUBLE) {
                     map.put(entry.getKey(), new JobParameter((Double)entry.getValue().parameter));
                 } else if(parameterType == ParameterType.LONG) {
@@ -245,72 +284,64 @@ public class JobRepositoryRemoteService implements InitializingBean {
             JobParameters jobParameters = new JobParameters(map);
             JobInstance jobInstance = jobInstanceDao.getJobInstance(jobName, jobParameters);
 
-            GetJobInstanceRes response = new GetJobInstanceRes();
+            response = new GetJobInstanceRes();
             if(jobInstance != null) {
                 response.jobInstance = JobRepositoryRpcFactory.buildJobInstanceType(jobInstance);
             }
-            
-            byte[] writeValueAsBytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, writeValueAsBytes);
         } catch (Exception e) {
             log.error("error handling command", e);
         }
-        return outHolder;
+        return response;
 
     }
 
     /**
      * Handles getting job instance by id.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetJobInstanceByIdReq}
+     * @return the {@link GetJobInstanceByIdRes}
      */
-    private MindRpcMessageHolder handleGetJobInstanceById(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private GetJobInstanceByIdRes handleGetJobInstanceById(GetJobInstanceByIdReq request) {
+        GetJobInstanceByIdRes response = null;
         try {
-            GetJobInstanceByIdReq request = JobRepositoryRpcFactory.convert(holder, GetJobInstanceByIdReq.class);
             Long id = request.id;
             JobInstance jobInstance = jobInstanceDao.getJobInstance(id);
-            GetJobInstanceByIdRes response = new GetJobInstanceByIdRes();
+            response = new GetJobInstanceByIdRes();
             if(jobInstance != null) {
                 response.jobInstance = JobRepositoryRpcFactory.buildJobInstanceType(jobInstance);
             }
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles getting a job names.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetJobNamesReq}
+     * @return the {@link GetJobNamesRes}
      */
-    private MindRpcMessageHolder handleGetJobNames(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private GetJobNamesRes handleGetJobNames(GetJobNamesReq request) {
+        GetJobNamesRes response = null;
         try {
             List<String> jobNames = jobInstanceDao.getJobNames();
-            byte[] writeValueAsBytes = mapper.writeValueAsBytes(jobNames);            
-            outHolder = new MindRpcMessageHolder(null, writeValueAsBytes);
+            response = new GetJobNamesRes(jobNames);
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles getting a job instances.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetJobInstancesReq}
+     * @return the {@link GetJobInstancesRes}
      */
-    private MindRpcMessageHolder handleGetJobInstances(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private GetJobInstancesRes handleGetJobInstances(GetJobInstancesReq request) {
+        GetJobInstancesRes response = null;
         try {
-            GetJobInstancesReq request = JobRepositoryRpcFactory.convert(holder, GetJobInstancesReq.class);
             String jobName = request.jobName;
             Integer start = request.start;
             Integer count = request.count;
@@ -320,54 +351,45 @@ public class JobRepositoryRemoteService implements InitializingBean {
             for(JobInstance jobInstance : jobInstances) {
                 jobInstanceTypes.add(JobRepositoryRpcFactory.buildJobInstanceType(jobInstance));
             }
-            byte[] writeValueAsBytes = mapper.writeValueAsBytes(jobInstanceTypes);            
-            outHolder = new MindRpcMessageHolder(null, writeValueAsBytes);
+            response = new GetJobInstancesRes(jobInstanceTypes);
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles saving an execution context.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link SaveExecutionContextReq}
+     * @return the {@link SaveExecutionContextRes}
      */
-    private MindRpcMessageHolder handleSaveExecutionContext(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private SaveExecutionContextRes handleSaveExecutionContext(SaveExecutionContextReq request) {
+        SaveExecutionContextRes response = null;
         try {
-            SaveExecutionContextReq request = JobRepositoryRpcFactory.convert(holder, SaveExecutionContextReq.class);
-
             if(request.stepExecution != null) {
                 StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
                 executionContextDao.saveExecutionContext(stepExecution);                
             } else if(request.jobExecution != null) {
                 JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
                 executionContextDao.saveExecutionContext(jobExecution);                                
-            }
-            
-            SaveExecutionContextRes response = new SaveExecutionContextRes();            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            }            
+            response = new SaveExecutionContextRes();            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles getting an execution context.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetExecutionContextReq}
+     * @return the {@link GetExecutionContextRes}
      */
-    private MindRpcMessageHolder handleGetExecutionContext(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
-        
+    private GetExecutionContextRes handleGetExecutionContext(GetExecutionContextReq request) {
+        GetExecutionContextRes response = null;                
         try {
-            GetExecutionContextReq request = JobRepositoryRpcFactory.convert(holder, GetExecutionContextReq.class);
-            
             ExecutionContext executionContext = null;
             if(request.stepExecution != null) {
                 StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);                
@@ -377,310 +399,255 @@ public class JobRepositoryRemoteService implements InitializingBean {
                 executionContext = executionContextDao.getExecutionContext(jobExecution);
             }
                         
-            GetExecutionContextRes response = new GetExecutionContextRes();            
+            response = new GetExecutionContextRes();            
             response.executionContext = JobRepositoryRpcFactory.convertExecutionContext(executionContext);
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles updating an execution context.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link UpdateExecutionContextReq}
+     * @return the {@link UpdateExecutionContextRes}
      */
-    private MindRpcMessageHolder handleUpdateExecutionContext(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private UpdateExecutionContextRes handleUpdateExecutionContext(UpdateExecutionContextReq request) {
+        UpdateExecutionContextRes response = null;        
         try {
-            UpdateExecutionContextReq request = JobRepositoryRpcFactory.convert(holder, UpdateExecutionContextReq.class);
-
             if(request.stepExecution != null) {
                 StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
                 executionContextDao.saveExecutionContext(stepExecution);                
             } else if(request.jobExecution != null) {
                 JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
                 executionContextDao.saveExecutionContext(jobExecution);                                
-            }
-                        
-            UpdateExecutionContextRes response = new UpdateExecutionContextRes();            
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            }                        
+            response = new UpdateExecutionContextRes();            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles saving a job executions.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link FindJobExecutionsReq}
+     * @return the {@link FindJobExecutionsRes}
      */
-    private MindRpcMessageHolder handleFindJobExecutions(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private FindJobExecutionsRes handleFindJobExecutions(FindJobExecutionsReq request) {
+        FindJobExecutionsRes response = null;        
         try {
-            FindJobExecutionsReq request = JobRepositoryRpcFactory.convert(holder, FindJobExecutionsReq.class);
             JobInstance jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(request.jobInstance);
             List<JobExecution> jobExecutions = jobExecutionDao.findJobExecutions(jobInstance);
-            
-            FindJobExecutionsRes response = new FindJobExecutionsRes();            
+            response = new FindJobExecutionsRes();            
             response.jobExecutions = new ArrayList<JobExecutionType>();
             for(JobExecution jobExecution : jobExecutions) {
                 response.jobExecutions.add(JobRepositoryRpcFactory.buildJobExecutionType(jobExecution));
             }
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }    
 
     /**
      * Handles saving a job execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link SaveJobExecutionReq}
+     * @return the {@link SaveJobExecutionRes}
      */
-    private MindRpcMessageHolder handleSaveJobExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private SaveJobExecutionRes handleSaveJobExecution(SaveJobExecutionReq request) {
+        SaveJobExecutionRes response = null;        
         try {
-            SaveJobExecutionReq request = JobRepositoryRpcFactory.convert(holder, SaveJobExecutionReq.class);            
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);            
             jobExecutionDao.saveJobExecution(jobExecution);            
-            SaveJobExecutionRes response = new SaveJobExecutionRes();
+            response = new SaveJobExecutionRes();
             response.id = jobExecution.getId();
             response.version = jobExecution.getVersion();
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles updating a job execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link UpdateJobExecutionReq}
+     * @return the {@link UpdateJobExecutionRes}
      */
-    private MindRpcMessageHolder handleUpdateJobExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private UpdateJobExecutionRes handleUpdateJobExecution(UpdateJobExecutionReq request) {
+        UpdateJobExecutionRes response = null;        
         try {
-            UpdateJobExecutionReq request = JobRepositoryRpcFactory.convert(holder, UpdateJobExecutionReq.class);
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
             jobExecutionDao.updateJobExecution(jobExecution);
-            UpdateJobExecutionRes response = new UpdateJobExecutionRes(jobExecution.getVersion());
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            response = new UpdateJobExecutionRes(jobExecution.getVersion());
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles getting a last job execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetLastJobExecutionReq}
+     * @return the {@link GetLastJobExecutionRes}
      */
-    private MindRpcMessageHolder handleGetLastJobExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private GetLastJobExecutionRes handleGetLastJobExecution(GetLastJobExecutionReq request) {
+        GetLastJobExecutionRes response = null;        
         try {
-            GetLastJobExecutionReq request = JobRepositoryRpcFactory.convert(holder, GetLastJobExecutionReq.class);
             JobInstance jobInstance = JobRepositoryRpcFactory.convertJobInstanceType(request.jobInstance);
             JobExecution jobExecution = jobExecutionDao.getLastJobExecution(jobInstance);
-            
-            GetLastJobExecutionRes response = new GetLastJobExecutionRes();
+            response = new GetLastJobExecutionRes();
             if(jobExecution != null) {
                 response.jobExecution = JobRepositoryRpcFactory.buildJobExecutionType(jobExecution);
             }
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }    
 
     /**
      * Handles finding running job executions.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link FindRunningJobExecutionsReq}
+     * @return the {@link FindRunningJobExecutionsRes}
      */
-    private MindRpcMessageHolder handleFindRunningJobExecutions(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private FindRunningJobExecutionsRes handleFindRunningJobExecutions(FindRunningJobExecutionsReq request) {
+        FindRunningJobExecutionsRes response = null;        
         try {
-            FindRunningJobExecutionsReq request = JobRepositoryRpcFactory.convert(holder, FindRunningJobExecutionsReq.class);
             Set<JobExecution> jobExecutions = jobExecutionDao.findRunningJobExecutions(request.jobName);
-            FindRunningJobExecutionsRes response = new FindRunningJobExecutionsRes();
-            response.jobExecutions = new HashSet<JobExecutionType>();
-            
+            response = new FindRunningJobExecutionsRes();
+            response.jobExecutions = new HashSet<JobExecutionType>();            
             for(JobExecution jobExecution : jobExecutions) {
                 response.jobExecutions.add(JobRepositoryRpcFactory.buildJobExecutionType(jobExecution));
             }
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }    
     
     /**
      * Handles getting a job execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetJobExecutionReq}
+     * @return the {@link GetJobExecutionRes}
      */
-    private MindRpcMessageHolder handleGetJobExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private GetJobExecutionRes handleGetJobExecution(GetJobExecutionReq request) {
+        GetJobExecutionRes response = null;        
         try {
-            GetJobExecutionReq request = JobRepositoryRpcFactory.convert(holder, GetJobExecutionReq.class);
             JobExecution jobExecution = jobExecutionDao.getJobExecution(request.executionId);
-            GetJobExecutionRes response = new GetJobExecutionRes();
+            response = new GetJobExecutionRes();
             if(jobExecution != null) {
                 response.jobExecution = JobRepositoryRpcFactory.buildJobExecutionType(jobExecution);                
             }            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }    
     
     /**
      * Handles synchronizing a job execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link SynchronizeStatusReq}
+     * @return the {@link SynchronizeStatusRes}
      */
-    private MindRpcMessageHolder handleSynchronizeStatus(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private SynchronizeStatusRes handleSynchronizeStatus(SynchronizeStatusReq request) {
+        SynchronizeStatusRes response = null;        
         try {
-            SynchronizeStatusReq request = JobRepositoryRpcFactory.convert(holder, SynchronizeStatusReq.class);
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
-            jobExecutionDao.synchronizeStatus(jobExecution);
-            
-            SynchronizeStatusRes response = new SynchronizeStatusRes(jobExecution.getVersion(), jobExecution.getStatus());
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            jobExecutionDao.synchronizeStatus(jobExecution);            
+            response = new SynchronizeStatusRes(jobExecution.getVersion(), jobExecution.getStatus());
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
 
     /**
      * Handles saving a step execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link SaveStepExecutionReq}
+     * @return the {@link SaveStepExecutionRes}
      */
-    private MindRpcMessageHolder handleSaveStepExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private SaveStepExecutionRes handleSaveStepExecution(SaveStepExecutionReq request) {
+        SaveStepExecutionRes response = null;        
         try {
-            SaveStepExecutionReq request = JobRepositoryRpcFactory.convert(holder, SaveStepExecutionReq.class);
             StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
             stepExecutionDao.saveStepExecution(stepExecution);
-            SaveStepExecutionRes response = new SaveStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            response = new SaveStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles updating a step execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link UpdateStepExecutionReq}
+     * @return the {@link UpdateStepExecutionRes}
      */
-    private MindRpcMessageHolder handleUpdateStepExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;
+    private UpdateStepExecutionRes handleUpdateStepExecution(UpdateStepExecutionReq request) {
+        UpdateStepExecutionRes response = null;
         try {
-            UpdateStepExecutionReq request = JobRepositoryRpcFactory.convert(holder, UpdateStepExecutionReq.class);
             StepExecution stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(request.stepExecution);
             stepExecutionDao.updateStepExecution(stepExecution);
-            UpdateStepExecutionRes response = new UpdateStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
+            response = new UpdateStepExecutionRes(stepExecution.getId(), stepExecution.getVersion());
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles getting a step execution.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link GetStepExecutionReq}
+     * @return the {@link GetStepExecutionRes}
      */
-    private MindRpcMessageHolder handleGetStepExecution(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private GetStepExecutionRes handleGetStepExecution(GetStepExecutionReq request) {
+        GetStepExecutionRes response = null;        
         try {
-            GetStepExecutionReq request = JobRepositoryRpcFactory.convert(holder, GetStepExecutionReq.class);
-            
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);
-            
-            GetStepExecutionRes response = new GetStepExecutionRes();
+            response = new GetStepExecutionRes();
             if(request.stepExecutionId != null) {
                 StepExecution stepExecution = stepExecutionDao.getStepExecution(jobExecution, request.stepExecutionId);  
                 if(stepExecution != null) {
                     response.stepExecution = JobRepositoryRpcFactory.buildStepExecutionType(stepExecution);                                    
                 }
             }
-            
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
     /**
      * Handles adding a step executions.
      * 
-     * @param holder Holder containing request
-     * @return holder containing response
+     * @param request the {@link AddStepExecutionsReq}
+     * @return the {@link AddStepExecutionsRes}
      */
-    private MindRpcMessageHolder handleAddStepExecutions(MindRpcMessageHolder holder) {
-        MindRpcMessageHolder outHolder = null;        
+    private AddStepExecutionsRes handleAddStepExecutions(AddStepExecutionsReq request) {
+        AddStepExecutionsRes response = null;        
         try {
-            AddStepExecutionsReq request = JobRepositoryRpcFactory.convert(holder, AddStepExecutionsReq.class);            
             JobExecution jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(request.jobExecution);            
             stepExecutionDao.addStepExecutions(jobExecution);            
-            AddStepExecutionsRes response = new AddStepExecutionsRes();
+            response = new AddStepExecutionsRes();
             response.jobExecution = JobRepositoryRpcFactory.buildJobExecutionType(jobExecution);
             // step executions inside job executions doesn't get set
             
-            byte[] bytes = mapper.writeValueAsBytes(response);            
-            outHolder = new MindRpcMessageHolder(null, bytes);            
         } catch (Exception e) {
             log.error("error handling command", e);            
         }
-        return outHolder;
+        return response;
     }
     
 }

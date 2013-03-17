@@ -1,6 +1,5 @@
 package org.springframework.yarn.integration.config;
 
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -41,7 +40,6 @@ public class AmserviceClientNamespaceTest {
         
         Class<?> clazz = TestUtils.readField("serviceImpl", fb);
         assertThat(clazz.getCanonicalName(), is("org.springframework.yarn.integration.ip.mind.TestServiceClient"));
-        assertThat(TestUtils.readField("objectMapper", fb), nullValue());
         assertThat(TestUtils.readField("requestChannel", fb), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("responseChannel", fb), instanceOf(QueueChannel.class));
         assertThat(TestUtils.readField("serviceClient", fb), instanceOf(TestServiceClient.class));
@@ -50,7 +48,6 @@ public class AmserviceClientNamespaceTest {
         assertNotNull(client);
         assertThat(TestUtils.readField("requestChannel", client), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("responseChannel", client), instanceOf(QueueChannel.class));
-        assertThat(TestUtils.readField("objectMapper", client), nullValue());        
     }
     
     @Test
@@ -62,7 +59,6 @@ public class AmserviceClientNamespaceTest {
 
         Class<?> clazz = TestUtils.readField("serviceImpl", fb);
         assertThat(clazz.getCanonicalName(), is("org.springframework.yarn.integration.ip.mind.TestServiceClient"));
-        assertThat(TestUtils.readField("objectMapper", fb), nullValue());
         assertThat(TestUtils.readField("requestChannel", fb), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("responseChannel", fb), instanceOf(QueueChannel.class));
         assertThat(TestUtils.readField("serviceClient", fb), instanceOf(TestServiceClient.class));
@@ -71,7 +67,6 @@ public class AmserviceClientNamespaceTest {
         assertNotNull(client);
         assertThat(TestUtils.readField("requestChannel", client), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("responseChannel", client), instanceOf(QueueChannel.class));
-        assertThat(TestUtils.readField("objectMapper", client), nullValue());  
     }
 
 }

@@ -10,9 +10,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.util.ClassUtils;
 import org.springframework.yarn.am.AppmasterServiceClient;
-import org.springframework.yarn.integration.ip.mind.MindAppmasterServiceClient;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Factory which creates appmaster service clients.
@@ -34,9 +31,6 @@ public class IntegrationAppmasterServiceClientFactoryBean implements FactoryBean
     
     /** Inbound response channel */
     private PollableChannel responseChannel;
-    
-    /** Possible jackson object mapper */
-    private ObjectMapper objectMapper;
     
     /** Bean factory of this instance*/
     private BeanFactory beanFactory;
@@ -63,10 +57,6 @@ public class IntegrationAppmasterServiceClientFactoryBean implements FactoryBean
             serviceClient = BeanUtils.instantiateClass(serviceImpl);
         }
         
-        if(serviceClient instanceof MindAppmasterServiceClient) {
-            ((MindAppmasterServiceClient)serviceClient).setObjectMapper(objectMapper);
-        }
-
         if(serviceClient instanceof IntegrationAppmasterServiceClient) {
             ((IntegrationAppmasterServiceClient)serviceClient).setRequestChannel(requestChannel);
             ((IntegrationAppmasterServiceClient)serviceClient).setResponseChannel(responseChannel);
@@ -107,15 +97,6 @@ public class IntegrationAppmasterServiceClientFactoryBean implements FactoryBean
      */
     public void setResponseChannel(PollableChannel responseChannel) {
         this.responseChannel = responseChannel;
-    }
-
-    /**
-     * Sets the jackson object mapper.
-     * 
-     * @param objectMapper the jackson object mapper
-     */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 
 }

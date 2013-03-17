@@ -41,14 +41,12 @@ public class AmserviceNamespaceTest {
 
         Class<?> clazz = TestUtils.readField("serviceImpl", fb);
         assertThat(clazz.getCanonicalName(), is("org.springframework.yarn.integration.ip.mind.TestService"));
-        assertThat(TestUtils.readField("objectMapper", fb), nullValue());
         assertThat(TestUtils.readField("messageChannel", fb), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("appmasterService", fb), instanceOf(TestService.class));
         
         TestService service = (TestService) ctx.getBean("yarnAmservice");
         assertNotNull(service);
         assertThat(TestUtils.readField("messageChannel", service), instanceOf(DirectChannel.class));
-        assertThat(TestUtils.readField("objectMapper", service), nullValue());
         
         testSocketSupport(service, fb);
     }
@@ -62,14 +60,12 @@ public class AmserviceNamespaceTest {
 
         Class<?> clazz = TestUtils.readField("serviceImpl", fb);
         assertThat(clazz.getCanonicalName(), is("org.springframework.yarn.integration.ip.mind.TestService"));
-        assertThat(TestUtils.readField("objectMapper", fb), nullValue());
         assertThat(TestUtils.readField("messageChannel", fb), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("appmasterService", fb), instanceOf(TestService.class));
         
         TestService service = (TestService) ctx.getBean("yarnAmservice2");
         assertNotNull(service);
         assertThat(TestUtils.readField("messageChannel", service), instanceOf(DirectChannel.class));
-        assertThat(TestUtils.readField("objectMapper", service), nullValue());        
         
         testSocketSupport(service, fb);
     }
@@ -84,14 +80,12 @@ public class AmserviceNamespaceTest {
         Class<?> clazz = TestUtils.readField("serviceImpl", fb);
         assertThat(clazz, nullValue());
         assertThat(TestUtils.readField("serviceRef", fb), instanceOf(TestService.class));
-        assertThat(TestUtils.readField("objectMapper", fb), nullValue());
         assertThat(TestUtils.readField("messageChannel", fb), instanceOf(DirectChannel.class));
         assertThat(TestUtils.readField("appmasterService", fb), instanceOf(TestService.class));
         
         TestService service = (TestService) ctx.getBean("yarnAmservice3");
         assertNotNull(service);
         assertThat(TestUtils.readField("messageChannel", service), instanceOf(DirectChannel.class));
-        assertThat(TestUtils.readField("objectMapper", service), nullValue());        
         
         testSocketSupport(service, fb);
     }

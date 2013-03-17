@@ -1,12 +1,18 @@
 package org.springframework.yarn.batch.repository.bindings;
 
-import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
+/**
+ * Response for getting a job execution.
+ * 
+ * @author Janne Valkealahti
+ *
+ * @see org.springframework.yarn.batch.repository.RemoteJobExecutionDao#getJobExecution(Long)
+ * @see org.springframework.batch.core.JobExecution
+ * 
+ */
+public class GetJobExecutionRes extends BaseResponseObject {
 
-public class GetJobExecutionRes extends BaseObject {
-
-    public String message;
-    public String status;
     public JobExecutionType jobExecution;
     
     public GetJobExecutionRes() {

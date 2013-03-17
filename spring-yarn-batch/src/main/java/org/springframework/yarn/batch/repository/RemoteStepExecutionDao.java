@@ -7,12 +7,15 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.RpcMessage;
+import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.AddStepExecutionsRes;
+import org.springframework.yarn.batch.repository.bindings.GetStepExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.GetStepExecutionRes;
+import org.springframework.yarn.batch.repository.bindings.SaveStepExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.SaveStepExecutionRes;
+import org.springframework.yarn.batch.repository.bindings.UpdateStepExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.UpdateStepExecutionRes;
-import org.springframework.yarn.client.AppmasterScOperations;
-import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
 
 /**
  * Proxy implementation of {@link StepExecutionDao}. Passes dao
@@ -28,7 +31,7 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
         super();
     }
 
-    public RemoteStepExecutionDao(AppmasterScOperations appmasterScOperations) {
+    public RemoteStepExecutionDao(AppmasterMindScOperations appmasterScOperations) {
         super(appmasterScOperations);
     }
     
@@ -38,13 +41,11 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
         Assert.isNull(stepExecution.getVersion(), "StepExecution can't already have a version assigned");
 
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildSaveStepExecutionReq(stepExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            SaveStepExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, SaveStepExecutionRes.class);
-            checkResponseMayThrow(responseBody);
-            stepExecution.setId(responseBody.getId());
-            stepExecution.setVersion(responseBody.getVersion());
+            SaveStepExecutionReq request = JobRepositoryRpcFactory.buildSaveStepExecutionReq(stepExecution);
+            SaveStepExecutionRes response = (SaveStepExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            checkResponseMayThrow(response);
+            stepExecution.setId(response.getId());
+            stepExecution.setVersion(response.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -52,14 +53,12 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
 
     @Override
     public void updateStepExecution(StepExecution stepExecution) {
-        try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildUpdateStepExecutionReq(stepExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            UpdateStepExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateStepExecutionRes.class);
-            checkResponseMayThrow(responseBody);
-            stepExecution.setId(responseBody.getId());
-            stepExecution.setVersion(responseBody.getVersion());
+        try {            
+            UpdateStepExecutionReq request = JobRepositoryRpcFactory.buildUpdateStepExecutionReq(stepExecution);
+            UpdateStepExecutionRes response = (UpdateStepExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            checkResponseMayThrow(response);
+            stepExecution.setId(response.getId());
+            stepExecution.setVersion(response.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }        
@@ -69,12 +68,10 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
     public StepExecution getStepExecution(JobExecution jobExecution, Long stepExecutionId) {
         StepExecution stepExecution = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetStepExecutionReq(jobExecution, stepExecutionId);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            GetStepExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, GetStepExecutionRes.class);
-            if(responseBody.stepExecution != null) {
-                stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(responseBody.stepExecution);                
+            GetStepExecutionReq request = JobRepositoryRpcFactory.buildGetStepExecutionReq(jobExecution, stepExecutionId);
+            GetStepExecutionRes response = (GetStepExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            if(response.stepExecution != null) {
+                stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(response.stepExecution);                
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -86,14 +83,10 @@ public class RemoteStepExecutionDao extends AbstractRemoteDao implements StepExe
     @Override
     public void addStepExecutions(JobExecution jobExecution) {
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildAddStepExecutionReq(jobExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            
-            AddStepExecutionsRes responseBody = JobRepositoryRpcFactory.convert(holder, AddStepExecutionsRes.class);            
-            checkResponseMayThrow(responseBody);
-            
-            JobExecution retrievedJobExecution = JobRepositoryRpcFactory.convertJobExecutionType(responseBody.jobExecution);            
+            AddStepExecutionsReq request = JobRepositoryRpcFactory.buildAddStepExecutionsReq(jobExecution);
+            AddStepExecutionsRes response = (AddStepExecutionsRes) getAppmasterScOperations().doMindRequest(request);
+            checkResponseMayThrow(response);
+            JobExecution retrievedJobExecution = JobRepositoryRpcFactory.convertJobExecutionType(response.jobExecution);            
             jobExecution.addStepExecutions(new ArrayList(retrievedJobExecution.getStepExecutions()));            
         } catch (Exception e) {
             throw convertException(e);

@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +20,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.client.AppmasterScOperations;
 import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
-import org.springframework.yarn.integration.support.JacksonUtils;
 import org.springframework.yarn.integration.support.PortExposingTcpSocketSupport;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests for integrating {@link AppmasterService} and
@@ -62,7 +62,8 @@ public class MindIntegrationRawTests {
         assertNotNull(socketSupport);
         
         SimpleTestRequest req = new SimpleTestRequest();        
-        ObjectMapper objectMapper = JacksonUtils.getObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
+        
         String content = objectMapper.writeValueAsString(req);
         
         Map<String, String> headers = new HashMap<String, String>();

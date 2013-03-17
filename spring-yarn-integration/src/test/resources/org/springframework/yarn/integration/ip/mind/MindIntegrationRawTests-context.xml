@@ -76,13 +76,11 @@
     <bean id="mindAppmasterService" class="org.springframework.yarn.integration.ip.mind.TestService" >
         <property name="socketSupport" ref="socketSupport"/>
         <property name="messageChannel" ref="serverChannel"/>
-        <property name="objectMapper" ref="mapper"/>
     </bean>
     
     <bean id="mindAppmasterServiceClient" class="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient">
         <property name="requestChannel" ref="clientRequestChannel"/>
         <property name="responseChannel" ref="clientResponseChannel"/>
-        <property name="objectMapper" ref="mapper"/>
     </bean>
     
     

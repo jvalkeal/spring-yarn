@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.client.AppmasterScOperations;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
 import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
@@ -17,40 +18,40 @@ import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
  */
 public abstract class AbstractRemoteDao {
 
-    private AppmasterScOperations appmasterScOperations;
+    private AppmasterMindScOperations appmasterScOperations;
 
     /**
-     * Default constructor. {@link AppmasterScOperations} should be
-     * set via {@link #setAppmasterScOperations(AppmasterScOperations)}
+     * Default constructor. {@link AppmasterMindScOperations} should be
+     * set via {@link #setAppmasterScOperations(AppmasterMindScOperations)}
      * method.
      */
     public AbstractRemoteDao() {
     }
 
     /**
-     * Constructor which sets the {@link AppmasterScOperations}.
+     * Constructor which sets the {@link AppmasterMindScOperations}.
      * 
-     * @param appmasterScOperations {@link AppmasterScOperations} to set
+     * @param appmasterScOperations {@link AppmasterMindScOperations} to set
      */
-    public AbstractRemoteDao(AppmasterScOperations appmasterScOperations) {
+    public AbstractRemoteDao(AppmasterMindScOperations appmasterScOperations) {
         this.appmasterScOperations = appmasterScOperations;
     }
     
     /**
-     * Gets the {@link AppmasterScOperations} for this implementation.
+     * Gets the {@link AppmasterMindScOperations} for this implementation.
      * 
-     * @return {@link AppmasterScOperations} used for this implementation
+     * @return {@link AppmasterMindScOperations} used for this implementation
      */
-    public AppmasterScOperations getAppmasterScOperations() {
+    public AppmasterMindScOperations getAppmasterScOperations() {
         return appmasterScOperations;
     }
 
     /**
-     * Sets the {@link AppmasterScOperations} for this implementation.
+     * Sets the {@link AppmasterMindScOperations} for this implementation.
      * 
-     * @param appmasterScOperations the {@link AppmasterScOperations}
+     * @param appmasterScOperations the {@link AppmasterMindScOperations}
      */
-    public void setAppmasterScOperations(AppmasterScOperations appmasterScOperations) {
+    public void setAppmasterScOperations(AppmasterMindScOperations appmasterScOperations) {
         this.appmasterScOperations = appmasterScOperations;
     }
     

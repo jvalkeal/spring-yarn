@@ -36,11 +36,9 @@
     
     <yarn-int:amservice 
         service-impl="org.springframework.yarn.integration.ip.mind.TestService"
-        object-mapper="mapper"
         default-port="#{socketPort.intValue()}"/>
     <yarn-int:amservice-client 
         service-impl="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient" 
-        object-mapper="mapper"
         host="localhost"
         port="#{socketPort.intValue()}"/>   
     

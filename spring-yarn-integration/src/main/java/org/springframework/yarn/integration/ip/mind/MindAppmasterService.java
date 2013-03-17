@@ -7,8 +7,6 @@ import org.springframework.yarn.am.GenericRpcMessage;
 import org.springframework.yarn.am.RpcMessage;
 import org.springframework.yarn.integration.IntegrationAppmasterService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Implementation of {@link AppmasterService} which handles communication
  * via Spring Int tcp channels using mind protocol.
@@ -19,9 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public abstract class MindAppmasterService extends IntegrationAppmasterService<MindRpcMessageHolder> {
 
     private static final Log log = LogFactory.getLog(MindAppmasterService.class);
-    
-    /** Jackson object mapper */
-    private ObjectMapper objectMapper;
     
     @Override
     public RpcMessage<MindRpcMessageHolder> handleMessageInternal(RpcMessage<MindRpcMessageHolder> message) {
@@ -34,23 +29,6 @@ public abstract class MindAppmasterService extends IntegrationAppmasterService<M
         return null;
     }
 
-    /**
-     * Sets the jackson object mapper.
-     * 
-     * @param objectMapper the instance of object mapper
-     */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-    
     protected abstract MindRpcMessageHolder handleRpcMessage(MindRpcMessageHolder message) throws Exception;
-    
-    protected <T> T convert(MindRpcMessageHolder holder, Class<T> clazz) throws Exception {
-        return objectMapper.readValue(holder.getContent(), clazz);
-    }
-
-    protected String convert(Object object) throws Exception {
-        return objectMapper.writeValueAsString(object);
-    }
-    
+        
 }

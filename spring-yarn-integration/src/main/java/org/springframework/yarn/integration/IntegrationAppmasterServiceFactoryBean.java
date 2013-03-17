@@ -12,10 +12,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.yarn.am.AppmasterService;
-import org.springframework.yarn.integration.ip.mind.MindAppmasterService;
 import org.springframework.yarn.integration.support.PortExposingTcpSocketSupport;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Bean factory for building {@link AppmasterService} instances
@@ -42,9 +39,6 @@ public class IntegrationAppmasterServiceFactoryBean implements FactoryBean<Appma
     /** Instance if service given as bean reference */
     private IntegrationAppmasterService<?> serviceRef;
     
-    /** Possible jackson object mapper */
-    private ObjectMapper objectMapper;
-
     /** Bean factory of this instance*/
     private BeanFactory beanFactory;
     
@@ -82,10 +76,6 @@ public class IntegrationAppmasterServiceFactoryBean implements FactoryBean<Appma
         if(appmasterService instanceof IntegrationAppmasterService) {
             ((IntegrationAppmasterService)appmasterService).setMessageChannel(messageChannel);
             ((IntegrationAppmasterService)appmasterService).setSocketSupport(socketSupport);
-        }
-
-        if(appmasterService instanceof MindAppmasterService) {
-            ((MindAppmasterService)appmasterService).setObjectMapper(objectMapper);
         }
 
         if(appmasterService instanceof SmartLifecycle) {
@@ -147,15 +137,6 @@ public class IntegrationAppmasterServiceFactoryBean implements FactoryBean<Appma
      */
     public void setServiceRef(IntegrationAppmasterService<?> serviceRef) {
         this.serviceRef = serviceRef;
-    }
-
-    /**
-     * Sets the jackson object mapper.
-     * 
-     * @param objectMapper the jackson object mapper
-     */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 
 }

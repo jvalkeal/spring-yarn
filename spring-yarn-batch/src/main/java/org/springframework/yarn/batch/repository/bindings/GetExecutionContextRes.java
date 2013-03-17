@@ -1,11 +1,21 @@
 package org.springframework.yarn.batch.repository.bindings;
 
-import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
-public class GetExecutionContextRes extends BaseObject {
+/**
+ * Response for getting execution context.
+ * 
+ * @author Janne Valkealahti
+ *
+ * @see org.springframework.yarn.batch.repository.RemoteExecutionContextDao#getExecutionContext(JobExecution)
+ * @see org.springframework.yarn.batch.repository.RemoteExecutionContextDao#getExecutionContext(StepExecution)
+ * @see org.springframework.batch.core.JobInstance
+ * 
+ */
+public class GetExecutionContextRes extends BaseResponseObject {
 
-    public String message;
-    public String status;
     public ExecutionContextType executionContext;
     
     public GetExecutionContextRes() {

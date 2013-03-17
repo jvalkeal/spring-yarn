@@ -33,7 +33,6 @@
             <xsd:attribute name="service-ref" type="xsd:string" use="optional"/>
             <xsd:attribute name="channel" type="xsd:string" use="optional"/>
             <xsd:attribute name="default-port" type="xsd:string" use="optional"/>
-            <xsd:attribute name="object-mapper" type="xsd:string" use="optional"/>
             <xsd:attribute name="socket-support" type="xsd:string" use="optional"/>
         </xsd:complexType>
     </xsd:element>
@@ -50,7 +49,6 @@
             </xsd:attribute>
             <xsd:attribute name="host" type="xsd:string" use="optional"/>
             <xsd:attribute name="port" type="xsd:string" use="optional"/>
-            <xsd:attribute name="object-mapper" type="xsd:string" use="optional"/>
             <xsd:attribute name="request-channel" type="xsd:string" use="optional"/>
             <xsd:attribute name="response-channel" type="xsd:string" use="optional"/>
         </xsd:complexType>

@@ -10,24 +10,38 @@ import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.repository.dao.JobExecutionDao;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.RpcMessage;
+import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.FindJobExecutionsRes;
+import org.springframework.yarn.batch.repository.bindings.FindRunningJobExecutionsReq;
 import org.springframework.yarn.batch.repository.bindings.FindRunningJobExecutionsRes;
+import org.springframework.yarn.batch.repository.bindings.GetJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.GetJobExecutionRes;
+import org.springframework.yarn.batch.repository.bindings.GetLastJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.GetLastJobExecutionRes;
 import org.springframework.yarn.batch.repository.bindings.JobExecutionType;
+import org.springframework.yarn.batch.repository.bindings.SaveJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.SaveJobExecutionRes;
+import org.springframework.yarn.batch.repository.bindings.SynchronizeStatusReq;
 import org.springframework.yarn.batch.repository.bindings.SynchronizeStatusRes;
+import org.springframework.yarn.batch.repository.bindings.UpdateJobExecutionReq;
 import org.springframework.yarn.batch.repository.bindings.UpdateJobExecutionRes;
-import org.springframework.yarn.client.AppmasterScOperations;
-import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
 
+/**
+ * Proxy implementation of {@link JobExecutionDao}. Passes dao
+ * methods to a remote repository via service calls using 
+ * {@link RpcMessage} messages.
+ * 
+ * @author Janne Valkealahti
+ *
+ */
 public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecutionDao {
 
     public RemoteJobExecutionDao() {
         super();
     }
 
-    public RemoteJobExecutionDao(AppmasterScOperations appmasterScOperations) {
+    public RemoteJobExecutionDao(AppmasterMindScOperations appmasterScOperations) {
         super(appmasterScOperations);
     }
     
@@ -35,12 +49,10 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     public void saveJobExecution(JobExecution jobExecution) {
         validateJobExecution(jobExecution);
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildSaveJobExecutionReq(jobExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            SaveJobExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, SaveJobExecutionRes.class);
-            jobExecution.setId(responseBody.id);
-            jobExecution.setVersion(responseBody.version);
+            SaveJobExecutionReq request = JobRepositoryRpcFactory.buildSaveJobExecutionReq(jobExecution);
+            SaveJobExecutionRes response = (SaveJobExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            jobExecution.setId(response.getId());
+            jobExecution.setVersion(response.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }                
@@ -55,12 +67,10 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
                 "JobExecution version cannot be null. JobExecution must be saved before it can be updated");
         
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildUpdateJobExecutionReq(jobExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            UpdateJobExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, UpdateJobExecutionRes.class);
-            checkResponseMayThrow(responseBody);
-            jobExecution.setVersion(responseBody.getVersion());
+            UpdateJobExecutionReq request = JobRepositoryRpcFactory.buildUpdateJobExecutionReq(jobExecution);
+            UpdateJobExecutionRes response = (UpdateJobExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            checkResponseMayThrow(response);
+            jobExecution.setVersion(response.getVersion());
         } catch (Exception e) {
             throw convertException(e);
         }                
@@ -70,12 +80,9 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     public List<JobExecution> findJobExecutions(JobInstance jobInstance) {
         List<JobExecution> jobExecutions = new ArrayList<JobExecution>();
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildFindJobExecutionsReq(jobInstance);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            FindJobExecutionsRes responseBody = JobRepositoryRpcFactory.convert(holder, FindJobExecutionsRes.class);
-            for(JobExecutionType jobExecutionType : responseBody.jobExecutions) {
+            FindJobExecutionsReq request = JobRepositoryRpcFactory.buildFindJobExecutionsReq(jobInstance);
+            FindJobExecutionsRes response = (FindJobExecutionsRes) getAppmasterScOperations().doMindRequest(request);
+            for(JobExecutionType jobExecutionType : response.jobExecutions) {
                 jobExecutions.add(JobRepositoryRpcFactory.convertJobExecutionType(jobExecutionType));
             }
         } catch (Exception e) {
@@ -88,13 +95,10 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     public JobExecution getLastJobExecution(JobInstance jobInstance) {
         JobExecution jobExecution = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetLastJobExecution(jobInstance);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            GetLastJobExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, GetLastJobExecutionRes.class);
-            if(responseBody.jobExecution != null) {
-                jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(responseBody.jobExecution);
+            GetLastJobExecutionReq request = JobRepositoryRpcFactory.buildGetLastJobExecution(jobInstance);
+            GetLastJobExecutionRes response = (GetLastJobExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            if(response.jobExecution != null) {
+                jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(response.jobExecution);
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -106,11 +110,9 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     public Set<JobExecution> findRunningJobExecutions(String jobName) {
         Set<JobExecution> jobExecutions = new HashSet<JobExecution>();
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildFindRunningJobExecutionsReq(jobName);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            FindRunningJobExecutionsRes responseBody = JobRepositoryRpcFactory.convert(holder, FindRunningJobExecutionsRes.class);
-            for(JobExecutionType jobExecutionType : responseBody.jobExecutions) {
+            FindRunningJobExecutionsReq request = JobRepositoryRpcFactory.buildFindRunningJobExecutionsReq(jobName);
+            FindRunningJobExecutionsRes response = (FindRunningJobExecutionsRes) getAppmasterScOperations().doMindRequest(request);
+            for(JobExecutionType jobExecutionType : response.jobExecutions) {
                 jobExecutions.add(JobRepositoryRpcFactory.convertJobExecutionType(jobExecutionType));                
             }
         } catch (Exception e) {
@@ -123,12 +125,10 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     public JobExecution getJobExecution(Long executionId) {
         JobExecution jobExecution = null;
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildGetJobExecutionReq(executionId);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            GetJobExecutionRes responseBody = JobRepositoryRpcFactory.convert(holder, GetJobExecutionRes.class);            
-            if(responseBody.jobExecution != null) {
-                jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(responseBody.jobExecution);
+            GetJobExecutionReq request = JobRepositoryRpcFactory.buildGetJobExecutionReq(executionId);
+            GetJobExecutionRes response = (GetJobExecutionRes) getAppmasterScOperations().doMindRequest(request);
+            if(response.jobExecution != null) {
+                jobExecution = JobRepositoryRpcFactory.convertJobExecutionType(response.jobExecution);
             }
         } catch (Exception e) {
             throw convertException(e);
@@ -139,17 +139,13 @@ public class RemoteJobExecutionDao extends AbstractRemoteDao implements JobExecu
     @Override
     public void synchronizeStatus(JobExecution jobExecution) {
         try {
-            RpcMessage<?> request = JobRepositoryRpcFactory.buildSynchronizeStatusReq(jobExecution);
-            RpcMessage<?> response = getAppmasterScOperations().get(request);            
-            MindRpcMessageHolder holder = (MindRpcMessageHolder) response.getBody();
-            SynchronizeStatusRes responseBody = JobRepositoryRpcFactory.convert(holder, SynchronizeStatusRes.class);            
-            checkResponseMayThrow(responseBody);
-            
-            if(jobExecution.getVersion().intValue() != responseBody.getVersion().intValue()) {
-                jobExecution.upgradeStatus(responseBody.status);
-                jobExecution.setVersion(responseBody.version);
+            SynchronizeStatusReq request = JobRepositoryRpcFactory.buildSynchronizeStatusReq(jobExecution);
+            SynchronizeStatusRes response = (SynchronizeStatusRes) getAppmasterScOperations().doMindRequest(request);
+            checkResponseMayThrow(response);
+            if(jobExecution.getVersion().intValue() != response.getVersion().intValue()) {
+                jobExecution.upgradeStatus(response.status);
+                jobExecution.setVersion(response.version);
             }
-            
         } catch (Exception e) {
             throw convertException(e);
         }                

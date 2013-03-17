@@ -8,7 +8,7 @@ import org.springframework.batch.core.repository.support.AbstractJobRepositoryFa
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
-import org.springframework.yarn.client.AppmasterScOperations;
+import org.springframework.yarn.integration.ip.mind.AppmasterMindScOperations;
 
 public class RemoteJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryBean {
 
@@ -20,7 +20,7 @@ public class RemoteJobRepositoryFactoryBean extends AbstractJobRepositoryFactory
 
     private RemoteExecutionContextDao executionContextDao;
     
-    private AppmasterScOperations appmasterScOperations;
+    private AppmasterMindScOperations appmasterScOperations;
 
     public RemoteJobRepositoryFactoryBean() {
         this(new ResourcelessTransactionManager());
@@ -46,7 +46,7 @@ public class RemoteJobRepositoryFactoryBean extends AbstractJobRepositoryFactory
         setTransactionManager(transactionManager);
     }
 
-    public void setAppmasterScOperations(AppmasterScOperations appmasterScOperations) {
+    public void setAppmasterScOperations(AppmasterMindScOperations appmasterScOperations) {
         this.appmasterScOperations = appmasterScOperations;
     }
 

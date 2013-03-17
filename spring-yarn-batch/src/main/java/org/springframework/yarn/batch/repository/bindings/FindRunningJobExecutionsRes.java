@@ -2,12 +2,19 @@ package org.springframework.yarn.batch.repository.bindings;
 
 import java.util.Set;
 
-import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
-public class FindRunningJobExecutionsRes extends BaseObject {
+/**
+ * Response for finding a running job executions.
+ * 
+ * @author Janne Valkealahti
+ *
+ * @see org.springframework.yarn.batch.repository.RemoteJobExecutionDao#findRunningJobExecutions(String)
+ * @see org.springframework.batch.core.JobExecution
+ * 
+ */
+public class FindRunningJobExecutionsRes extends BaseResponseObject {
 
-    public String message;
-    public String status;
     public Set<JobExecutionType> jobExecutions;
     
     public FindRunningJobExecutionsRes() {
