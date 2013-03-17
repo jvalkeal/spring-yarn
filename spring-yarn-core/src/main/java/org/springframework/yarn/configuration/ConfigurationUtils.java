@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.yarn.configuration;
 
 import java.io.IOException;
@@ -15,16 +30,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Reusable utility class for common {@link Configuration} operations. 
- * 
+ * Reusable utility class for common {@link Configuration} operations.
+ *
  * @author Costin Leau
  * @author Janne Valkealahti
  */
 public abstract class ConfigurationUtils {
 
 	/**
-	 * Adds the specified properties to the given {@link Configuration} object.  
-	 * 
+	 * Adds the specified properties to the given {@link Configuration} object.
+	 *
 	 * @param configuration configuration to manipulate. Should not be null.
 	 * @param properties properties to add to the configuration. May be null.
 	 */
@@ -41,8 +56,8 @@ public abstract class ConfigurationUtils {
 
 	/**
 	 * Creates a new {@link Configuration} based on the given arguments.
-	 * 
-	 * @param original initial configuration to read from. May be null. 
+	 *
+	 * @param original initial configuration to read from. May be null.
 	 * @param properties properties object to add to the newly created configuration. May be null.
 	 * @return newly created configuration based on the input parameters.
 	 */
@@ -59,11 +74,11 @@ public abstract class ConfigurationUtils {
 	}
 
 	/**
-	 * Creates a new {@link YarnConfiguration} based on the given arguments. Identical to 
+	 * Creates a new {@link YarnConfiguration} based on the given arguments. Identical to
 	 * {@link #createFrom(Configuration, Properties)} but forces the use of
 	 * {@link YarnConfiguration}.
-	 * 
-	 * @param original initial configuration to read from. May be null. 
+	 *
+	 * @param original initial configuration to read from. May be null.
 	 * @param properties properties object to add to the newly created configuration. May be null.
 	 * @return newly created configuration based on the input parameters.
 	 */
@@ -73,7 +88,7 @@ public abstract class ConfigurationUtils {
 
 	/**
 	 * Returns a static {@link Properties} copy of the given configuration.
-	 * 
+	 *
 	 * @param configuration Hadoop configuration
 	 */
 	public static Properties asProperties(Configuration configuration) {
@@ -91,7 +106,7 @@ public abstract class ConfigurationUtils {
 	/**
 	 * Creates a new {@link Configuration} by merging the given configurations.
 	 * Ordering is important - the second configuration overriding values in the first.
-	 * 
+	 *
 	 * @param one configuration to read from. May be null.
 	 * @param two configuration to read from. May be null.
 	 * @return the result of merging the two configurations.

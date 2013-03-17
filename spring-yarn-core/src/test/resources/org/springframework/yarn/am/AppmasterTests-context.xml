@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:yarn="http://www.springframework.org/schema/yarn"
-    xsi:schemaLocation="http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:yarn="http://www.springframework.org/schema/yarn"
+	xsi:schemaLocation="http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <yarn:configuration/>
-    
-    <yarn:localresources/>
-    
-    <yarn:environment>
-        AM_CONTAINER_ID=container_1360089121174_0011_01_000001
-    </yarn:environment>
-    
-    <bean id="yarnAmserver" class="org.springframework.yarn.am.AppmasterTests$StubAppmasterService"/>
-    
-    <yarn:master>
-        <yarn:container-command>
-            <![CDATA[
-            fakecommand
-            ]]>
-        </yarn:container-command>
-    </yarn:master>
-    
+	<yarn:configuration/>
+
+	<yarn:localresources/>
+
+	<yarn:environment>
+		AM_CONTAINER_ID=container_1360089121174_0011_01_000001
+	</yarn:environment>
+
+	<bean id="yarnAmserver" class="org.springframework.yarn.am.AppmasterTests$StubAppmasterService"/>
+
+	<yarn:master>
+		<yarn:container-command>
+			<![CDATA[
+			fakecommand
+			]]>
+		</yarn:container-command>
+	</yarn:master>
+
 </beans>

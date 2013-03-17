@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.yarn.configuration;
 
 import java.net.URL;
@@ -18,7 +33,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * FactoryBean for creating {@link Configuration} instances.
- * 
+ *
  * @author Costin Leau
  * @author Janne Valkealahti
  */
@@ -78,8 +93,8 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 	}
 
 	/**
-	 * Creates a configuration instance potentially using the existing one (passed as an argument - which can be null). 
-	 * 
+	 * Creates a configuration instance potentially using the existing one (passed as an argument - which can be null).
+	 *
 	 * @param existing
 	 * @return configuration instance
 	 */
@@ -112,7 +127,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 
 	/**
 	 * Sets the parent configuration.
-	 * 
+	 *
 	 * @param configuration The configuration to set.
 	 */
 	public void setConfiguration(YarnConfiguration configuration) {
@@ -121,7 +136,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 
 	/**
 	 * Sets the configuration resources.
-	 * 
+	 *
 	 * @param resources The resources to set.
 	 */
 	public void setResources(Set<Resource> resources) {
@@ -130,7 +145,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 
 	/**
 	 * Sets the configuration properties.
-	 * 
+	 *
 	 * @param properties The properties to set.
 	 */
 	public void setProperties(Properties properties) {
@@ -141,7 +156,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 	 * Indicates whether the configuration object should be initialized (true) or not.
 	 * This option should normally be set to true (the default) as it causes the jars, streams and resources
 	 * set to be loaded - postponing the initializing might cause these to become unreadable.
-	 * 
+	 *
 	 * @param initialize whether to initialize or not.
 	 */
 	public void setInitialize(boolean initialize) {
@@ -152,7 +167,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 	 * Indicates whether the configuration should register an URL handler (for allowing urls
 	 * to understand HDFS prefixes, such as hdfs) or not. As this operation impacts an entire VM
 	 * and can be invoked at most once per JVM, by default it is false.
-	 * 
+	 *
 	 * @param register whether to register an URL handler or not
 	 */
 	public void setRegisterUrlHandler(boolean register) {
@@ -161,7 +176,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 
 	/**
 	 * Sets the File System ('fs.default.name') URI.
-	 * 
+	 *
 	 * @param fsUri
 	 */
 	public void setFileSystemUri(String fsUri) {
@@ -170,7 +185,7 @@ public class ConfigurationFactoryBean implements BeanClassLoaderAware, Initializ
 
 	/**
 	 * Sets the Job Tracker ('mapred.jobtracker') URI.
-	 * 
+	 *
 	 * @param rmAddress
 	 */
 	public void setResourceManagerAddress(String rmAddress) {

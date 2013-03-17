@@ -4,5 +4,5 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-    <property><name>resource.property.2</name><value>test-site-2.xml</value></property>
+	<property><name>resource.property.2</name><value>test-site-2.xml</value></property>
 </configuration>
