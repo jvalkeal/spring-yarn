@@ -24,7 +24,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
 
 /**
- *
+ * A simple container runner executing a bean
+ * named "yarnContainer".
  *
  * @author Janne Valkealahti
  *
@@ -35,7 +36,9 @@ public class CommandLineContainerRunner extends AbstractCommandLineRunner<YarnCo
 
 	@Override
 	protected void handleBeanRun(YarnContainer bean, String[] parameters, Set<String> opts) {
-		log.debug("Starting YarnClient bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
+		if(log.isDebugEnabled()) {
+			log.debug("Starting YarnClient bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
+		}
 		bean.run();
 	}
 

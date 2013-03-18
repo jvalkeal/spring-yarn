@@ -16,7 +16,9 @@
 package org.springframework.yarn.container;
 
 /**
- *
+ * A simple interface for container implementations
+ * which should work together with rest of the framework
+ * when something in a container should be executed.
  *
  * @author Janne Valkealahti
  *
@@ -24,7 +26,8 @@ package org.springframework.yarn.container;
 public interface YarnContainer {
 
 	/**
-	 *
+	 * This method is called when something is ran
+	 * in a container.
 	 */
 	void run();
 
