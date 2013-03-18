@@ -16,6 +16,7 @@
 package org.springframework.yarn.container;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -36,6 +37,9 @@ public class CommandLineContainerRunner extends AbstractCommandLineRunner<YarnCo
 
 	@Override
 	protected void handleBeanRun(YarnContainer bean, String[] parameters, Set<String> opts) {
+		Properties properties = StringUtils.splitArrayElementsIntoProperties(parameters, "=");
+		bean.setParameters(properties != null ? properties : new Properties());
+		bean.setEnvironment(System.getenv());
 		if(log.isDebugEnabled()) {
 			log.debug("Starting YarnClient bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
 		}

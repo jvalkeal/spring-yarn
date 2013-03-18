@@ -15,6 +15,9 @@
  */
 package org.springframework.yarn.container;
 
+import java.util.Map;
+import java.util.Properties;
+
 /**
  * A simple interface for container implementations
  * which should work together with rest of the framework
@@ -30,5 +33,23 @@ public interface YarnContainer {
 	 * in a container.
 	 */
 	void run();
+
+	/**
+	 * Sets the environment variables. This method should be
+	 * used by a launcher or any other party handling
+	 * creation of a container.
+	 *
+	 * @param environment the environment variables
+	 */
+	public void setEnvironment(Map<String, String> environment);
+
+	/**
+	 * Sets the parameters. This method should be
+	 * used by a launcher or any other party handling
+	 * being aware of a command line parameters.
+	 *
+	 * @param parameters the parameters
+	 */
+	public void setParameters(Properties parameters);
 
 }

@@ -26,7 +26,7 @@ import org.springframework.yarn.config.MasterParser;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
 
 /**
- *
+ * Simple launcher for application master.
  *
  * @author Janne Valkealahti
  *
@@ -39,11 +39,17 @@ public class CommandLineAppmasterRunner extends AbstractCommandLineRunner<YarnAp
 	protected void handleBeanRun(YarnAppmaster bean, String[] parameters, Set<String> opts) {
 		Properties properties = StringUtils.splitArrayElementsIntoProperties(parameters, "=");
 		bean.setParameters(properties != null ? properties : new Properties());
-		log.debug("Starting YarnAppmaster bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
+		if(log.isDebugEnabled()) {
+			log.debug("Starting YarnAppmaster bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
+		}
 		bean.submitApplication();
-		log.debug("Waiting YarnAppmaster bean");
+		if(log.isDebugEnabled()) {
+			log.debug("Waiting YarnAppmaster bean");
+		}
 		bean.waitForCompletion();
-		log.debug("Waiting YarnAppmaster bean done");
+		if(log.isDebugEnabled()) {
+			log.debug("Waiting YarnAppmaster bean done");
+		}
 	}
 
 	@Override

@@ -29,4 +29,19 @@ public class YarnSystemConstants {
 	/** Default bean id for appmaster service client. */
 	public static final String DEFAULT_ID_AMSERVICE_CLIENT = "yarnAmserviceClient";
 
+	/** Default env variable for amservice port. */
+	public static final String AMSERVICE_PORT = "syarn.amservice.port";
+
+	/** Default env variable for amservice host. */
+	public static final String AMSERVICE_HOST = "syarn.amservice.host";
+
+	/** Default env variable for amservice batch step name. */
+	public static final String AMSERVICE_BATCH_STEPNAME = "syarn.amservice.batch.stepname";
+
+	/** Default env variable for amservice batch job execution id. */
+	public static final String AMSERVICE_BATCH_JOBEXECUTIONID = "syarn.amservice.batch.jobexecutionid";
+
+	/** Default env variable for amservice batch step execution id. */
+	public static final String AMSERVICE_BATCH_STEPEXECUTIONID = "syarn.amservice.batch.stepexecutionid";
+
 }

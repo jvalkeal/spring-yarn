@@ -33,6 +33,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AbstractProcessingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.am.YarnAppmaster;
@@ -145,11 +146,11 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 			String address = service.getHost();
 			log.debug("intercept launch: port is" + port);
 			Map<String, String> env = new HashMap(context.getEnvironment());
-			env.put("amservice.port", Integer.toString(port));
-			env.put("amservice.address", address);
-			env.put("amservice.batch.stepname", splitEntry.stepName);
-			env.put("amservice.batch.jobexecutionid", Long.toString(splitEntry.stepExecution.getJobExecutionId()));
-			env.put("amservice.batch.stepexecutionid", Long.toString(splitEntry.stepExecution.getId()));
+			env.put(YarnSystemConstants.AMSERVICE_PORT, Integer.toString(port));
+			env.put(YarnSystemConstants.AMSERVICE_HOST, address);
+			env.put(YarnSystemConstants.AMSERVICE_BATCH_STEPNAME, splitEntry.stepName);
+			env.put(YarnSystemConstants.AMSERVICE_BATCH_JOBEXECUTIONID, Long.toString(splitEntry.stepExecution.getJobExecutionId()));
+			env.put(YarnSystemConstants.AMSERVICE_BATCH_STEPEXECUTIONID, Long.toString(splitEntry.stepExecution.getId()));
 			context.setEnvironment(env);
 			return context;
 		} else {
