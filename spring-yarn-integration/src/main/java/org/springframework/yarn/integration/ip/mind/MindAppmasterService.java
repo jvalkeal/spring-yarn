@@ -35,15 +35,22 @@ public abstract class MindAppmasterService extends IntegrationAppmasterService<M
 
 	@Override
 	public RpcMessage<MindRpcMessageHolder> handleMessageInternal(RpcMessage<MindRpcMessageHolder> message) {
-		try {
-			return new GenericRpcMessage<MindRpcMessageHolder>(handleRpcMessage(message.getBody()));
-		} catch (Exception e) {
-			// TODO: need to handle this error
-			log.error("error", e);
+		if(log.isDebugEnabled()) {
+			log.debug("Handling MindRpcMessageHolder: " + message);
 		}
-		return null;
+		MindRpcMessageHolder responseMessage = handleMindMessageInternal(message.getBody());
+		if(log.isDebugEnabled()) {
+			log.debug("Sending response MindRpcMessageHolder: " + responseMessage);
+		}
+		return new GenericRpcMessage<MindRpcMessageHolder>(responseMessage);
 	}
 
-	protected abstract MindRpcMessageHolder handleRpcMessage(MindRpcMessageHolder message) throws Exception;
+	/**
+	 * Internal message handling for {@link MindRpcMessageHolder}.
+	 *
+	 * @param message the {@link MindRpcMessageHolder}
+	 * @return response as {@link MindRpcMessageHolder}
+	 */
+	protected abstract MindRpcMessageHolder handleMindMessageInternal(MindRpcMessageHolder message);
 
 }

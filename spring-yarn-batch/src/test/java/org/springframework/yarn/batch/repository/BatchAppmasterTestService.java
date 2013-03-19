@@ -37,7 +37,7 @@ public class BatchAppmasterTestService extends MindAppmasterService {
 	private JobRepositoryRemoteService jobRepositoryRemoteService;
 
 	@Override
-	protected MindRpcMessageHolder handleRpcMessage(MindRpcMessageHolder message) throws Exception {
+	protected MindRpcMessageHolder handleMindMessageInternal(MindRpcMessageHolder message) {
 		if(log.isDebugEnabled()) {
 			log.debug("Incoming MindRpcMessageHolder: " + message);
 		}

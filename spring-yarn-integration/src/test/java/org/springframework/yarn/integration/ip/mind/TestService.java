@@ -28,7 +28,7 @@ import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 public class TestService extends MindAppmasterService {
 
 	@Override
-	protected MindRpcMessageHolder handleRpcMessage(MindRpcMessageHolder message) throws Exception {
+	protected MindRpcMessageHolder handleMindMessageInternal(MindRpcMessageHolder message) {
 
 		ConversionService conversionService = getConversionService();
 		SimpleTestRequest request = (SimpleTestRequest) conversionService.convert(message, BaseObject.class);

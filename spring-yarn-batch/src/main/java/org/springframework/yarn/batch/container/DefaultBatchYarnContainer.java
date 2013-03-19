@@ -23,6 +23,10 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.step.NoSuchStepException;
 import org.springframework.yarn.YarnSystemConstants;
+import org.springframework.yarn.batch.repository.JobRepositoryRpcFactory;
+import org.springframework.yarn.batch.repository.bindings.PartitionedStepExecutionStatusReq;
+import org.springframework.yarn.integration.ip.mind.MindAppmasterServiceClient;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
  * Default implementation of {@link AbstractBatchYarnContainer}
@@ -38,8 +42,8 @@ public class DefaultBatchYarnContainer extends AbstractBatchYarnContainer {
 	@Override
 	protected void runInternal() {
 
-		Long jobExecutionId = Long.parseLong(getEnvironment(YarnSystemConstants.AMSERVICE_BATCH_JOBEXECUTIONID));
-		Long stepExecutionId = Long.parseLong(getEnvironment(YarnSystemConstants.AMSERVICE_BATCH_STEPEXECUTIONID));
+		Long jobExecutionId = safeParse(getEnvironment(YarnSystemConstants.AMSERVICE_BATCH_JOBEXECUTIONID));
+		Long stepExecutionId = safeParse(getEnvironment(YarnSystemConstants.AMSERVICE_BATCH_STEPEXECUTIONID));
 		String stepName = getEnvironment(YarnSystemConstants.AMSERVICE_BATCH_STEPNAME);
 
 		if(log.isDebugEnabled()) {
@@ -69,23 +73,32 @@ public class DefaultBatchYarnContainer extends AbstractBatchYarnContainer {
 				log.debug("Executing step: " + step + " / " + stepExecution);
 			}
 			step.execute(stepExecution);
-		}
-		catch (JobInterruptedException e) {
+		} catch (JobInterruptedException e) {
 			log.error("error executing step 1", e);
 			stepExecution.setStatus(BatchStatus.STOPPED);
-			// The receiver should update the stepExecution in repository
-		}
-		catch (Throwable e) {
+		} catch (Throwable e) {
 			log.error("error executing step 2", e);
 			stepExecution.addFailureException(e);
 			stepExecution.setStatus(BatchStatus.FAILED);
-			// The receiver should update the stepExecution in repository
 		}
 
 		if(log.isDebugEnabled()) {
-			log.debug("Finished remote step run");
+			log.debug("Finished remote step run, status is " + stepExecution.getStatus());
 		}
-		// TODO: need to call back to master to notify step status
+
+		MindAppmasterServiceClient client = (MindAppmasterServiceClient) getIntegrationServiceClient();
+		PartitionedStepExecutionStatusReq req = new PartitionedStepExecutionStatusReq();
+		req.stepExecution = JobRepositoryRpcFactory.convertStepExecutionType(stepExecution);
+		BaseResponseObject doMindRequest = client.doMindRequest(req);
+		log.info("got response for status update: " + doMindRequest);
+	}
+
+	private Long safeParse(String longString) {
+		try {
+			return Long.parseLong(longString);
+		} catch (Exception e) {
+		}
+		return null;
 	}
 
 }

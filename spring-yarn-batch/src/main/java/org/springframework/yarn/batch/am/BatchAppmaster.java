@@ -15,7 +15,9 @@
  */
 package org.springframework.yarn.batch.am;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -37,6 +39,14 @@ import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AbstractProcessingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.am.YarnAppmaster;
+import org.springframework.yarn.batch.repository.BatchAppmasterService;
+import org.springframework.yarn.batch.repository.JobRepositoryRemoteServiceInterceptor;
+import org.springframework.yarn.batch.repository.JobRepositoryRpcFactory;
+import org.springframework.yarn.batch.repository.bindings.PartitionedStepExecutionStatusReq;
+import org.springframework.yarn.batch.repository.bindings.PartitionedStepExecutionStatusRes;
+import org.springframework.yarn.batch.repository.bindings.StepExecutionType;
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
+import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
 
 /**
  * Implementation of application master which can be used to
@@ -58,6 +68,9 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 	private String jobName;
 	private ApplicationContext applicationContext;
 	private Queue<SplitEntry> splitEntries = new ConcurrentLinkedQueue<BatchAppmaster.SplitEntry>();
+
+	/** Step executions as reported back from containers */
+	private List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
 
 	@Override
 	public void submitApplication() {
@@ -95,6 +108,34 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		AppmasterService service = getAppmasterService();
 		if(log.isDebugEnabled() && service != null) {
 			log.debug("We have a appmaster service " + service);
+		}
+
+		if(service instanceof BatchAppmasterService) {
+			((BatchAppmasterService)service).addInterceptor(new JobRepositoryRemoteServiceInterceptor() {
+
+				@Override
+				public BaseObject preRequest(BaseObject baseObject) {
+					log.info("got intercept type=" + baseObject.getType());
+					if(baseObject.getType().equals("PartitionedStepExecutionStatusReq")) {
+						StepExecutionType stepExecutionType = ((PartitionedStepExecutionStatusReq)baseObject).stepExecution;
+						StepExecution convertStepExecution = JobRepositoryRpcFactory.convertStepExecutionType(stepExecutionType);
+						stepExecutions.add(convertStepExecution);
+						return null;
+					} else {
+						return baseObject;
+					}
+				}
+
+				@Override
+				public BaseResponseObject postRequest(BaseResponseObject baseResponseObject) {
+					return baseResponseObject;
+				}
+
+				@Override
+				public BaseResponseObject handleRequest(BaseObject baseObject) {
+					return new PartitionedStepExecutionStatusRes();
+				}
+			});
 		}
 
 		if(service != null && service.hasPort()) {
@@ -144,7 +185,6 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		if(service != null) {
 			int port = service.getPort();
 			String address = service.getHost();
-			log.debug("intercept launch: port is" + port);
 			Map<String, String> env = new HashMap(context.getEnvironment());
 			env.put(YarnSystemConstants.AMSERVICE_PORT, Integer.toString(port));
 			env.put(YarnSystemConstants.AMSERVICE_HOST, address);
@@ -158,6 +198,9 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		}
 	}
 
+	public List<StepExecution> getStepExecutions() {
+		return stepExecutions;
+	}
 
 	public void addStepSplits(String stepName, Set<StepExecution> stepSplits) {
 		for(StepExecution stepExecution : stepSplits) {

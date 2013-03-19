@@ -209,9 +209,9 @@ public class JobRepositoryRemoteService implements InitializingBean {
 			responseObj = handleGetExecutionContext((GetExecutionContextReq)request);
 		}
 
-		if(responseObj == null) {
-			throw new RuntimeException("Error finding defined rpc request type");
-		}
+//		if(responseObj == null) {
+//			throw new RuntimeException("Error finding defined rpc request type");
+//		}
 
 		if(log.isDebugEnabled()) {
 			log.debug("Handled rpc request for type=" + request.getType() + ". Returning responseObj " + responseObj);

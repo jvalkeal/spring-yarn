@@ -61,6 +61,7 @@ public class BatchPartitionHandler implements PartitionHandler {
 	public Collection<StepExecution> handle(StepExecutionSplitter stepSplitter, StepExecution stepExecution)
 			throws Exception {
 
+		Collection<StepExecution> result = new ArrayList<StepExecution>();
 		Set<StepExecution> split = stepSplitter.split(stepExecution, gridSize);
 
 		if(log.isDebugEnabled()) {
@@ -69,14 +70,11 @@ public class BatchPartitionHandler implements PartitionHandler {
 				log.debug("Splitted step execution: " + execution);
 			}
 		}
-		master.addStepSplits(stepName, split);
 
+		master.addStepSplits(stepName, split);
 		master.getMonitor().setTotal(gridSize);
 		master.getAllocator().allocateContainers(gridSize);
 
-		Collection<StepExecution> result = new ArrayList<StepExecution>();
-
-		// monitor
 		for(int i = 0; i<30; i++) {
 			try {
 				if(master.getMonitor().isCompleted()) {
@@ -88,12 +86,17 @@ public class BatchPartitionHandler implements PartitionHandler {
 				log.info("sleep error", e);
 			}
 		}
-		log.debug("setting completed:");
 		master.getMonitor().setCompleted();
 
-		// for now just return empty collection,
-		// should create a service hook to receive
-		// responses from remote containers
+		result.addAll(master.getStepExecutions());
+
+		if(log.isDebugEnabled()) {
+			log.debug("Statuses of remote execution ");
+			for(StepExecution execution : result) {
+				log.debug("Remote step execution: " + execution);
+			}
+		}
+
 		return result;
 	}
 
