@@ -17,11 +17,18 @@ package org.springframework.yarn.batch.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
+/**
+ * Handler for &lt;yarn-batch&gt; namespace. All element parsers will be registered
+ * here.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class BatchNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		registerBeanDefinitionParser("master", new MasterParser());
+		registerBeanDefinitionParser("master", new BatchMasterParser());
 	}
 
 }
