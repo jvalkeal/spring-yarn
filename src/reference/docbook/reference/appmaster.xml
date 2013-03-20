@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0"  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="appmaster">
+  
+  <title>Interacting with Application Master</title>
+
+  <para>It is fairly easy to create an application which launches a few
+  containers and then leave those to do their tasks. This is pretty much
+  what <emphasis>Distributed Shell</emphasis> example application in
+  Yarn is doing. In that example a container is configured to run
+  a simple shell command and <emphasis>Application Master</emphasis>
+  only tracks when containers have finished. If only need from a
+  framework is to be able to fire and forget then that's all you need, but
+  most likely a real-world Yarn application will need some sort of
+  communication with <emphasis>Application Master</emphasis>. This 
+  communication is initiated either from <emphasis>Application Client</emphasis>
+  or <emphasis>Application Container</emphasis>.</para>
+
+  <para>Yarn framework itself doesn't define any kind of general
+  communication API for <emphasis>Application Master</emphasis>. 
+  There are APIs for communicating with <emphasis>Container Manager</emphasis>
+  and <emphasis>Resource Manager</emphasis> which are used on within
+  a layer not necessarily exposed to a user. Spring Yarn defines
+  a general framework to talk to <emphasis>Application Master</emphasis>
+  through an abstraction and currently a JSON based rpc system exists.</para>
+
+  <para>This chapter concentrates on developer concepts to create a custom
+  services for <emphasis>Application Master</emphasis>, configuration
+  options for those can be found from sections above -  
+  <link linkend="yarn:masterservice">Appmaster Service</link> and 
+  <link linkend="yarn:masterserviceclient">Appmaster Service Client</link>.</para>
+  
+  <section id="appmaster:concepts">
+  
+    <title>Basic Concepts</title>
+	
+    <para>Having a communication framework between
+	<emphasis>Application Master</emphasis> and
+	<emphasis>Container</emphasis> involves few moving parts.
+	Firstly there has to be some sort of service running on an
+	<emphasis>Application Master</emphasis>. Secondly user of this
+	service needs to know where it is and how to connect to it.
+	Thirtly, if not creating these services from scratch, it'd be
+	nice if some sort of abstraction already existed.</para>
+
+    <para>Contract for appmaster services is very simple,
+	<emphasis>Application Master Service</emphasis> needs to implement
+	<interfacename>AppmasterService</interfacename> interface be registered
+	with Spring application context. Actual appmaster instance will then
+	pick it up from a bean factory.</para>
+
+<programlisting language="java"><![CDATA[public interface AppmasterService {
+  int getPort();
+  boolean hasPort();
+  String getHost();
+}]]></programlisting>
+	
+    <para>Interface <interfacename>AppmasterServiceClient</interfacename> is
+	currently an empty interface just marking class to be
+	a appmaster service client.</para>
+
+<programlisting language="java"><![CDATA[public interface AppmasterServiceClient {
+}]]></programlisting>
+	
+	
+  </section>
+
+  <section id="appmaster:json">
+  
+    <title>Using JSON</title>
+	
+    <para>Default implementations can be used to exchange messages using
+	a simple domain classes and actual messages are converted into json
+	and send over the transport.</para>
+
+
+<programlisting language="xml"><![CDATA[<yarn-int:amservice
+  service-impl="org.springframework.yarn.integration.ip.mind.TestService"
+  default-port="1234"/>
+<yarn-int:amservice-client
+  service-impl="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient"
+  host="localhost"
+  port="1234"/>]]></programlisting>
+
+<programlisting language="java"><![CDATA[@Autowired
+AppmasterServiceClient appmasterServiceClient;
+
+@Test
+public void testServiceInterfaces() throws Exception {
+  SimpleTestRequest request = new SimpleTestRequest();
+  SimpleTestResponse response =
+  (SimpleTestResponse) ((MindAppmasterServiceClient)appmasterServiceClient).
+    doMindRequest(request);
+  assertThat(response.stringField, is("echo:stringFieldValue"));
+}]]></programlisting>
+	
+  </section>
+
+  <section id="appmaster:conversion">
+  
+    <title>Converters</title>
+	
+    <para>When default implementations for Application master services are
+	exchanging messages, converters are net registered automatically. There
+	is a namespace tag <emphasis>converters</emphasis> to ease
+	this configuration.</para>
+
+    <programlisting language="xml"><![CDATA[<bean id="mapper" 
+  class="org.springframework.yarn.integration.support.Jackson2ObjectMapperFactoryBean" />	
+	
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindObjectToHolderConverter">
+    <constructor-arg ref="mapper"/>
+  </bean>
+</yarn-int:converter>
+
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindHolderToObjectConverter">
+    <constructor-arg ref="mapper"/>
+    <constructor-arg value="org.springframework.yarn.batch.repository.bindings"/>
+  </bean>
+</yarn-int:converter>
+]]></programlisting>
+	
+  </section>
+  
+  
+</chapter>

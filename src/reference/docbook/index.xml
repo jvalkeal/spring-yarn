@@ -36,6 +36,8 @@
     <title>Spring and Yarn</title>
     <xi:include href="reference/introduction.xml"/>
     <xi:include href="reference/yarn.xml"/>
+    <xi:include href="reference/appmaster.xml"/>
+    <xi:include href="reference/batch.xml"/>
   </part>
   
   <!--
@@ -53,6 +55,7 @@
     <xi:include href="samples/list-applications.xml"/>
     <xi:include href="samples/simple-command.xml"/>
     <xi:include href="samples/multi-context.xml"/>
+    <xi:include href="samples/batch-partition.xml"/>
   </part>
 
   <part id="yarnintroduction">

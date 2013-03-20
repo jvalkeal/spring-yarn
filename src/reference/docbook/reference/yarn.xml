@@ -25,9 +25,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:]]><co id="yarn-ns-prefix"/><![CDATA[yarn="]]><co id="yarn-ns-uri"/><![CDATA[http://www.springframework.org/schema/yarn"
+  xmlns:]]><co id="yarn-ns-int-prefix"/><![CDATA[yarn-int="]]><co id="yarn-ns-int-uri"/><![CDATA[http://www.springframework.org/schema/yarn/integration"
+  xmlns:]]><co id="yarn-ns-batch-prefix"/><![CDATA[yarn-batch="]]><co id="yarn-ns-batch-uri"/><![CDATA[http://www.springframework.org/schema/yarn/batch"
   xsi:schemaLocation="
-    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd]]><co id="yarn-ns-uri-loc"/><![CDATA[">
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/yarn
+    http://www.springframework.org/schema/yarn/spring-yarn.xsd]]><co id="yarn-ns-uri-loc"/><![CDATA[
+    http://www.springframework.org/schema/yarn/integration
+    http://www.springframework.org/schema/yarn/integration/spring-yarn-integration.xsd]]><co id="yarn-ns-int-uri-loc"/><![CDATA[
+    http://www.springframework.org/schema/yarn/batch
+    http://www.springframework.org/schema/yarn/batch/spring-yarn-batch.xsd]]><co id="yarn-ns-batch-uri-loc"/><![CDATA[">
 
   <bean id ... >
 
@@ -36,11 +44,27 @@
 
     <calloutlist>
       <callout arearefs="yarn-ns-prefix">
-        <para>Spring for Apache Hadoop Yarn namespace prefix. Any name can do but
-		through out the reference documentation, the <literal>yarn</literal>
-		will be used.</para>
+        <para>Spring for Apache Hadoop Yarn namespace prefix for core package.
+        Any name can do but through out the reference documentation, the <literal>yarn</literal>
+        will be used.</para>
       </callout>
       <callout arearefs="yarn-ns-uri">
+        <para>The namespace URI.</para>
+      </callout>
+      <callout arearefs="yarn-ns-int-prefix">
+        <para>Spring for Apache Hadoop Yarn namespace prefix for integration package.
+        Any name can do but through out the reference documentation, the <literal>yarn-int</literal>
+        will be used.</para>
+      </callout>
+      <callout arearefs="yarn-ns-int-uri">
+        <para>The namespace URI.</para>
+      </callout>
+      <callout arearefs="yarn-ns-batch-prefix">
+        <para>Spring for Apache Hadoop Yarn namespace prefix for batch package.
+        Any name can do but through out the reference documentation, the <literal>yarn-batch</literal>
+        will be used.</para>
+      </callout>
+      <callout arearefs="yarn-ns-batch-uri">
         <para>The namespace URI.</para>
       </callout>
       <callout arearefs="yarn-ns-uri-loc">
@@ -48,6 +72,12 @@
 		points to an external address (which exists and is valid), Spring
 		will resolve the schema locally as it is included in the Spring
 		for Apache Hadoop Yarn library.</para>
+      </callout>
+      <callout arearefs="yarn-ns-int-uri-loc">
+        <para>The namespace URI location.</para>
+      </callout>
+      <callout arearefs="yarn-ns-batch-uri-loc">
+        <para>The namespace URI location.</para>
       </callout>
       <callout arearefs="yarn-ns-example">
         <para>Declaration example for the Yarn namespace.
@@ -67,8 +97,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   ]]><co id="yarn-def-ns-beans-prefix"/><![CDATA[xmlns:beans="http://www.springframework.org/schema/beans"
   xsi:schemaLocation="
-    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd">
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/yarn
+    http://www.springframework.org/schema/yarn/spring-yarn.xsd">
 	    
     ]]><co id="yarn-def-ns-beans-example"/><![CDATA[<beans:bean id ... >
 	
@@ -95,9 +127,10 @@
       </callout>
     </calloutlist>
  		
-    <para>For the remainder of this doc, to improve readability, the XML
-	examples will simply refer to the <literal>&lt;yarn&gt;</literal> namespace
- 	without the namespace declaration, where possible.</para>	
+    <para>For the remainder of this doc, the XML examples will always refer
+	to the namespaces <literal>&lt;yarn&gt;</literal>,
+	<literal>&lt;yarn-int&gt;</literal> or
+	<literal>&lt;yarn-batch&gt;</literal>.</para>	
 	
   </section>
 
@@ -263,7 +296,7 @@
 
   <section id="yarn:localresources">
   
-    <title>Defining Local Resources</title>
+    <title>Local Resources</title>
 	
     <para>When <emphasis>Application Master</emphasis> or any other
 	<emphasis>Container</emphasis> is run in a hadoop cluster, usually there
@@ -278,9 +311,9 @@
 	of <interfacename>ResourceLocalizer</interfacename> interface. In its
 	simplest form, resource localizer can be defined as:</para>
 
-    <programlisting language="xml"><![CDATA[<localresources>
-  <hdfs path="/path/in/hdfs/my.jar"/>
-</localresources>
+    <programlisting language="xml"><![CDATA[<yarn:localresources>
+  <yarn:hdfs path="/path/in/hdfs/my.jar"/>
+</yarn:localresources>
 ]]></programlisting>
 
     <para>The declaration above defines a <interfacename>ResourceLocalizer</interfacename>
@@ -305,9 +338,9 @@
 	than the default bean, <emphasis>configuration-ref</emphasis> parameter
 	can be used to make a reference to other defined configurations.</para>
 	
-    <programlisting language="xml"><![CDATA[<localresources configuration-ref="yarnConfiguration">
-  <hdfs path="/path/in/hdfs/my.jar"/>
-</localresources>
+    <programlisting language="xml"><![CDATA[<yarn:localresources configuration-ref="yarnConfiguration">
+  <yarn:hdfs path="/path/in/hdfs/my.jar"/>
+</yarn:localresources>
 ]]></programlisting>     
 
     <para>For example, client defining a launch context for
@@ -320,22 +353,22 @@
     <para>To overcome this problem, parameters <emphasis>local</emphasis> and
 	<emphasis>remote</emphasis> can be used to define a different hdfs base entries.</para>
 	
-    <programlisting language="xml"><![CDATA[<localresources local="hdfs://0.0.0.0:9000" remote="hdfs://10.10.10.10:9000">
-  <hdfs path="/app/multi-context/multi-context-1.0.0.M1.jar"/>
-  <hdfs path="/app/spring-yarn-core-1.0.0.BUILD-SNAPSHOT.jar"/>
-</localresources>
+    <programlisting language="xml"><![CDATA[<yarn:localresources local="hdfs://0.0.0.0:9000" remote="hdfs://10.10.10.10:9000">
+  <yarn:hdfs path="/app/multi-context/multi-context-1.0.0.M1.jar"/>
+  <yarn:hdfs path="/app/spring-yarn-core-1.0.0.BUILD-SNAPSHOT.jar"/>
+</yarn:localresources>
 ]]></programlisting>     
 
     <para>Yarn resource localizer is using additional parameters to define entry type
 	and visibility. Usage is described below:</para>
 	
-    <programlisting language="xml"><![CDATA[<localresources>
-  <hdfs path="/path/in/hdfs/my.jar" type="FILE" visibility="APPLICATION"/>
-</localresources>
+    <programlisting language="xml"><![CDATA[<yarn:localresources>
+  <yarn:hdfs path="/path/in/hdfs/my.jar" type="FILE" visibility="APPLICATION"/>
+</yarn:localresources>
 ]]></programlisting>
 
     <table id="yarn:localresources:localresourcesflags" pgwide="1" align="center">
-        <title><literal>localresources</literal> attributes</title>
+        <title><literal>yarn:localresources</literal> attributes</title>
         <tgroup cols="3">
             <colspec colname="c1" colwidth="1*"/>
             <colspec colname="c2" colwidth="1*"/>
@@ -380,7 +413,7 @@
     </table>
 
     <table id="yarn:localresources:hdfsflags" pgwide="1" align="center">
-        <title><literal>hdfs</literal> attributes</title>
+        <title><literal>yarn:hdfs</literal> attributes</title>
         <tgroup cols="3">
             <colspec colname="c1" colwidth="1*"/>
             <colspec colname="c2" colwidth="1*"/>
@@ -426,7 +459,7 @@
   </section>
 
   <section id="yarn:containerenvironment">
-    <title>Defining Container Environment</title>
+    <title>Container Environment</title>
 
     <para>One central concept in Yarn is to use environment variables
 	which then can be read from a container. While it's possible to
@@ -449,11 +482,11 @@
 	to run some java code with libraries so classpath needs to
 	be defined anyway.</para>
 	
-    <programlisting language="xml"><![CDATA[<environment include-system-env="false">
-  <classpath default-yarn-app-classpath="true" delimiter=":">
+    <programlisting language="xml"><![CDATA[<yarn:environment include-system-env="false">
+  <yarn:classpath default-yarn-app-classpath="true" delimiter=":">
     ./*
-  </classpath>
-</environment>]]></programlisting>     
+  </yarn:classpath>
+</yarn:environment>]]></programlisting>     
 	
     <para>If <emphasis>default-yarn-app-classpath</emphasis> parameter is set to
     <emphasis>true</emphasis>(default value) a default yarn entries will be added to classpath
@@ -475,7 +508,7 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
     </note>
 	
     <table id="yarn:environment:environmentflags" pgwide="1" align="center">
-        <title><literal>environment</literal> attributes</title>
+        <title><literal>yarn:environment</literal> attributes</title>
         <tgroup cols="3">
             <colspec colname="c1" colwidth="1*"/>
             <colspec colname="c2" colwidth="1*"/>
@@ -534,7 +567,7 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 
   <section id="yarn:client">
   
-    <title>Defining Application Client</title>
+    <title>Application Client</title>
 	
   	<para>Client is always your entry point when interacting with
 	a Yarn system whether one is about to submit a new application
@@ -546,8 +579,8 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	<emphasis>Resource Manager</emphasis>, command
 	definition is not needed.</para>
 	
-    <programlisting language="xml"><![CDATA[<client>
-  <master-command>
+    <programlisting language="xml"><![CDATA[<yarn:client>
+  <yarn:master-command>
     <![CDATA[
       /usr/local/java/bin/java
       org.springframework.yarn.am.CommandLineAppmasterRunner
@@ -557,8 +590,8 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
       1><LOG_DIR>/AppMaster.stdout
       2><LOG_DIR>/AppMaster.stderr
     ]]]]><![CDATA[>
-  </master-command>
-</client>]]></programlisting>     
+  </yarn:master-command>
+</yarn:client>]]></programlisting>     
 
     <para>The declaration above defines a <interfacename>YarnClient</interfacename>
 	bean (to be precise a factory bean of type 
@@ -568,7 +601,7 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	<literal>&lt;master-command&gt;</literal> entry.</para>
 
     <table id="yarn:client:clientflags" pgwide="1" align="center">
-        <title><literal>client</literal> attributes</title>
+        <title><literal>yarn:client</literal> attributes</title>
         <tgroup cols="3">
             <colspec colname="c1" colwidth="1*"/>
             <colspec colname="c2" colwidth="1*"/>
@@ -616,13 +649,13 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 
   <section id="yarn:master">
   
-    <title>Defining Application Master</title>
+    <title>Application Master</title>
 	
   	<para>Application master is responsible for container allocation,
 	launching and monitoring.</para>
 	
-    <programlisting language="xml"><![CDATA[<master>
-  <container-command>
+    <programlisting language="xml"><![CDATA[<yarn:master>
+  <yarn:container-command>
     <![CDATA[
       /usr/local/java/bin/java
       org.springframework.yarn.container.CommandLineContainerRunner
@@ -630,8 +663,8 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
       1><LOG_DIR>/Container.stdout
       2><LOG_DIR>/Container.stderr
     ]]]]><![CDATA[>
-  </container-command>
-</master>
+  </yarn:container-command>
+</yarn:master>
 ]]></programlisting>     
 
     <para>The declaration above defines a <interfacename>YarnAppmaster</interfacename>
@@ -647,7 +680,7 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	by querying resource manager for container execution completion.</para>
 	
     <table id="yarn:master:masterflags" pgwide="1" align="center">
-        <title><literal>master</literal> attributes</title>
+        <title><literal>yarn:master</literal> attributes</title>
         <tgroup cols="3">
             <colspec colname="c1" colwidth="1*"/>
             <colspec colname="c2" colwidth="1*"/>
@@ -678,6 +711,245 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
                     <entry>Bean Reference</entry>
                     <entry>A reference to environment bean name, default is
 					<emphasis>yarnEnvironment</emphasis></entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
+	
+  </section>
+
+  <section id="yarn:container">
+  
+    <title>Application Container</title>
+	
+    <para>Currently there are no namespace integration defining
+	application containers. However there are a simple contract
+	between <classname>org.springframework.yarn.container.CommandLineContainerRunner</classname>
+	and a bean it's trying to run on default. Default bean name
+	is <emphasis>yarnContainer</emphasis>.</para>
+	
+    <programlisting language="xml"><![CDATA[<bean id="yarnContainer" class="org.springframework.yarn.examples.BatchPartitionBeanExample">	
+]]></programlisting>
+	
+	<para>There is a simple interface
+	<interfacename>org.springframework.yarn.container.YarnContainer</interfacename>
+	which container needs to implement.</para>
+	
+    <programlisting language="java"><![CDATA[public interface YarnContainer {
+  void run();
+}]]></programlisting>
+	
+  </section>
+  
+  <section id="yarn:masterservice">
+  
+    <title>Application Master Service</title>
+	
+    <para>This section of this document is about configuration, more about
+	general concepts for <emphasis>Application Master Services</emphasis>
+	see a chapter <xref linkend="appmaster"/>.</para>
+	
+    <para>Currently Spring Yarn have support for services using Spring
+	Integration tcp channels as a transport.</para>
+		
+    <programlisting language="xml"><![CDATA[<bean id="mapper" 
+  class="org.springframework.yarn.integration.support.Jackson2ObjectMapperFactoryBean" />
+	
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindObjectToHolderConverter">
+    <constructor-arg ref="mapper"/>
+  </bean>
+</yarn-int:converter>
+
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindHolderToObjectConverter">
+    <constructor-arg ref="mapper"/>
+    <constructor-arg value="org.springframework.yarn.integration.ip.mind"/>
+  </bean>
+</yarn-int:converter>
+	
+<yarn-int:amservice
+  service-impl="org.springframework.yarn.integration.ip.mind.TestService"/>
+]]></programlisting>
+
+    <para>If there is a need to manually configure the server
+	side dispatch channel, a little bit more configuration
+	is needed.</para>
+
+    <programlisting language="xml"><![CDATA[
+<bean id="serializer"
+  class="org.springframework.yarn.integration.ip.mind.MindRpcSerializer" />
+<bean id="deserializer"
+  class="org.springframework.yarn.integration.ip.mind.MindRpcSerializer" />
+<bean id="socketSupport"
+  class="org.springframework.yarn.integration.support.DefaultPortExposingTcpSocketSupport" />
+
+<ip:tcp-connection-factory id="serverConnectionFactory"
+  type="server"
+  port="0"
+  socket-support="socketSupport"
+  serializer="serializer"
+  deserializer="deserializer"/>
+
+<ip:tcp-inbound-gateway id="inboundGateway"
+  connection-factory="serverConnectionFactory"
+  request-channel="serverChannel" />
+  
+<int:channel id="serverChannel" />
+  
+<yarn-int:amservice
+  service-impl="org.springframework.yarn.integration.ip.mind.TestService"
+  channel="serverChannel"
+  socket-support="socketSupport"/>
+]]></programlisting>
+
+    <table id="yarn:masterservice:amserviceflags" pgwide="1" align="center">
+        <title><literal>yarn-int:amservice</literal> attributes</title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry><literal>service-impl</literal></entry>
+                    <entry>Class Name</entry>
+                    <entry>Full name of the class implementing a service</entry>
+                </row>
+                <row>
+                    <entry><literal>service-ref</literal></entry>
+                    <entry>Bean Reference</entry>
+                    <entry>Reference to a bean name implementing a service</entry>
+                </row>
+                <row>
+                    <entry><literal>channel</literal></entry>
+                    <entry>Spring Int channel</entry>
+                    <entry>Custom message dispatching channel</entry>
+                </row>
+                <row>
+                    <entry><literal>socket-support</literal></entry>
+                    <entry>Socket support reference</entry>
+                    <entry>Custom socket support class</entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
+
+	
+  </section>
+
+  <section id="yarn:masterserviceclient">
+  
+    <title>Application Master Service Client</title>
+	
+    <para>This section of this document is about configuration, more about
+	general concepts for <emphasis>Application Master Services</emphasis>
+	see a chapter <xref linkend="appmaster"/>.</para>
+	
+    <para>Currently Spring Yarn have support for services using Spring
+	Integration tcp channels as a transport.</para>
+		
+    <programlisting language="xml"><![CDATA[<bean id="mapper" 
+  class="org.springframework.yarn.integration.support.Jackson2ObjectMapperFactoryBean" />
+	
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindObjectToHolderConverter">
+    <constructor-arg ref="mapper"/>
+  </bean>
+</yarn-int:converter>
+
+<yarn-int:converter>
+  <bean class="org.springframework.yarn.integration.convert.MindHolderToObjectConverter">
+    <constructor-arg ref="mapper"/>
+    <constructor-arg value="org.springframework.yarn.integration.ip.mind"/>
+  </bean>
+</yarn-int:converter>
+	
+<yarn-int:amservice-client
+  service-impl="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient"
+  host="${syarn.amservice.host}"
+  port="${syarn.amservice.port}"/>
+]]></programlisting>
+
+    <para>If there is a need to manually configure the server
+	side dispatch channel, a little bit more configuration
+	is needed.</para>
+
+    <programlisting language="xml"><![CDATA[
+<bean id="serializer"
+  class="org.springframework.yarn.integration.ip.mind.MindRpcSerializer" />
+<bean id="deserializer"
+  class="org.springframework.yarn.integration.ip.mind.MindRpcSerializer" />
+
+<ip:tcp-connection-factory id="clientConnectionFactory"
+  type="client"
+  host="localhost"
+  port="${syarn.amservice.port}"
+  serializer="serializer"
+  deserializer="deserializer"/>
+
+<ip:tcp-outbound-gateway id="outboundGateway"
+  connection-factory="clientConnectionFactory"
+  request-channel="clientRequestChannel"
+  reply-channel="clientResponseChannel" />
+
+<int:channel id="clientRequestChannel" />
+<int:channel id="clientResponseChannel" >
+  <int:queue />
+</int:channel>
+		
+<yarn-int:amservice-client
+  service-impl="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient"
+  request-channel="clientRequestChannel"
+  response-channel="clientResponseChannel"/>
+]]></programlisting>
+
+    <table id="yarn:masterserviceclient:amserviceclientflags" pgwide="1" align="center">
+        <title><literal>yarn-int:amservice-client</literal> attributes</title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry><literal>service-impl</literal></entry>
+                    <entry>Class Name</entry>
+                    <entry>Full name of the class implementing a service client</entry>
+                </row>
+                <row>
+                    <entry><literal>host</literal></entry>
+                    <entry>Hostname</entry>
+                    <entry>Host of the running appmaster service</entry>
+                </row>
+                <row>
+                    <entry><literal>port</literal></entry>
+                    <entry>Port</entry>
+                    <entry>Port of the running appmaster service</entry>
+                </row>
+                <row>
+                    <entry><literal>request-channel</literal></entry>
+                    <entry>Reference to Spring Int request channel</entry>
+                    <entry>Custom channel</entry>
+                </row>
+                <row>
+                    <entry><literal>response-channel</literal></entry>
+                    <entry>Reference to Spring Int response channel</entry>
+                    <entry>Custom channel</entry>
                 </row>
             </tbody>
         </tgroup>  

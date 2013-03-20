@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0"  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="batch">
+  
+  <title>Using Spring Batch</title>
+
+  <para>In this chapter we assume you are fairly familiar with
+  concepts using <emphasis>Spring Batch</emphasis>. Many batch processing problems
+  can be solved with single threaded, single process jobs, so it is always a good
+  idea to properly check if that meets your needs before thinking about more
+  complex implementations. When you are ready to start implementing a job with some
+  parallel processing, Spring Batch offers a range of options. At a high level
+  there are two modes of parallel processing: single process, multi-threaded;
+  and multi-process.</para>
+
+  <para>Spring Yarn contains a support for running Spring batch partitioned
+  steps on a Hadoop cluster.</para>
+  
+  <section id="batch:partitionintro">
+  
+    <title>Partitioning</title>
+	
+    <para>Let's take a quick look how Spring Batch partitioning is
+	handled. Concept of running a partitioned job involves three things,
+	<emphasis>Remote steps</emphasis>, <emphasis>Partition Handler</emphasis>
+	and a <emphasis>Partitioner</emphasis>. If we do a little bit of
+	oversimplification a remote step is like any other step from a user
+	point of view. Spring Batch itself does not contain implementations for 
+	any proprietary grid or remoting fabrics. Spring Batch does however
+	provide a useful implementation of <interfacename>PartitionHandler</interfacename>
+	that executes Steps locally in separate threads of execution,
+	using the <interfacename>TaskExecutor</interfacename> strategy from Spring.</para>
+   	 
+    <note>
+      <para>For more background information about the Spring
+	  Batch Partitioning, read the Spring Batch
+	  reference documentation.</para>
+    </note>
+
+	<para>Order to run Spring Batch partitioned steps on a Hadoop
+	cluster, few constraints exists:</para>
+	
+    <itemizedlist>
+      <listitem>
+	    <para><emphasis>Job Context</emphasis> - Application Master is the main
+	    entry point of running the job.</para>
+	  </listitem>
+      <listitem>
+	    <para><emphasis>Job Repository</emphasis> - Application Master needs to have
+	    access to a repository which is located either in-memory or in a database. These
+	    are the two type natively supported by Spring Batch.</para>
+	  </listitem>
+      <listitem>
+	    <para><emphasis>Remote Steps</emphasis> - Due to nature how Spring Batch
+	    partitioning works, remote step needs an access to a job repository.</para>
+	  </listitem>
+    </itemizedlist>
+	
+  </section>
+
+  <section id="batch:masterconfig">
+  
+    <title>Configuring Master</title>
+	
+	<para>There is a dedicated application master implementation which
+	can be configured using <emphasis>yarn-batch</emphasis> namespace.</para>
+
+    <programlisting language="xml"><![CDATA[<yarn-batch:master>
+  <yarn-batch:container-command>
+    <![CDATA[
+    /usr/local/java/bin/java
+    org.springframework.yarn.container.CommandLineContainerRunner
+    container-context.xml
+    1><LOG_DIR>/Container.stdout
+    2><LOG_DIR>/Container.stderr
+    ]]]]><![CDATA[>
+  </yarn-batch:container-command>
+</yarn-batch:master>]]></programlisting>     
+
+	<para>Configuring remote repository service:</para>
+
+    <programlisting language="xml"><![CDATA[<bean id="jobRepositoryRemoteService"
+      class="org.springframework.yarn.batch.repository.JobRepositoryRemoteService" >
+  <property name="mapJobRepositoryFactoryBean" ref="&amp;jobRepository"/>
+</bean>
+<bean id="batchService" class="org.springframework.yarn.examples.BatchAppmasterService" >
+  <property name="jobRepositoryRemoteService" ref="jobRepositoryRemoteService"/>
+</bean>
+<yarn-int:amservice service-ref="batchService"/>]]></programlisting>
+	
+  </section>
+
+  <section id="batch:containerconfig">
+  
+    <title>Configuring Container</title>
+
+    <para>Define a remote repository service client.</para>
+
+    <programlisting language="xml"><![CDATA[<context:property-placeholder system-properties-mode="OVERRIDE"/>
+<yarn-int:amservice-client
+  service-impl="org.springframework.yarn.integration.ip.mind.DefaultMindAppmasterServiceClient"
+  host="${syarn.amservice.host}"
+  port="${syarn.amservice.port}"/>]]></programlisting>
+
+    <para>Create a bean for the yarn container.</para>
+  
+    <programlisting language="xml"><![CDATA[<bean id="yarnContainer"
+      class="org.springframework.yarn.batch.container.DefaultBatchYarnContainer">
+  <property name="stepLocator" ref="stepLocator"/>
+  <property name="jobExplorer" ref="jobExplorer"/>
+  <property name="integrationServiceClient" ref="yarnAmserviceClient"/>
+</bean>]]></programlisting>
+	
+  </section>
+  
+</chapter>
