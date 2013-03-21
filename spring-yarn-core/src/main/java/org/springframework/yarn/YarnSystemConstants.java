@@ -26,6 +26,15 @@ public class YarnSystemConstants {
 	/** Default bean id for appmaster. */
 	public static final String DEFAULT_ID_APPMASTER = "yarnAppmaster";
 
+	/** Default bean id for resource localizer. */
+	public static final String DEFAULT_ID_LOCAL_RESOURCES = "yarnLocalresources";
+
+	/** Default bean id for resource yarn configuration. */
+	public static final String DEFAULT_ID_CONFIGURATION = "yarnConfiguration";
+
+	/** Default bean id for resource environment. */
+	public static final String DEFAULT_ID_ENVIRONMENT = "yarnEnvironment";
+
 	/** Default bean id for appmaster service. */
 	public static final String DEFAULT_ID_AMSERVICE = "yarnAmservice";
 

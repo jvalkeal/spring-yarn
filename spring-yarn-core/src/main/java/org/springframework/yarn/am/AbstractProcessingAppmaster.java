@@ -25,8 +25,8 @@ import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.allocate.ContainerAllocator;
 import org.springframework.yarn.am.allocate.ContainerAllocatorListener;
+import org.springframework.yarn.am.container.AbstractLauncher;
 import org.springframework.yarn.am.container.ContainerLauncher;
-import org.springframework.yarn.am.container.DefaultContainerLauncher;
 import org.springframework.yarn.am.monitor.ContainerMonitor;
 import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
 
@@ -61,11 +61,12 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 	protected void onInit() throws Exception {
 		super.onInit();
 		Assert.notNull(allocator, "Container allocator must be set");
+		Assert.notNull(launcher, "Container launcher must be set");
 
-		if(launcher == null) {
-			launcher = new DefaultContainerLauncher(getConfiguration(), getResourceLocalizer(), getEnvironment());
-			((DefaultContainerLauncher)launcher).setContainerLauncherInterceptor(this);
+		if(launcher instanceof AbstractLauncher) {
+			((AbstractLauncher)launcher).addInterceptor(this);
 		}
+
 		if(monitor == null) {
 			monitor = new DefaultContainerMonitor();
 		}

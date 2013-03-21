@@ -17,8 +17,22 @@ package org.springframework.yarn.am;
 
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 
+/**
+ * Interface for interceptors that are able to view and/or modify the
+ * {@link ContainerLaunchContext} before the container is launched.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public interface ContainerLauncherInterceptor {
 
+	/**
+	 * Invoked before the {@link ContainerLaunchContext} is used
+	 * to launch the container.
+	 *
+	 * @param context the {@link ContainerLaunchContext}
+	 * @return Unchanged or modified {@link ContainerLaunchContext}
+	 */
 	ContainerLaunchContext preLaunch(ContainerLaunchContext context);
 
 }

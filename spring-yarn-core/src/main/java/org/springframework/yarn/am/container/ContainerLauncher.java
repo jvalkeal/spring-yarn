@@ -19,8 +19,21 @@ import java.util.List;
 
 import org.apache.hadoop.yarn.api.records.Container;
 
+/**
+ * General interface for container launcher.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public interface ContainerLauncher {
 
-	void launchContainer(Container lcontainer, List<String> commands);
+	/**
+	 * Launch container {@link Container} using given list
+	 * of commands.
+	 *
+	 * @param container the {@link Container}
+	 * @param commands the list of commands
+	 */
+	void launchContainer(Container container, List<String> commands);
 
 }
