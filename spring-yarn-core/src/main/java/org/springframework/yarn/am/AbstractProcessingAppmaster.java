@@ -25,7 +25,6 @@ import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.allocate.ContainerAllocator;
 import org.springframework.yarn.am.allocate.ContainerAllocatorListener;
-import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 import org.springframework.yarn.am.container.ContainerLauncher;
 import org.springframework.yarn.am.container.DefaultContainerLauncher;
 import org.springframework.yarn.am.monitor.ContainerMonitor;
@@ -61,16 +60,12 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-
-		if(allocator == null) {
-			allocator = new DefaultContainerAllocator(getTemplate(), getApplicationAttemptId());
-		}
+		Assert.notNull(allocator, "Container allocator must be set");
 
 		if(launcher == null) {
 			launcher = new DefaultContainerLauncher(getConfiguration(), getResourceLocalizer(), getEnvironment());
 			((DefaultContainerLauncher)launcher).setContainerLauncherInterceptor(this);
 		}
-
 		if(monitor == null) {
 			monitor = new DefaultContainerMonitor();
 		}
@@ -81,6 +76,7 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 					" monitor=" + monitor);
 		}
 
+		// setting up internal dispatcher
 		allocator.addListener(new ContainerAllocatorListener() {
 			@Override
 			public void allocated(List<Container> allocatedContainers) {

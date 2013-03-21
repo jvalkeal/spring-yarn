@@ -23,6 +23,9 @@ package org.springframework.yarn;
  */
 public class YarnSystemConstants {
 
+	/** Default bean id for appmaster. */
+	public static final String DEFAULT_ID_APPMASTER = "yarnAppmaster";
+
 	/** Default bean id for appmaster service. */
 	public static final String DEFAULT_ID_AMSERVICE = "yarnAmservice";
 

@@ -16,6 +16,7 @@
 package org.springframework.yarn.support;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.AppmasterService;
@@ -31,6 +32,9 @@ public class YarnContextUtils {
 	/** Default task scheduler bean name */
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
+	/** Default task executor bean name */
+	public static final String TASK_EXECUTOR_BEAN_NAME = "taskExecutor";
+
 	/** Default app master client service bean name */
 	public static final String TASK_AMSERVER_BEAN_NAME = "yarnAmservice";
 
@@ -42,6 +46,16 @@ public class YarnContextUtils {
 	 */
 	public static TaskScheduler getTaskScheduler(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class);
+	}
+
+	/**
+	 * Return the {@link TaskScheduler} bean whose name is "taskExecutor" if
+	 * available.
+	 *
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 */
+	public static TaskExecutor getTaskExecutor(BeanFactory beanFactory) {
+		return getBeanOfType(beanFactory, TASK_EXECUTOR_BEAN_NAME, TaskExecutor.class);
 	}
 
 	/**

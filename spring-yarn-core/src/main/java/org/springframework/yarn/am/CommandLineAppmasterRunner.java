@@ -22,7 +22,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
-import org.springframework.yarn.config.MasterParser;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
 
 /**
@@ -54,7 +54,7 @@ public class CommandLineAppmasterRunner extends AbstractCommandLineRunner<YarnAp
 
 	@Override
 	protected String getDefaultBeanIdentifier() {
-		return MasterParser.DEFAULT_ID;
+		return YarnSystemConstants.DEFAULT_ID_APPMASTER;
 	}
 
 	@Override

@@ -17,7 +17,6 @@ package org.springframework.yarn.am.allocate;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.logging.Log;
@@ -25,14 +24,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.AMResponse;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.yarn.YarnSystemException;
 
 /**
- *
+ * Base implementation of allocator which is meant to handle
+ * allocation by doing a simple periodic polling against
+ * resource manager.
  *
  * @author Janne Valkealahti
  *
@@ -41,28 +41,14 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 
 	private static final Log log = LogFactory.getLog(AbstractAllocator.class);
 
-	private volatile Executor taskExecutor = new SyncTaskExecutor();
+	/** Trigger for polling task */
 	private volatile Trigger trigger = new PeriodicTrigger(1000);
-	private volatile boolean initialized;
+
+	/** Poller runnable  */
 	private volatile Runnable poller;
+
+	/** Current running task if any */
 	private volatile ScheduledFuture<?> runningTask;
-	private final Object initializationMonitor = new Object();
-
-	/**
-	 * Default empty constructor.
-	 */
-	public AbstractPollingAllocator() {
-	}
-
-	/**
-	 * Sets {@link Executor} used to run polling tasks.
-	 *
-	 * @param taskExecutor executor to set
-	 */
-	public void setTaskExecutor(Executor taskExecutor) {
-		Assert.notNull(taskExecutor, "taskExecutor must not be null");
-		this.taskExecutor = taskExecutor;
-	}
 
 	/**
 	 * Sets {@link Trigger} used to trigger polling tasks.
@@ -75,27 +61,18 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 	}
 
 	@Override
-	protected void onInit() {
-		synchronized (initializationMonitor) {
-			if (initialized) {
-				return;
-			}
-			Assert.notNull(trigger, "Trigger is required");
-			try {
-				this.poller = this.createPoller();
-				this.initialized = true;
-			}
-			catch (Exception e) {
-				throw new YarnSystemException("Failed to create Poller", e);
-			}
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.notNull(trigger, "Trigger is required");
+		try {
+			this.poller = this.createPoller();
+		} catch (Exception e) {
+			throw new YarnSystemException("Failed to create Poller", e);
 		}
 	}
 
 	@Override
 	protected void doStart() {
-		if (!this.initialized) {
-			this.onInit();
-		}
 		Assert.state(getTaskScheduler() != null, "unable to start polling, no taskScheduler available");
 		this.runningTask = getTaskScheduler().schedule(this.poller, this.trigger);
 	}
@@ -106,7 +83,6 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 			this.runningTask.cancel(true);
 		}
 		this.runningTask = null;
-		this.initialized = false;
 	}
 
 	/**
@@ -137,7 +113,12 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 	 */
 	protected abstract void handleCompletedContainers(List<ContainerStatus> containerStatuses);
 
-	private Runnable createPoller() throws Exception {
+	/**
+	 * Creates a poller runnable used with task execution.
+	 *
+	 * @return the poller runnable
+	 */
+	private Runnable createPoller() {
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
 			public Boolean call() throws Exception {
 				return doPoll();
@@ -146,6 +127,11 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		return new Poller(pollingTask);
 	}
 
+	/**
+	 * Contains the logic to do the actual polling.
+	 *
+	 * @return True if this poll operation did something, False otherwise
+	 */
 	private boolean doPoll() {
 		boolean result = false;
 
@@ -176,6 +162,9 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		return result;
 	}
 
+	/**
+	 * Internal helper class for poller.
+	 */
 	private class Poller implements Runnable {
 
 		private final Callable<Boolean> pollingTask;
@@ -185,7 +174,7 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		}
 
 		public void run() {
-			taskExecutor.execute(new Runnable() {
+			getTaskExecutor().execute(new Runnable() {
 				public void run() {
 					try {
 						// TODO: we could use boolean return value to do

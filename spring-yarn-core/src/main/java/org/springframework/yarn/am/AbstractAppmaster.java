@@ -60,7 +60,7 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	private AppmasterRmOperations rmTemplate;
 
 	/** Cached app attempt id */
-	private ApplicationAttemptId appAttemptId;
+	private ApplicationAttemptId applicationAttemptId;
 
 	/** Parameters passed to application */
 	private Properties parameters;
@@ -70,6 +70,9 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 
 	/** Handle to service if exists */
 	private AppmasterService appmasterService;
+
+	/** State if we're done successful registration */
+	private boolean applicationRegistered;
 
 	/**
 	 * Global application master instance specific {@link ApplicationAttemptId}
@@ -83,17 +86,137 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 		String amContainerId = environment.get(ApplicationConstants.AM_CONTAINER_ID_ENV);
 		Assert.notNull(amContainerId, "AM_CONTAINER_ID env variable has to exist to build appAttemptId");
 		ContainerId containerId = ConverterUtils.toContainerId(amContainerId);
-		appAttemptId = containerId.getApplicationAttemptId();
+		applicationAttemptId = containerId.getApplicationAttemptId();
+		AppmasterRmTemplate armt = new AppmasterRmTemplate(getConfiguration());
+		armt.afterPropertiesSet();
+		rmTemplate = armt;
 	}
 
 	@Override
 	protected void doStart() {
-		registerAppmaster();
+//		registerAppmaster();
 	}
 
 	@Override
 	protected void doStop() {
 		finishAppmaster();
+	}
+
+	/**
+	 * Gets the {@link AppmasterRmOperations} template.
+	 *
+	 * @return the {@link AppmasterRmOperations} template
+	 */
+	public AppmasterRmOperations getTemplate() {
+		return rmTemplate;
+	}
+
+	/**
+	 * Sets the {@link AppmasterRmOperations} template.
+	 *
+	 * @param template the new {@link AppmasterRmOperations} template
+	 */
+	public void setTemplate(AppmasterRmOperations template) {
+		this.rmTemplate = template;
+	}
+
+	/**
+	 * Gets the environment variables.
+	 *
+	 * @return the environment variables
+	 */
+	public Map<String, String> getEnvironment() {
+		return environment;
+	}
+
+	/**
+	 * Sets the environment variables.
+	 *
+	 * @param environment the environment variables
+	 */
+	public void setEnvironment(Map<String, String> environment) {
+		this.environment = environment;
+	}
+
+	/**
+	 * Gets the parameters.
+	 *
+	 * @return the parameters
+	 */
+	public Properties getParameters() {
+		return parameters;
+	}
+
+	/**
+	 * Sets the parameters.
+	 *
+	 * @param parameters the new parameters
+	 */
+	public void setParameters(Properties parameters) {
+		this.parameters = parameters;
+	}
+
+	/**
+	 * Gets the Yarn configuration.
+	 *
+	 * @return the Yarn configuration
+	 */
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Sets the Yarn configuration.
+	 *
+	 * @param configuration the new Yarn configuration
+	 */
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
+	}
+
+	/**
+	 * Gets the commands.
+	 *
+	 * @return the commands
+	 */
+	public List<String> getCommands() {
+		return commands;
+	}
+
+	/**
+	 * Sets the commands.
+	 *
+	 * @param commands the new commands
+	 */
+	public void setCommands(List<String> commands) {
+		this.commands = commands;
+	}
+
+	/**
+	 * Gets the application attempt id.
+	 *
+	 * @return the application attempt id
+	 */
+	protected ApplicationAttemptId getApplicationAttemptId() {
+		return applicationAttemptId;
+	}
+
+	/**
+	 * Sets the resource localizer.
+	 *
+	 * @param resourceLocalizer the new resource localizer
+	 */
+	public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
+		this.resourceLocalizer = resourceLocalizer;
+	}
+
+	/**
+	 * Gets the resource localizer.
+	 *
+	 * @return the resource localizer
+	 */
+	public ResourceLocalizer getResourceLocalizer() {
+		return resourceLocalizer;
 	}
 
 	/**
@@ -109,69 +232,34 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 		return appmasterService;
 	}
 
-	public AppmasterRmOperations getTemplate() {
-		return rmTemplate;
-	}
-
-	public void setTemplate(AppmasterRmOperations template) {
-		this.rmTemplate = template;
-	}
-
-	public Map<String, String> getEnvironment() {
-		return environment;
-	}
-
-	public void setEnvironment(Map<String, String> environment) {
-		this.environment = environment;
-	}
-
-	public Properties getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Properties parameters) {
-		this.parameters = parameters;
-	}
-
-	public Configuration getConfiguration() {
-		return configuration;
-	}
-
-	public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-	}
-
-	public List<String> getCommands() {
-		return commands;
-	}
-
-	public void setCommands(List<String> commands) {
-		this.commands = commands;
-	}
-
-	protected ApplicationAttemptId getApplicationAttemptId() {
-		return appAttemptId;
-	}
-
+	/**
+	 * Register appmaster.
+	 *
+	 * @return the register application master response
+	 */
 	protected RegisterApplicationMasterResponse registerAppmaster() {
-		return rmTemplate.registerApplicationMaster(appAttemptId, null, null, null);
+		RegisterApplicationMasterResponse response =
+				rmTemplate.registerApplicationMaster(applicationAttemptId, null, null, null);
+		applicationRegistered = true;
+		return response;
 	}
 
-	public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
-		this.resourceLocalizer = resourceLocalizer;
-	}
-
-	public ResourceLocalizer getResourceLocalizer() {
-		return resourceLocalizer;
-	}
-
+	/**
+	 * Finish appmaster.
+	 *
+	 * @return the finish application master response
+	 */
 	protected FinishApplicationMasterResponse finishAppmaster() {
+		if(!applicationRegistered) {
+			log.warn("Not sending finish request because we're not registered");
+			return null;
+		}
 		if(log.isDebugEnabled()) {
 			log.debug("Sending finish request to resource manager: appAttemptId=" +
-					appAttemptId + " status=" + FinalApplicationStatus.SUCCEEDED);
+					applicationAttemptId + " status=" + FinalApplicationStatus.SUCCEEDED);
 		}
 		FinishApplicationMasterRequest finishReq = Records.newRecord(FinishApplicationMasterRequest.class);
-		finishReq.setAppAttemptId(appAttemptId);
+		finishReq.setAppAttemptId(applicationAttemptId);
 		finishReq.setFinishApplicationStatus(FinalApplicationStatus.SUCCEEDED);
 		return rmTemplate.finish(finishReq);
 	}

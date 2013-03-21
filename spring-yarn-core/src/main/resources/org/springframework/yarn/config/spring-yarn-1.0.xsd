@@ -63,6 +63,7 @@
 					<xsd:sequence minOccurs="1" maxOccurs="unbounded">
 						<xsd:choice>
 							<xsd:element name="container-command" type="containerCommandType"/>
+							<xsd:element name="container-allocator" type="containerAllocatorType"/>
 						</xsd:choice>
 					</xsd:sequence>
 				</xsd:extension>
@@ -196,6 +197,14 @@
 
 	<xsd:complexType name="containerCommandType" mixed="true">
 		<xsd:attribute name="command-impl-class" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="containerAllocatorType" mixed="true">
+		<xsd:attribute name="type" type="xsd:string" use="optional"/>
+		<xsd:attribute name="hostname" type="xsd:string" use="optional"/>
+		<xsd:attribute name="virtualcores" type="xsd:string" use="optional"/>
+		<xsd:attribute name="memory" type="xsd:string" use="optional"/>
+		<xsd:attribute name="priority" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="classpathType" mixed="true">

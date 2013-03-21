@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.am;
+package org.springframework.yarn.config;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,42 +26,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class AppmasterTests {
+@ContextConfiguration("master-ns.xml")
+public class MasterNamespaceTest {
 
 	@Autowired
 	private ApplicationContext ctx;
 
 	@Test
-	public void testAppmaster() throws Exception {
-//		assertTrue(ctx.containsBean("yarnAppmaster"));
-//		AppmasterFactoryBean fb = (AppmasterFactoryBean) ctx.getBean("&yarnAppmaster");
-//		assertNotNull(fb);
-//
-//		YarnAppmaster master = (YarnAppmaster) ctx.getBean("yarnAppmaster");
-//		assertNotNull(master);
-
-//        AppmasterService service = TestUtils.readField("appmasterService", master);
-//        assertThat(service, notNullValue());
-
-//        ReflectionTestUtils.invokeMethod(master, "getAppmasterService", new Object[0]);
-
+	public void testDefaults() {
+		assertTrue(ctx.containsBean("yarnAppmaster"));
+		Object bean = ctx.getBean("yarnAppmaster");
+		assertNotNull(bean);
 	}
-
-	public static class StubAppmasterService implements AppmasterService {
-		@Override
-		public int getPort() {
-			return 0;
-		}
-		@Override
-		public String getHost() {
-			return null;
-		}
-		@Override
-		public boolean hasPort() {
-			return true;
-		}
-	}
-
 
 }

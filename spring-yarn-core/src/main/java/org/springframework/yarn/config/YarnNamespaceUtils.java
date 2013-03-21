@@ -127,13 +127,16 @@ public class YarnNamespaceUtils {
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used as a bean
 	 *            reference to populate the property
+	 * @param defaultName the default bean reference name to use
 	 * @param propertyName the name of the property to be populated
 	 */
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
-			String attributeName, String propertyName) {
+			String attributeName, String propertyName, String defaultName) {
 		String attributeValue = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
 			builder.addPropertyReference(propertyName, attributeValue);
+		} else if (StringUtils.hasText(defaultName)) {
+			builder.addPropertyReference(propertyName, defaultName);
 		}
 	}
 
@@ -159,7 +162,33 @@ public class YarnNamespaceUtils {
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
 			String attributeName) {
 		setReferenceIfAttributeDefined(builder, element, attributeName,
-				Conventions.attributeNameToPropertyName(attributeName));
+				Conventions.attributeNameToPropertyName(attributeName), null);
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property reference
+	 * to a bean. The bean reference is identified by the value from the
+	 * attribute whose name is provided if that attribute is defined in the
+	 * given element.
+	 * <p>
+	 * The property name will be the camel-case equivalent of the lower case
+	 * hyphen separated attribute (e.g. the "foo-bar" attribute would match the
+	 * "fooBar" property).
+	 *
+	 * @see Conventions#attributeNameToPropertyName(String)
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element the XML element where the attribute should be defined
+	 * @param attributeName the name of the attribute whose value will be used as a bean
+	 *            reference to populate the property
+	 * @param defaultName the default bean reference name to use
+	 *
+	 * @see Conventions#attributeNameToPropertyName(String)
+	 */
+	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, String defaultName) {
+		setReferenceIfAttributeDefined(builder, element, attributeName,
+				Conventions.attributeNameToPropertyName(attributeName), defaultName);
 	}
 
 	/**

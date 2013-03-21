@@ -19,13 +19,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.springframework.yarn.am.AppmasterFactoryBean;
+import org.springframework.yarn.YarnSystemConstants;
+import org.springframework.yarn.am.StaticAppmaster;
+import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 import org.springframework.yarn.support.ParsingUtils;
 import org.w3c.dom.Element;
 
@@ -35,18 +39,13 @@ import org.w3c.dom.Element;
  * @author Janne Valkealahti
  *
  */
-public class MasterParser extends AbstractSingleBeanDefinitionParser {
-
-	public static final String DEFAULT_ID = "yarnAppmaster";
+public class MasterParser extends AbstractBeanDefinitionParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return AppmasterFactoryBean.class;
-	}
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		super.doParse(element, builder);
+		// for now, defaulting to StaticAppmaster
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticAppmaster.class);
 
 		List<Element> cp = DomUtils.getChildElementsByTagName(element, "container-command");
 		for (Element entry : cp) {
@@ -57,15 +56,27 @@ public class MasterParser extends AbstractSingleBeanDefinitionParser {
 			builder.addPropertyValue("commands", commands);
 		}
 
-		// adding references using fallback to default bean names
-		String attr = element.getAttribute("resourcelocalizer-ref");
-		builder.addPropertyReference("resourceLocalizer", (StringUtils.hasText(attr) ? attr : "yarnLocalresources"));
+		// allocator - for now, defaulting to DefaultContainerAllocator
+		BeanDefinitionBuilder defBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultContainerAllocator.class);
+		defBuilder.addPropertyReference("configuration", "yarnConfiguration");
+		Element allocElement = DomUtils.getChildElementByTagName(element, "container-allocator");
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "environment", "yarnEnvironment");
+		if(allocElement != null) {
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "hostname");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "virtualcores");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "memory");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "priority");
+		}
+		AbstractBeanDefinition beanDef = defBuilder.getBeanDefinition();
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addPropertyReference("allocator", beanName);
 
-		attr = element.getAttribute("configuration-ref");
-		builder.addPropertyReference("configuration", (StringUtils.hasText(attr) ? attr : "yarnConfiguration"));
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "resource-localizer", "yarnLocalresources");
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration", "yarnConfiguration");
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "environment", "yarnEnvironment");
 
-		attr = element.getAttribute("environment-ref");
-		builder.addPropertyReference("environment", (StringUtils.hasText(attr) ? attr : "yarnEnvironment"));
+		return builder.getBeanDefinition();
 	}
 
 	@Override
@@ -73,10 +84,9 @@ public class MasterParser extends AbstractSingleBeanDefinitionParser {
 			throws BeanDefinitionStoreException {
 		String name = super.resolveId(element, definition, parserContext);
 		if (!StringUtils.hasText(name)) {
-			name = DEFAULT_ID;
+			name = YarnSystemConstants.DEFAULT_ID_APPMASTER;
 		}
 		return name;
 	}
-
 
 }

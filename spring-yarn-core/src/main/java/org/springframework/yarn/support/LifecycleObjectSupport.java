@@ -148,6 +148,26 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
 	}
 
 	/**
+	 * Sets the auto startup.
+	 *
+	 * @param autoStartup the new auto startup
+	 * @see SmartLifecycle
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * Sets the phase.
+	 *
+	 * @param phase the new phase
+	 * @see SmartLifecycle
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
 	 * Gets the {@link BeanFactory} for this instance.
 	 *
 	 * @return the bean factory.
@@ -172,6 +192,12 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
 	 * @return the defined task scheduler
 	 */
 	protected TaskScheduler getTaskScheduler() {
+		if(taskScheduler == null && getBeanFactory() != null) {
+			if(log.isDebugEnabled()) {
+				log.debug("getting taskScheduler service from bean factory " + getBeanFactory());
+			}
+			taskScheduler = YarnContextUtils.getTaskScheduler(getBeanFactory());
+		}
 		return taskScheduler;
 	}
 
@@ -191,6 +217,12 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
 	 * @return the defined task executor
 	 */
 	protected TaskExecutor getTaskExecutor() {
+		if(taskExecutor == null && getBeanFactory() != null) {
+			if(log.isDebugEnabled()) {
+				log.debug("getting taskExecutor service from bean factory " + getBeanFactory());
+			}
+			taskExecutor = YarnContextUtils.getTaskExecutor(getBeanFactory());
+		}
 		return taskExecutor;
 	}
 

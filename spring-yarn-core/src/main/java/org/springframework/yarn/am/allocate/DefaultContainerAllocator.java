@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
 import org.apache.hadoop.yarn.api.records.AMResponse;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
@@ -32,7 +31,7 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.util.Records;
-import org.springframework.yarn.am.AppmasterRmOperations;
+import org.springframework.util.Assert;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 
 /**
@@ -46,26 +45,28 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 	private static final Log log = LogFactory.getLog(DefaultContainerAllocator.class);
 
-	/** Operations template talking to resource manager */
-	private AppmasterRmOperations rmTemplate;
-	/** Current app attempt id */
-	private ApplicationAttemptId appAttemptId;
 	/** Listener dispatcher for events */
 	private CompositeContainerAllocatorListener allocatorListener = new CompositeContainerAllocatorListener();
-	/** Cache of allocated containers */
-	//private List<Container> allocated;
+
 	/** Counter of current requested containers */
 	private AtomicInteger numRequestedContainers = new AtomicInteger();
 
-	/**
-	 * Constructs allocates using template and app attempt id.
-	 *
-	 * @param rmTemplate Template talking to resource manager
-	 * @param appAttemptId app attempt id
-	 */
-	public DefaultContainerAllocator(AppmasterRmOperations rmTemplate, ApplicationAttemptId appAttemptId) {
-		this.rmTemplate = rmTemplate;
-		this.appAttemptId = appAttemptId;
+	/** Container request priority */
+	private int priority = 0;
+
+	/** Desired allocation location */
+	private String hostname = "*";
+
+	/** Resource capability as of cores */
+	private int virtualcores = 1;
+
+	/** Resource capability as of memory */
+	private int memory = 64;
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.notNull(getApplicationAttemptId(), "ApplicationAttemptId must be set");
 	}
 
 	@Override
@@ -93,19 +94,19 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 		List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();
 		if(count > 0) {
-			ResourceRequest containerAsk = setupContainerAskForRM(count);
+			ResourceRequest containerAsk = getContainerResourceRequest(count);
 			requestedContainers.add(containerAsk);
 		}
 
 		AllocateRequest request = Records.newRecord(AllocateRequest.class);
 		request.setResponseId(11);
-		request.setApplicationAttemptId(appAttemptId);
+		request.setApplicationAttemptId(getApplicationAttemptId());
 		request.addAllAsks(requestedContainers);
 		// we don't release anything here
 		request.addAllReleases(new ArrayList<ContainerId>());
 		request.setProgress(0.5f);
 
-		AllocateResponse allocate = rmTemplate.allocate(request);
+		AllocateResponse allocate = getRmTemplate().allocate(request);
 		return allocate.getAMResponse();
 	}
 
@@ -120,20 +121,96 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	/**
+	 * Gets the priority for container request.
+	 *
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * Sets the priority for container request.
+	 *
+	 * @param priority the new priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	/**
+	 * Gets the hostname for container request.
+	 *
+	 * @return the hostname
+	 */
+	public String getHostname() {
+		return hostname;
+	}
+
+	/**
+	 * Sets the hostname for container request defining <em>host/rack</em> on
+	 * which the allocation is desired. A special value of <em>*</em> signifies
+	 * that <em>any</em> host/rack is acceptable.
+	 *
+	 * @param hostname the new hostname
+	 */
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
+	}
+
+	/**
+	 * Gets the virtualcores for container request.
+	 *
+	 * @return the virtualcores
+	 */
+	public int getVirtualcores() {
+		return virtualcores;
+	}
+
+	/**
+	 * Sets the virtualcores for container request defining
+	 * <em>number of virtual cpu cores</em> of the resource.
+	 *
+	 * @param virtualcores the new virtualcores
+	 */
+	public void setVirtualcores(int virtualcores) {
+		this.virtualcores = virtualcores;
+	}
+
+	/**
+	 * Gets the memory for container request.
+	 *
+	 * @return the memory
+	 */
+	public int getMemory() {
+		return memory;
+	}
+
+	/**
+	 * Sets the memory for container request defining
+	 * <em>memory</em> of the resource.
+	 *
+	 * @param memory the new memory
+	 */
+	public void setMemory(int memory) {
+		this.memory = memory;
+	}
+
+	/**
 	 * Creates a request to allocate new containers.
 	 *
 	 * @param numContainers number of containers to request
 	 * @return request to be sent to resource manager
 	 */
-	private ResourceRequest setupContainerAskForRM(int numContainers) {
+	private ResourceRequest getContainerResourceRequest(int numContainers) {
 		ResourceRequest request = Records.newRecord(ResourceRequest.class);
-		request.setHostName("*");
+		request.setHostName(hostname);
 		request.setNumContainers(numContainers);
 		Priority pri = Records.newRecord(Priority.class);
-		pri.setPriority(0);
+		pri.setPriority(priority);
 		request.setPriority(pri);
 		Resource capability = Records.newRecord(Resource.class);
-		capability.setMemory(10);
+		capability.setMemory(memory);
 		request.setCapability(capability);
 		return request;
 	}

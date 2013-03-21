@@ -32,12 +32,10 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 
 	private static final Log log = LogFactory.getLog(StaticAppmaster.class);
 
-	public StaticAppmaster() {
-	}
-
 	@Override
 	public void submitApplication() {
 		log.info("Submitting application");
+		registerAppmaster();
 		start();
 		int count = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
 		log.info("count: " + count);
@@ -64,13 +62,9 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if(getAllocator() instanceof SmartLifecycle) {
-			((SmartLifecycle)getAllocator()).start();
-		}
 
 		AppmasterService service = getAppmasterService();
 		log.info("AppmasterService: " + service);
-
 		if(getAppmasterService() instanceof SmartLifecycle) {
 			((SmartLifecycle)getAppmasterService()).start();
 		}
