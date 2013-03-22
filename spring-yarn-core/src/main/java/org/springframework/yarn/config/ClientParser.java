@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.client.YarnClientFactoryBean;
 import org.springframework.yarn.support.ParsingUtils;
 import org.w3c.dom.Element;
@@ -49,20 +50,10 @@ public class ClientParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		super.doParse(element, builder);
 
-		String attr = element.getAttribute("template-ref");
-		if (StringUtils.hasText(attr)) {
-			builder.addPropertyValue("template", new RuntimeBeanReference(attr));
-		}
-
-		// adding references using fallback to default bean names
-		attr = element.getAttribute("resourcelocalizer-ref");
-		builder.addPropertyReference("resourceLocalizer", (StringUtils.hasText(attr) ? attr : "yarnLocalresources"));
-
-		attr = element.getAttribute("configuration-ref");
-		builder.addPropertyReference("configuration", (StringUtils.hasText(attr) ? attr : "yarnConfiguration"));
-
-		attr = element.getAttribute("environment-ref");
-		builder.addPropertyReference("environment", (StringUtils.hasText(attr) ? attr : "yarnEnvironment"));
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "template");
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration", YarnSystemConstants.DEFAULT_ID_CONFIGURATION);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "resource-localizer", YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES);
 
 		// parsing command needed for master
 		List<Element> entries = DomUtils.getChildElementsByTagName(element, "master-command");

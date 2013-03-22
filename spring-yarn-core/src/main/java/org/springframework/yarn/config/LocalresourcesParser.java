@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.xml.DomUtils;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean.Entry;
 import org.w3c.dom.Element;
@@ -36,8 +37,6 @@ import org.w3c.dom.Element;
  */
 public class LocalresourcesParser extends AbstractImprovedSimpleBeanDefinitionParser {
 
-	public static final String DEFAULT_ID = "yarnLocalresources";
-
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return LocalResourcesFactoryBean.class;
@@ -45,7 +44,7 @@ public class LocalresourcesParser extends AbstractImprovedSimpleBeanDefinitionPa
 
 	@Override
 	protected String defaultId(ParserContext context, Element element) {
-		return DEFAULT_ID;
+		return YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES;
 	}
 
 	@Override
@@ -53,9 +52,9 @@ public class LocalresourcesParser extends AbstractImprovedSimpleBeanDefinitionPa
 		super.doParse(element, parserContext, builder);
 
 		ManagedList<BeanDefinition> entries = new ManagedList<BeanDefinition>();
-
 		parseEntries(element, "hdfs", entries);
 		builder.addPropertyValue("hdfsEntries", entries);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration");
 	}
 
 	private void parseEntries(Element element, String name, List<BeanDefinition> entries) {

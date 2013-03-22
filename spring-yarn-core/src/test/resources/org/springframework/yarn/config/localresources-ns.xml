@@ -16,6 +16,11 @@
 		yarn.resourcemanager.address=${hd.rm}
 	</yarn:configuration>
 
+	<yarn:configuration id="customConfiguration">
+		fs.default.name=${hd.fs}
+		yarn.resourcemanager.address=${hd.rm}
+	</yarn:configuration>
+
 	<yarn:localresources>
 		<yarn:hdfs path="/tmp/foo.jar"/>
 	</yarn:localresources>
@@ -30,7 +35,7 @@
 		<yarn:hdfs path="/tmp/bar.jar"/>
 	</yarn:localresources>
 
-	<yarn:localresources id="yarnLocalresourcesOverride" local="hdfs://0.0.0.0:9000" remote="${test.remote}">
+	<yarn:localresources id="yarnLocalresourcesOverride" configuration="customConfiguration" local="hdfs://0.0.0.0:9000" remote="${test.remote}">
 		<yarn:hdfs path="/tmp/foo.jar"/>
 	</yarn:localresources>
 

@@ -14,7 +14,7 @@
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
-	Defines the configuration elements for Spring Yarn.
+		Defines the configuration elements for Spring Yarn Core.
 		]]></xsd:documentation>
 	</xsd:annotation>
 
@@ -22,15 +22,15 @@
 
 	<xsd:element name="client">
 		<xsd:annotation>
-		<xsd:documentation><![CDATA[
-	Defines a yarn client.
-				]]>
-		</xsd:documentation>
-		<xsd:appinfo>
-			<tool:annotation>
-			<tool:exports type="org.springframework.yarn.client.YarnClientFactoryBean"/>
-			</tool:annotation>
-		</xsd:appinfo>
+			<xsd:documentation><![CDATA[
+			Defines a yarn client.
+			]]>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.yarn.client.YarnClientFactoryBean"/>
+				</tool:annotation>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -47,19 +47,19 @@
 
 	<xsd:element name="master">
 		<xsd:annotation>
-		<xsd:documentation><![CDATA[
-	Defines a yarn application master.
-				]]>
-		</xsd:documentation>
-		<xsd:appinfo>
-			<tool:annotation>
-			<tool:exports type="org.springframework.yarn.am.AppmasterFactoryBean"/>
-			</tool:annotation>
-		</xsd:appinfo>
+			<xsd:documentation><![CDATA[
+			Defines a yarn application master.
+			]]>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.yarn.am.YarnAppmaster"/>
+				</tool:annotation>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="clientType">
+				<xsd:extension base="masterType">
 					<xsd:sequence minOccurs="1" maxOccurs="unbounded">
 						<xsd:choice>
 							<xsd:element name="container-command" type="containerCommandType"/>
@@ -73,6 +73,12 @@
 	</xsd:element>
 
 	<xsd:element name="localresources">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+			Defines a yarn resource localizer.
+			]]>
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
 				<xsd:choice>
@@ -80,12 +86,18 @@
 				</xsd:choice>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="optional"/>
-			<xsd:attribute name="configuration-ref" default="yarnConfiguration"/>
+			<xsd:attribute name="configuration" default="yarnConfiguration"/>
 			<xsd:attributeGroup ref="hdfs-common-attributes"/>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="environment">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+			Defines a yarn resource environment.
+			]]>
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType mixed="true">
 		<xsd:complexContent>
 		<xsd:extension base="propertiesConfigurableType">
@@ -108,7 +120,7 @@
 	<xsd:element name="configuration">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-	Defines a Hadoop Yarn Configuration.
+			Defines a yarn Configuration.
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -122,14 +134,14 @@
 			<xsd:attribute name="id" type="xsd:ID" use="optional">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Bean id (default is "yarnConfiguration").
+					Bean id (default is "yarnConfiguration").
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="configuration-ref">
 				<xsd:annotation>
 						<xsd:documentation source="java:org.apache.hadoop.yarn.conf.YarnConfiguration"><![CDATA[
-	Reference to another Hadoop Yarn configuration (useful for chaining)
+						Reference to another Hadoop Yarn configuration (useful for chaining)
 						]]></xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
@@ -141,7 +153,7 @@
 			<xsd:attribute name="resources">
 				<xsd:annotation>
 					<xsd:documentation source="java:org.springframework.core.io.Resource"><![CDATA[
-	Hadoop Yarn Configuration resources. Multiple resources can be specified, using comma (,) as a separator.
+					Hadoop Yarn Configuration resources. Multiple resources can be specified, using comma (,) as a separator.
 					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
@@ -153,7 +165,7 @@
 			<xsd:attribute name="yarn-resourcemanager-address" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	The Yarn Resource manager address (host:port). Equivalent to 'yarn.resourcemanager.address' property.
+					The Yarn Resource manager address (host:port). Equivalent to 'yarn.resourcemanager.address' property.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -201,7 +213,6 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="containerAllocatorType" mixed="true">
-		<xsd:attribute name="type" type="xsd:string" use="optional"/>
 		<xsd:attribute name="hostname" type="xsd:string" use="optional"/>
 		<xsd:attribute name="virtualcores" type="xsd:string" use="optional"/>
 		<xsd:attribute name="memory" type="xsd:string" use="optional"/>
@@ -209,7 +220,6 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="containerLauncherType" mixed="true">
-		<xsd:attribute name="type" type="xsd:string" use="optional"/>
 		<xsd:attribute name="username" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
@@ -224,21 +234,37 @@
 		<xsd:attribute name="id" type="xsd:ID" use="optional">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Bean id.
-				]]></xsd:documentation>
+				Bean id.
+				]]>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="template-ref" use="optional"/>
-		<xsd:attribute name="configuration-ref" default="yarnConfiguration"/>
-		<xsd:attribute name="resourcelocalizer-ref" default="yarnLocalresources"/>
-		<xsd:attribute name="environment-ref" default="yarnEnvironment"/>
+		<xsd:attribute name="template" use="optional"/>
+		<xsd:attribute name="configuration" default="yarnConfiguration"/>
+		<xsd:attribute name="resourcelocalizer" default="yarnLocalresources"/>
+		<xsd:attribute name="environment" default="yarnEnvironment"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="masterType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="template" use="optional"/>
+		<xsd:attribute name="configuration" default="yarnConfiguration"/>
+		<xsd:attribute name="resourcelocalizer" default="yarnLocalresources"/>
+		<xsd:attribute name="environment" default="yarnEnvironment"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="propertiesConfigurableType" mixed="true">
 		<xsd:attribute name="properties-ref" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Reference to a Properties object.
+				Reference to a Properties object.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -250,8 +276,9 @@
 		<xsd:attribute name="properties-location" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Properties location(s). Multiple locations can be specified using comma (,) as a separator.
-				]]></xsd:documentation>
+				Properties location(s). Multiple locations can be specified using comma (,) as a separator.
+				]]>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

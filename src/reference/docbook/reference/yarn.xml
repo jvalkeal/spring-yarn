@@ -335,10 +335,10 @@
     <para>On default the hdfs base address is coming from a Yarn configuration and
 	<interfacename>ResourceLocalizer</interfacename> bean will use configuration named
 	<emphasis>yarnLocalresources</emphasis>. If there is a need to use something else
-	than the default bean, <emphasis>configuration-ref</emphasis> parameter
+	than the default bean, <emphasis>configuration</emphasis> parameter
 	can be used to make a reference to other defined configurations.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:localresources configuration-ref="yarnConfiguration">
+    <programlisting language="xml"><![CDATA[<yarn:localresources configuration="yarnConfiguration">
   <yarn:hdfs path="/path/in/hdfs/my.jar"/>
 </yarn:localresources>
 ]]></programlisting>     
@@ -383,7 +383,7 @@
             </thead>
             <tbody>
                 <row>
-                    <entry><literal>configuration-ref</literal></entry>
+                    <entry><literal>configuration</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to configuration bean name, default is
 					<emphasis>yarnConfiguration</emphasis></entry>
@@ -616,25 +616,25 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
             </thead>
             <tbody>
                 <row>
-                    <entry><literal>configuration-ref</literal></entry>
+                    <entry><literal>configuration</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to configuration bean name, default is
 					<emphasis>yarnConfiguration</emphasis></entry>
                 </row>
                 <row>
-                    <entry><literal>resourcelocalizer-ref</literal></entry>
+                    <entry><literal>resourcelocalizer</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to resource localizer bean name, default is
 					<emphasis>yarnLocalresources</emphasis></entry>
                 </row>
                 <row>
-                    <entry><literal>environment-ref</literal></entry>
+                    <entry><literal>environment</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to environment bean name, default is
 					<emphasis>yarnEnvironment</emphasis></entry>
                 </row>
                 <row>
-                    <entry><literal>template-ref</literal></entry>
+                    <entry><literal>template</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to a bean implementing
 					<interfacename>ClientRmOperations</interfacename></entry>
@@ -655,6 +655,8 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	launching and monitoring.</para>
 	
     <programlisting language="xml"><![CDATA[<yarn:master>
+  <yarn:container-allocator hostname="*" virtualcores="1" memory="64" priority="0"/>    
+  <yarn:container-launcher username="whoami"/>    
   <yarn:container-command>
     <![CDATA[
       /usr/local/java/bin/java
@@ -668,11 +670,14 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 ]]></programlisting>     
 
     <para>The declaration above defines a <interfacename>YarnAppmaster</interfacename>
-	bean (to be precise a factory bean of type 
-	<classname>AppmasterFactoryBean</classname>) named, by default,
+	bean (to be precise a bean of type 
+	<classname>StaticAppmaster</classname>) named, by default,
 	<emphasis>yarnAppmaster</emphasis>. It also defines a command launching
 	a <emphasis>Container(s)</emphasis> using
-	<literal>&lt;container-command&gt;</literal> entry.</para>
+	<literal>&lt;container-command&gt;</literal> entry, parameters
+	for allocation using <literal>&lt;container-allocator&gt;</literal>
+	entry and finally a launcher parameter using
+	<literal>&lt;container-launcher&gt;</literal> entry.</para>
 	
 	<para>Currently there is a simple implementation of
 	<classname>StaticAppmaster</classname> which is able to allocate and
@@ -695,22 +700,88 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
             </thead>
             <tbody>
                 <row>
-                    <entry><literal>configuration-ref</literal></entry>
+                    <entry><literal>configuration</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to configuration bean name, default is
 					<emphasis>yarnConfiguration</emphasis></entry>
                 </row>
                 <row>
-                    <entry><literal>resourcelocalizer-ref</literal></entry>
+                    <entry><literal>resourcelocalizer</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to resource localizer bean name, default is
 					<emphasis>yarnLocalresources</emphasis></entry>
                 </row>
                 <row>
-                    <entry><literal>environment-ref</literal></entry>
+                    <entry><literal>environment</literal></entry>
                     <entry>Bean Reference</entry>
                     <entry>A reference to environment bean name, default is
 					<emphasis>yarnEnvironment</emphasis></entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
+
+    <table id="yarn:master:containerallocatorflags" pgwide="1" align="center">
+        <title><literal>yarn:container-allocator</literal> attributes</title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry><literal>hostname</literal></entry>
+                    <entry>String</entry>
+                    <entry><emphasis>host/rack</emphasis> which the allocation is desired.
+					A special value of <emphasis>*</emphasis> signifies that
+					any <emphasis>host/rack</emphasis> is acceptable.</entry>
+                </row>
+                <row>
+                    <entry><literal>virtualcores</literal></entry>
+                    <entry>Integer</entry>
+                    <entry><emphasis>number of virtual cpu cores</emphasis> of the resource.</entry>
+                </row>
+                <row>
+                    <entry><literal>memory</literal></entry>
+                    <entry>Integer, as of MBs.</entry>
+                    <entry><emphasis>memory</emphasis> of the resource.</entry>
+                </row>
+                <row>
+                    <entry><literal>priority</literal></entry>
+                    <entry>Integer</entry>
+                    <entry>Assigned priority of a request.</entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
+
+    <table id="yarn:master:containerlauncherflags" pgwide="1" align="center">
+        <title><literal>yarn:container-launcher</literal> attributes</title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry><literal>username</literal></entry>
+                    <entry>String</entry>
+                    <entry>Set the <emphasis>user</emphasis> to whom the
+					container has been allocated.</entry>
                 </row>
             </tbody>
         </tgroup>  

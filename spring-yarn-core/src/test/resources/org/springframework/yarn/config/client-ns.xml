@@ -7,15 +7,23 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<yarn:configuration/>
-
 	<yarn:localresources/>
-
 	<yarn:environment/>
-
 	<yarn:client>
 		<yarn:master-command>
 			<![CDATA[
 			fakecommand
+			]]>
+		</yarn:master-command>
+	</yarn:client>
+
+	<yarn:configuration id="customConfiguration"/>
+	<yarn:localresources id="customResources"/>
+	<yarn:environment id="customEnv"/>
+	<yarn:client id="customClient" configuration="customConfiguration" resourcelocalizer="customResources" environment="customEnv">
+		<yarn:master-command>
+			<![CDATA[
+			customcommand
 			]]>
 		</yarn:master-command>
 	</yarn:client>
