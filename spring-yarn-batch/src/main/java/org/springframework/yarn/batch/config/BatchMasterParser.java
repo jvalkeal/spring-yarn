@@ -19,34 +19,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.springframework.yarn.batch.am.BatchAppmasterFactoryBean;
+import org.springframework.yarn.YarnSystemConstants;
+import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
+import org.springframework.yarn.am.container.DefaultContainerLauncher;
+import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
+import org.springframework.yarn.batch.am.BatchAppmaster;
+import org.springframework.yarn.config.YarnNamespaceUtils;
 import org.springframework.yarn.support.ParsingUtils;
 import org.w3c.dom.Element;
 
 /**
- * Simple namespace parser for yarn-batch:master.
+ * Simple namespace parser for batch:master.
  *
  * @author Janne Valkealahti
  *
  */
-public class BatchMasterParser extends AbstractSingleBeanDefinitionParser {
-
-	public static final String DEFAULT_ID = "yarnAppmaster";
+public class BatchMasterParser extends AbstractBeanDefinitionParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return BatchAppmasterFactoryBean.class;
-	}
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		super.doParse(element, builder);
+		// for now, defaulting to StaticAppmaster
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BatchAppmaster.class);
 
 		List<Element> cp = DomUtils.getChildElementsByTagName(element, "container-command");
 		for (Element entry : cp) {
@@ -57,21 +59,51 @@ public class BatchMasterParser extends AbstractSingleBeanDefinitionParser {
 			builder.addPropertyValue("commands", commands);
 		}
 
-		// adding references using fallback to default bean names
-		String attr = element.getAttribute("resourcelocalizer-ref");
-		builder.addPropertyReference("resourceLocalizer", (StringUtils.hasText(attr) ? attr : "yarnLocalresources"));
+		// allocator - for now, defaulting to DefaultContainerAllocator
+		BeanDefinitionBuilder defBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultContainerAllocator.class);
+		defBuilder.addPropertyReference("configuration", YarnSystemConstants.DEFAULT_ID_CONFIGURATION);
+		Element allocElement = DomUtils.getChildElementByTagName(element, "container-allocator");
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
+		if(allocElement != null) {
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "hostname");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "virtualcores");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "memory");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "priority");
+		}
+		AbstractBeanDefinition beanDef = defBuilder.getBeanDefinition();
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addPropertyReference("allocator", beanName);
 
-		attr = element.getAttribute("configuration-ref");
-		builder.addPropertyReference("configuration", (StringUtils.hasText(attr) ? attr : "yarnConfiguration"));
+		// launcher - for now, defaulting to DefaultContainerLauncher
+		defBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultContainerLauncher.class);
+		Element launchElement = DomUtils.getChildElementByTagName(element, "container-launcher");
+		if(launchElement != null) {
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "username");
+		}
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "configuration", YarnSystemConstants.DEFAULT_ID_CONFIGURATION);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "resource-localizer", YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES);
+		beanDef = defBuilder.getBeanDefinition();
+		beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addPropertyReference("launcher", beanName);
 
-		attr = element.getAttribute("environment-ref");
-		builder.addPropertyReference("environment", (StringUtils.hasText(attr) ? attr : "yarnEnvironment"));
+		// monitor - for now, defaulting to DefaultContainerMonitor
+		defBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultContainerMonitor.class);
+		beanDef = defBuilder.getBeanDefinition();
+		beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addPropertyReference("monitor", beanName);
 
-		attr = element.getAttribute("joblauncher-ref");
-		builder.addPropertyReference("jobLauncher", (StringUtils.hasText(attr) ? attr : "jobLauncher"));
+		// for appmaster bean
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "resource-localizer", YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration", YarnSystemConstants.DEFAULT_ID_CONFIGURATION);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
+		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "job-launcher");
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "job-name");
 
-		attr = element.getAttribute("job-ref");
-		builder.addPropertyValue("jobName", (StringUtils.hasText(attr) ? attr : "job"));
+		return builder.getBeanDefinition();
 	}
 
 	@Override
@@ -79,10 +111,9 @@ public class BatchMasterParser extends AbstractSingleBeanDefinitionParser {
 			throws BeanDefinitionStoreException {
 		String name = super.resolveId(element, definition, parserContext);
 		if (!StringUtils.hasText(name)) {
-			name = DEFAULT_ID;
+			name = YarnSystemConstants.DEFAULT_ID_APPMASTER;
 		}
 		return name;
 	}
-
 
 }

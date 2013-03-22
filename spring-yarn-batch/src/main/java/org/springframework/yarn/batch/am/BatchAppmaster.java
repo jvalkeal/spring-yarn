@@ -34,6 +34,7 @@ import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AbstractProcessingAppmaster;
@@ -60,13 +61,21 @@ import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
  * @author Janne Valkealahti
  *
  */
-public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnAppmaster, Partitioner {
+public class BatchAppmaster extends AbstractProcessingAppmaster
+		implements YarnAppmaster, Partitioner, ApplicationContextAware {
 
 	private static final Log log = LogFactory.getLog(BatchAppmaster.class);
 
+	/** Batch job launcher */
 	private JobLauncher jobLauncher;
+
+	/** Job to run */
 	private String jobName;
+
+	/** Context to find the job */
 	private ApplicationContext applicationContext;
+
+	/** Holder for helper entries */
 	private Queue<SplitEntry> splitEntries = new ConcurrentLinkedQueue<BatchAppmaster.SplitEntry>();
 
 	/** Step executions as reported back from containers */
@@ -84,23 +93,6 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		}
 	}
 
-//	@Override
-//	public void waitForCompletion() {
-//		for (int i = 0; i < 30; i++) {
-//			try {
-//				if (getMonitor().isCompleted()) {
-//					log.debug("got complete from monitor");
-//					break;
-//				}
-//				Thread.sleep(1000);
-//			} catch (Exception e) {
-//				log.info("sleep error", e);
-//			}
-//		}
-//		log.debug("waiting latch done, doing stop");
-//		stop();
-//	}
-
 	@Override
 	protected void doStart() {
 		super.doStart();
@@ -115,7 +107,6 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 
 				@Override
 				public BaseObject preRequest(BaseObject baseObject) {
-					log.info("got intercept type=" + baseObject.getType());
 					if(baseObject.getType().equals("PartitionedStepExecutionStatusReq")) {
 						StepExecutionType stepExecutionType = ((PartitionedStepExecutionStatusReq)baseObject).stepExecution;
 						StepExecution convertStepExecution = JobRepositoryRpcFactory.convertStepExecutionType(stepExecutionType);
@@ -150,10 +141,6 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 				}
 				// should fail
 			}
-		}
-
-		if(getAllocator() instanceof SmartLifecycle) {
-			((SmartLifecycle)getAllocator()).start();
 		}
 
 		if(getAppmasterService() instanceof SmartLifecycle) {
@@ -198,28 +185,53 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		}
 	}
 
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Sets the job launcher.
+	 *
+	 * @param jobLauncher the new job launcher
+	 */
+	public void setJobLauncher(JobLauncher jobLauncher) {
+		this.jobLauncher = jobLauncher;
+	}
+
+	/**
+	 * Sets the job name.
+	 *
+	 * @param jobName the new job name
+	 */
+	public void setJobName(String jobName) {
+		this.jobName = jobName;
+	}
+
+	/**
+	 * Gets the step executions.
+	 *
+	 * @return the step executions
+	 */
 	public List<StepExecution> getStepExecutions() {
 		return stepExecutions;
 	}
 
+	/**
+	 * Adds the step splits.
+	 *
+	 * @param stepName the step name
+	 * @param stepSplits the step splits
+	 */
 	public void addStepSplits(String stepName, Set<StepExecution> stepSplits) {
 		for(StepExecution stepExecution : stepSplits) {
 			splitEntries.add(new SplitEntry(stepName, stepExecution));
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
-	public void setJobLauncher(JobLauncher jobLauncher) {
-		this.jobLauncher = jobLauncher;
-	}
-
-	public void setJobName(String jobName) {
-		this.jobName = jobName;
-	}
-
+	/**
+	 * Helper class keeping step name and execution together.
+	 */
 	private static class SplitEntry {
 		public String stepName;
 		public StepExecution stepExecution;

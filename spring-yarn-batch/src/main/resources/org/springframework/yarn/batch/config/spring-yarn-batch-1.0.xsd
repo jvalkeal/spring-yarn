@@ -52,8 +52,8 @@
 		<xsd:attribute name="configuration-ref" default="yarnConfiguration"/>
 		<xsd:attribute name="resourcelocalizer-ref" default="yarnLocalresources"/>
 		<xsd:attribute name="environment-ref" default="yarnEnvironment"/>
-		<xsd:attribute name="job-ref" default="job"/>
-		<xsd:attribute name="joblauncher-ref" default="jobLauncher"/>
+		<xsd:attribute name="job-name" default="job"/>
+		<xsd:attribute name="job-launcher" default="jobLauncher"/>
 	</xsd:complexType>
 
 
