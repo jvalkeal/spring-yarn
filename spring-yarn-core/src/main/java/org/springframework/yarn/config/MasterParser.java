@@ -31,6 +31,7 @@ import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.StaticAppmaster;
 import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 import org.springframework.yarn.am.container.DefaultContainerLauncher;
+import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
 import org.springframework.yarn.support.ParsingUtils;
 import org.w3c.dom.Element;
 
@@ -86,6 +87,13 @@ public class MasterParser extends AbstractBeanDefinitionParser {
 		beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
 		builder.addPropertyReference("launcher", beanName);
+
+		// monitor - for now, defaulting to DefaultContainerMonitor
+		defBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultContainerMonitor.class);
+		beanDef = defBuilder.getBeanDefinition();
+		beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addPropertyReference("monitor", beanName);
 
 		// for appmaster bean
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "resource-localizer", YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES);

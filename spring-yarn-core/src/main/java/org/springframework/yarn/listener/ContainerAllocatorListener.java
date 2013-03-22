@@ -15,35 +15,33 @@
  */
 package org.springframework.yarn.listener;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 
 /**
- * Composite listener for handling allocation events.
+ * Interface used for allocator to notify newly allocated
+ * and completed containers.
  *
  * @author Janne Valkealahti
  *
  */
-public class CompositeContainerAllocatorListener extends AbstractCompositeListener<ContainerAllocatorListener>
-		implements ContainerAllocatorListener {
+public interface ContainerAllocatorListener {
 
-	@Override
-	public void allocated(List<Container> allocatedContainers) {
-		for (Iterator<ContainerAllocatorListener> iterator = getListeners().reverse(); iterator.hasNext();) {
-			ContainerAllocatorListener listener = iterator.next();
-			listener.allocated(allocatedContainers);
-		}
-	}
+	/**
+	 * Invoked when new containers are allocated.
+	 *
+	 * @param allocatedContainers list of allocated {@link Container}s
+	 */
+	void allocated(List<Container> allocatedContainers);
 
-	@Override
-	public void completed(List<ContainerStatus> completedContainers) {
-		for (Iterator<ContainerAllocatorListener> iterator = getListeners().reverse(); iterator.hasNext();) {
-			ContainerAllocatorListener listener = iterator.next();
-			listener.completed(completedContainers);
-		}
-	}
+	/**
+	 * Invoked when containers are releases and thus
+	 * marked as completed.
+	 *
+	 * @param completedContainers list of completed {@link ContainerStatus}s
+	 */
+	void completed(List<ContainerStatus> completedContainers);
 
 }

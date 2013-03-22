@@ -24,11 +24,13 @@ import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.allocate.ContainerAllocator;
-import org.springframework.yarn.am.allocate.ContainerAllocatorListener;
 import org.springframework.yarn.am.container.AbstractLauncher;
 import org.springframework.yarn.am.container.ContainerLauncher;
 import org.springframework.yarn.am.monitor.ContainerMonitor;
 import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
+import org.springframework.yarn.listener.ContainerAllocatorListener;
+import org.springframework.yarn.listener.ContainerMonitorListener;
+import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonitorState;
 
 /**
  * Base application master implementation which handles a simple
@@ -62,6 +64,7 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 		super.onInit();
 		Assert.notNull(allocator, "Container allocator must be set");
 		Assert.notNull(launcher, "Container launcher must be set");
+		Assert.notNull(monitor, "Container monitor must be set");
 
 		if(launcher instanceof AbstractLauncher) {
 			((AbstractLauncher)launcher).addInterceptor(this);
@@ -88,6 +91,15 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 			@Override
 			public void completed(List<ContainerStatus> completedContainers) {
 				monitor.monitorContainer(completedContainers);
+			}
+		});
+
+		monitor.addContainerMonitorStateListener(new ContainerMonitorListener() {
+			@Override
+			public void state(ContainerMonitorState state) {
+				if(state.getProgress() >= 1) {
+					notifyCompleted();
+				}
 			}
 		});
 

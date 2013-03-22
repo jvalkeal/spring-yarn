@@ -33,6 +33,10 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
 import org.springframework.yarn.fs.ResourceLocalizer;
+import org.springframework.yarn.listener.AppmasterStateListener;
+import org.springframework.yarn.listener.AppmasterStateListener.AppmasterState;
+import org.springframework.yarn.listener.CompositeAppmasterStateListener;
+import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 import org.springframework.yarn.support.LifecycleObjectSupport;
 import org.springframework.yarn.support.YarnContextUtils;
 
@@ -74,6 +78,9 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	/** State if we're done successful registration */
 	private boolean applicationRegistered;
 
+	/** Listener handling state events */
+	private CompositeAppmasterStateListener stateListener = new CompositeAppmasterStateListener();
+
 	/**
 	 * Global application master instance specific {@link ApplicationAttemptId}
 	 * is build during this init method.
@@ -90,11 +97,6 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 		AppmasterRmTemplate armt = new AppmasterRmTemplate(getConfiguration());
 		armt.afterPropertiesSet();
 		rmTemplate = armt;
-	}
-
-	@Override
-	protected void doStart() {
-//		registerAppmaster();
 	}
 
 	@Override
@@ -217,6 +219,22 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 */
 	public ResourceLocalizer getResourceLocalizer() {
 		return resourceLocalizer;
+	}
+
+	/**
+	 * Adds the appmaster state listener.
+	 *
+	 * @param listener the listener
+	 */
+	public void addAppmasterStateListener(AppmasterStateListener listener) {
+		stateListener.register(listener);
+	}
+
+	/**
+	 * Notify completed state to appmaster state listeners.
+	 */
+	protected void notifyCompleted() {
+		stateListener.state(AppmasterState.COMPLETED);
 	}
 
 	/**

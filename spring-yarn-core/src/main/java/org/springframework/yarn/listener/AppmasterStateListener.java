@@ -13,39 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.am;
-
-import java.util.Properties;
-
-import org.springframework.yarn.listener.AppmasterStateListener;
+package org.springframework.yarn.listener;
 
 /**
- * Interface defining main application master methods
- * needed for external launch implementations.
+ * Interface used for appmaster to notify its state.
  *
  * @author Janne Valkealahti
  *
  */
-public interface YarnAppmaster {
+public interface AppmasterStateListener {
 
 	/**
-	 * Submit and run application.
-	 */
-	void submitApplication();
-
-	/**
-	 * Sets parameters for the application.
+	 * Invoked when appmaster state is changing.
 	 *
-	 * @param parameters the parameters to set
+	 * @param state the {@link AppmasterState}
 	 */
-	void setParameters(Properties parameters);
-
+	void state(AppmasterState state);
 
 	/**
-	 * Adds the appmaster state listener.
-	 *
-	 * @param listener the {@link AppmasterStateListener}
+	 * Enum for appmaster states
 	 */
-	void addAppmasterStateListener(AppmasterStateListener listener);
+	public enum AppmasterState {
+
+		/** Appmaster completed state*/
+		COMPLETED
+	}
 
 }

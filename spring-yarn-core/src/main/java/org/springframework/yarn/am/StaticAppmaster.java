@@ -44,22 +44,6 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 	}
 
 	@Override
-	public void waitForCompletion() {
-		for(int i = 0; i<30; i++) {
-			try {
-				if(getMonitor().isCompleted()) {
-					log.debug("got complete from monitor");
-					break;
-				}
-				Thread.sleep(1000);
-			} catch (Exception e) {
-				log.info("sleep error", e);
-			}
-		}
-		stop();
-	}
-
-	@Override
 	protected void doStart() {
 		super.doStart();
 
@@ -70,6 +54,5 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 		}
 
 	}
-
 
 }

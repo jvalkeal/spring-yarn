@@ -33,6 +33,7 @@ import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
+import org.springframework.yarn.listener.ContainerAllocatorListener;
 
 /**
  * Default allocator which polls resource manager, requests new containers

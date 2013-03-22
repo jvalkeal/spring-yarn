@@ -18,12 +18,14 @@ package org.springframework.yarn.am;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
+import org.springframework.yarn.listener.AppmasterStateListener;
 
 /**
  * Simple launcher for application master.
@@ -35,6 +37,9 @@ public class CommandLineAppmasterRunner extends AbstractCommandLineRunner<YarnAp
 
 	private static final Log log = LogFactory.getLog(CommandLineAppmasterRunner.class);
 
+	/** Latch to wait appmaster complete state */
+	private CountDownLatch latch = new CountDownLatch(1);
+
 	@Override
 	protected void handleBeanRun(YarnAppmaster bean, String[] parameters, Set<String> opts) {
 		Properties properties = StringUtils.splitArrayElementsIntoProperties(parameters, "=");
@@ -42,14 +47,27 @@ public class CommandLineAppmasterRunner extends AbstractCommandLineRunner<YarnAp
 		if(log.isDebugEnabled()) {
 			log.debug("Starting YarnAppmaster bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
 		}
+
+		bean.addAppmasterStateListener(new AppmasterStateListener() {
+			@Override
+			public void state(AppmasterState state) {
+				if(state == AppmasterState.COMPLETED) {
+					latch.countDown();
+				}
+			}
+		});
+
 		bean.submitApplication();
+
 		if(log.isDebugEnabled()) {
-			log.debug("Waiting YarnAppmaster bean");
+			log.debug("Waiting latch to receive appmaster complete state");
 		}
-		bean.waitForCompletion();
-		if(log.isDebugEnabled()) {
-			log.debug("Waiting YarnAppmaster bean done");
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			log.debug("Latch interrupted");
 		}
+		log.info("Bean run completed");
 	}
 
 	@Override

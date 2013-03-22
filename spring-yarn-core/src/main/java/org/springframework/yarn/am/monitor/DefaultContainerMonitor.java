@@ -20,20 +20,33 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonitorState;
 
-public class DefaultContainerMonitor implements ContainerMonitor {
+/**
+ * Default implementation of {@link ContainerMonitor} which simple
+ * tracks number of total and completed containers.
+ *
+ * @author Janne Valkealahti
+ *
+ */
+public class DefaultContainerMonitor extends AbstractMonitor implements ContainerMonitor {
 
 	private static final Log log = LogFactory.getLog(DefaultContainerMonitor.class);
 
+	/** Total number of requested containers */
 	private int total = -1;
-	private int completed = 0;
 
-	public DefaultContainerMonitor() {
-	}
+	/** Total number of completed containers */
+	private int completed = 0;
 
 	@Override
 	public void monitorContainer(List<ContainerStatus> completedContainers) {
 		completed += completedContainers.size();
+		ContainerMonitorState state = new ContainerMonitorState(total, completed, total/(double)completed);
+		if(log.isDebugEnabled()) {
+			log.debug("New state: " + state);
+		}
+		notifyState(state);
 	}
 
 	@Override
@@ -43,7 +56,9 @@ public class DefaultContainerMonitor implements ContainerMonitor {
 
 	@Override
 	public boolean isCompleted() {
-		log.debug("complete: completed=" + completed + " total=" + total);
+		if(log.isDebugEnabled()) {
+			log.debug("complete: completed=" + completed + " total=" + total);
+		}
 		return completed >= total;
 	}
 

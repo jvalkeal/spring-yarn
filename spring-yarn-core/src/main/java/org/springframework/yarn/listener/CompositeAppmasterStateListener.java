@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.am.allocate;
+package org.springframework.yarn.listener;
 
-import java.util.List;
+import java.util.Iterator;
 
-import org.apache.hadoop.yarn.api.records.Container;
-import org.apache.hadoop.yarn.api.records.ContainerStatus;
+/**
+ * Composite listener for handling appmaster state events.
+ *
+ * @author Janne Valkealahti
+ *
+ */
+public class CompositeAppmasterStateListener extends AbstractCompositeListener<AppmasterStateListener>
+		implements AppmasterStateListener {
 
-public interface ContainerAllocatorListener {
-
-	void allocated(List<Container> allocatedContainers);
-	void completed(List<ContainerStatus> completedContainers);
+	@Override
+	public void state(AppmasterState state) {
+		for (Iterator<AppmasterStateListener> iterator = getListeners().reverse(); iterator.hasNext();) {
+			AppmasterStateListener listener = iterator.next();
+			listener.state(state);
+		}
+	}
 
 }

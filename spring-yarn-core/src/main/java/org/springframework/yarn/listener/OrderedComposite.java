@@ -27,10 +27,14 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
 /**
+ * Composite item which can be used in other components which
+ * may want to allow automatic and annotation based ordering.
+ * Good use case is a list of listeners where user may want
+ * to place some of them to be processed before the others.
  *
  * @author Janne Valkealahti
  *
- * @param <S>
+ * @param <S> the type of the item
  */
 class OrderedComposite<S> {
 

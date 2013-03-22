@@ -84,22 +84,22 @@ public class BatchAppmaster extends AbstractProcessingAppmaster implements YarnA
 		}
 	}
 
-	@Override
-	public void waitForCompletion() {
-		for (int i = 0; i < 30; i++) {
-			try {
-				if (getMonitor().isCompleted()) {
-					log.debug("got complete from monitor");
-					break;
-				}
-				Thread.sleep(1000);
-			} catch (Exception e) {
-				log.info("sleep error", e);
-			}
-		}
-		log.debug("waiting latch done, doing stop");
-		stop();
-	}
+//	@Override
+//	public void waitForCompletion() {
+//		for (int i = 0; i < 30; i++) {
+//			try {
+//				if (getMonitor().isCompleted()) {
+//					log.debug("got complete from monitor");
+//					break;
+//				}
+//				Thread.sleep(1000);
+//			} catch (Exception e) {
+//				log.info("sleep error", e);
+//			}
+//		}
+//		log.debug("waiting latch done, doing stop");
+//		stop();
+//	}
 
 	@Override
 	protected void doStart() {

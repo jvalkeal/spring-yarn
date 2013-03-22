@@ -18,12 +18,48 @@ package org.springframework.yarn.am.monitor;
 import java.util.List;
 
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.springframework.yarn.listener.ContainerMonitorListener;
 
+/**
+ * General interface for components able to monitor application
+ * and container statuses.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public interface ContainerMonitor {
 
+	/**
+	 * Sets the total number of containers.
+	 *
+	 * @param count the new total container count
+	 */
 	void setTotal(int count);
+
+	/**
+	 * Checks if is completed.
+	 *
+	 * @return true, if is completed
+	 */
 	boolean isCompleted();
+
+	/**
+	 * Notifies monitor for completed containers.
+	 *
+	 * @param completedContainers the completed containers
+	 */
 	void monitorContainer(List<ContainerStatus> completedContainers);
+
+	/**
+	 * Sets the state of monitor to be completed.
+	 */
 	void setCompleted();
+
+	/**
+	 * Adds the container monitor state listener.
+	 *
+	 * @param listener the {@link ContainerMonitorListener}
+	 */
+	void addContainerMonitorStateListener(ContainerMonitorListener listener);
 
 }

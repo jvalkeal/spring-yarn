@@ -15,10 +15,28 @@
  */
 package org.springframework.yarn.am.allocate;
 
+import org.springframework.yarn.listener.ContainerAllocatorListener;
 
+/**
+ * General interface for container allocators.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public interface ContainerAllocator {
 
+	/**
+	 * Allocate new containers.
+	 *
+	 * @param count the new container count to allocate
+	 */
 	void allocateContainers(int count);
+
+	/**
+	 * Adds the {@link ContainerAllocatorListener}.
+	 *
+	 * @param listener the {@link ContainerAllocatorListener}
+	 */
 	void addListener(ContainerAllocatorListener listener);
 
 }

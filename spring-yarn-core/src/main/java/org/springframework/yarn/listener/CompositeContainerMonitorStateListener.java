@@ -13,39 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.am;
+package org.springframework.yarn.listener;
 
-import java.util.Properties;
-
-import org.springframework.yarn.listener.AppmasterStateListener;
+import java.util.Iterator;
 
 /**
- * Interface defining main application master methods
- * needed for external launch implementations.
+ * Composite listener for handling container monitor events.
  *
  * @author Janne Valkealahti
  *
  */
-public interface YarnAppmaster {
+public class CompositeContainerMonitorStateListener extends AbstractCompositeListener<ContainerMonitorListener>
+		implements ContainerMonitorListener {
 
-	/**
-	 * Submit and run application.
-	 */
-	void submitApplication();
-
-	/**
-	 * Sets parameters for the application.
-	 *
-	 * @param parameters the parameters to set
-	 */
-	void setParameters(Properties parameters);
-
-
-	/**
-	 * Adds the appmaster state listener.
-	 *
-	 * @param listener the {@link AppmasterStateListener}
-	 */
-	void addAppmasterStateListener(AppmasterStateListener listener);
+	@Override
+	public void state(ContainerMonitorState state) {
+		for (Iterator<ContainerMonitorListener> iterator = getListeners().reverse(); iterator.hasNext();) {
+			ContainerMonitorListener listener = iterator.next();
+			listener.state(state);
+		}
+	}
 
 }
