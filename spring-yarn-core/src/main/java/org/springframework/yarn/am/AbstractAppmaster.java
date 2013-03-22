@@ -36,7 +36,6 @@ import org.springframework.yarn.fs.ResourceLocalizer;
 import org.springframework.yarn.listener.AppmasterStateListener;
 import org.springframework.yarn.listener.AppmasterStateListener.AppmasterState;
 import org.springframework.yarn.listener.CompositeAppmasterStateListener;
-import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 import org.springframework.yarn.support.LifecycleObjectSupport;
 import org.springframework.yarn.support.YarnContextUtils;
 

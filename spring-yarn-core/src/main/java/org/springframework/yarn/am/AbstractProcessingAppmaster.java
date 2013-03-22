@@ -30,7 +30,6 @@ import org.springframework.yarn.am.monitor.ContainerMonitor;
 import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
 import org.springframework.yarn.listener.ContainerMonitorListener;
-import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonitorState;
 
 /**
  * Base application master implementation which handles a simple
