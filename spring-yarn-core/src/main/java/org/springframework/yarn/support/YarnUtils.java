@@ -15,10 +15,17 @@
  */
 package org.springframework.yarn.support;
 
+import java.util.Map;
+
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.yarn.YarnException;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
+import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.springframework.dao.DataAccessException;
+import org.springframework.util.Assert;
 import org.springframework.yarn.YarnSystemException;
 
 /**
@@ -57,6 +64,19 @@ public class YarnUtils {
 	 */
 	public static DataAccessException convertYarnAccessException(YarnException e) {
 		return new YarnSystemException(e);
+	}
+
+	/**
+	 * Gets {@link ApplicationAttemptId} from environment variables.
+	 *
+	 * @param environment Map of environment variables
+	 * @return the {@link ApplicationAttemptId}
+	 */
+	public static ApplicationAttemptId getApplicationAttemptId(Map<String, String> environment) {
+		String amContainerId = environment.get(ApplicationConstants.AM_CONTAINER_ID_ENV);
+		Assert.notNull(amContainerId, "AM_CONTAINER_ID env variable has to exist to build appAttemptId");
+		ContainerId containerId = ConverterUtils.toContainerId(amContainerId);
+		return containerId.getApplicationAttemptId();
 	}
 
 }

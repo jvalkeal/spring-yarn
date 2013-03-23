@@ -18,6 +18,7 @@ package org.springframework.yarn.am;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.yarn.am.allocate.AbstractAllocator;
 
 /**
  * A simple application master implementation which will allocate
@@ -37,6 +38,9 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 		log.info("Submitting application");
 		registerAppmaster();
 		start();
+		if(getAllocator() instanceof AbstractAllocator) {
+			((AbstractAllocator)getAllocator()).setApplicationAttemptId(getApplicationAttemptId());
+		}
 		int count = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
 		log.info("count: " + count);
 		getMonitor().setTotal(count);

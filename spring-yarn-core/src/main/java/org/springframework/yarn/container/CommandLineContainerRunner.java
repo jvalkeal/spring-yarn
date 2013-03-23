@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
 
 /**
@@ -44,11 +45,14 @@ public class CommandLineContainerRunner extends AbstractCommandLineRunner<YarnCo
 			log.debug("Starting YarnClient bean: " + StringUtils.arrayToCommaDelimitedString(parameters));
 		}
 		bean.run();
+		if(log.isDebugEnabled()) {
+			log.debug("YarnClient bean complete");
+		}
 	}
 
 	@Override
 	protected String getDefaultBeanIdentifier() {
-		return "yarnContainer";
+		return YarnSystemConstants.DEFAULT_ID_CONTAINER;
 	}
 
 	@Override

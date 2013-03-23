@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;

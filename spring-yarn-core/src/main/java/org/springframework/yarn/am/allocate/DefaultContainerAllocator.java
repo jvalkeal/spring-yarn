@@ -31,7 +31,6 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.util.Records;
-import org.springframework.util.Assert;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
 
@@ -65,18 +64,12 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	private int memory = 64;
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		Assert.notNull(getApplicationAttemptId(), "ApplicationAttemptId must be set");
-	}
-
-	@Override
 	public void allocateContainers(int count) {
 		// adding new container allocation count, poller
 		// will pick it up later
 		int newCount = numRequestedContainers.addAndGet(count);
 		if(log.isDebugEnabled()) {
-			log.debug("Adding " + count + " new containers. New count is " + newCount + " object:" + this);
+			log.debug("Adding " + count + " new containers. New count is " + newCount);
 		}
 	}
 
@@ -90,7 +83,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 		int count = numRequestedContainers.getAndSet(0);
 
 		if(log.isDebugEnabled()) {
-			log.debug("Requesting " + count + " new containers. " + " object:" + this);
+			log.debug("Requesting " + count + " new containers.");
 		}
 
 		List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();

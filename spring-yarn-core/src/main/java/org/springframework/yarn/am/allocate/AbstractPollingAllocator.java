@@ -136,7 +136,16 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		boolean result = false;
 
 		if (log.isDebugEnabled()){
-			log.debug("polling new/completed containers");
+			log.debug("Checking if we can poll new and completed containers.");
+		}
+
+		// we use application attempt id as a flag
+		// to know when appmaster has done registration
+		if(getApplicationAttemptId() == null) {
+			if (log.isDebugEnabled()){
+				log.debug("ApplicationAttemptId not set, delaying poll requests.");
+			}
+			return result;
 		}
 
 		AMResponse response = doContainerRequest();
@@ -144,7 +153,7 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		List<Container> allocatedContainers = response.getAllocatedContainers();
 		if(allocatedContainers != null && allocatedContainers.size() > 0) {
 			if (log.isDebugEnabled()){
-				log.debug("got " + allocatedContainers.size() + " new containers");
+				log.debug("response has " + allocatedContainers.size() + " new containers");
 			}
 			handleAllocatedContainers(allocatedContainers);
 			result = true;
@@ -153,7 +162,7 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 		List<ContainerStatus> containerStatuses = response.getCompletedContainersStatuses();
 		if(containerStatuses != null && containerStatuses.size() > 0) {
 			if (log.isDebugEnabled()){
-				log.debug("got " + containerStatuses.size() + " completed containers");
+				log.debug("response has " + containerStatuses.size() + " completed containers");
 			}
 			handleCompletedContainers(containerStatuses);
 			result = true;

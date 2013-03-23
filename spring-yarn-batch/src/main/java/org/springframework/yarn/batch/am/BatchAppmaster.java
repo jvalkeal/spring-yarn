@@ -40,6 +40,7 @@ import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AbstractProcessingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.am.YarnAppmaster;
+import org.springframework.yarn.am.allocate.AbstractAllocator;
 import org.springframework.yarn.batch.repository.BatchAppmasterService;
 import org.springframework.yarn.batch.repository.JobRepositoryRemoteServiceInterceptor;
 import org.springframework.yarn.batch.repository.JobRepositoryRpcFactory;
@@ -83,13 +84,20 @@ public class BatchAppmaster extends AbstractProcessingAppmaster
 
 	@Override
 	public void submitApplication() {
+		registerAppmaster();
 		start();
+		if(getAllocator() instanceof AbstractAllocator) {
+			((AbstractAllocator)getAllocator()).setApplicationAttemptId(getApplicationAttemptId());
+		}
 		try {
 			Job job = (Job) applicationContext.getBean(jobName);
-			log.debug("launching job:" + job);
+			log.info("launching job:" + job);
 			jobLauncher.run(job, new JobParameters());
 		} catch (Exception e) {
 			log.error("Error running job", e);
+		}
+		if(log.isDebugEnabled()) {
+			log.debug("finished job");
 		}
 	}
 

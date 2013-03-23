@@ -18,6 +18,7 @@ package org.springframework.yarn.batch.partition;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.StepExecutionSplitter;
 import org.springframework.yarn.batch.am.BatchAppmaster;
+import org.springframework.yarn.listener.AppmasterStateListener;
 
 /**
  * Implementation for {@link PartitionHandler} used with {@link BatchAppmaster}.
@@ -45,6 +47,9 @@ public class BatchPartitionHandler implements PartitionHandler {
 
 	/** Handle back to our app master */
 	private BatchAppmaster master;
+
+	/** Latch to wait appmaster complete state */
+	private CountDownLatch latch = new CountDownLatch(1);
 
 	/**
 	 * Constructs a partition handler with a given app master.
@@ -75,19 +80,21 @@ public class BatchPartitionHandler implements PartitionHandler {
 		master.getMonitor().setTotal(gridSize);
 		master.getAllocator().allocateContainers(gridSize);
 
-		for(int i = 0; i<30; i++) {
-			try {
-				if(master.getMonitor().isCompleted()) {
-					log.debug("got complete from monitor");
-					break;
+		master.addAppmasterStateListener(new AppmasterStateListener() {
+			@Override
+			public void state(AppmasterState state) {
+				if(state == AppmasterState.COMPLETED) {
+					latch.countDown();
 				}
-				Thread.sleep(1000);
-			} catch (Exception e) {
-				log.info("sleep error", e);
 			}
-		}
-		master.getMonitor().setCompleted();
+		});
 
+		try {
+			latch.await();
+			master.getMonitor().setCompleted();
+		} catch (Exception e) {
+			log.debug("Latch interrupted");
+		}
 		result.addAll(master.getStepExecutions());
 
 		if(log.isDebugEnabled()) {

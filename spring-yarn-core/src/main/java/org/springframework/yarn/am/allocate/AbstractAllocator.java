@@ -18,11 +18,7 @@ package org.springframework.yarn.am.allocate;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.springframework.util.Assert;
 import org.springframework.yarn.am.AppmasterRmOperations;
 import org.springframework.yarn.am.AppmasterRmTemplate;
 import org.springframework.yarn.support.LifecycleObjectSupport;
@@ -50,10 +46,6 @@ public abstract class AbstractAllocator extends LifecycleObjectSupport {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		String amContainerId = environment.get(ApplicationConstants.AM_CONTAINER_ID_ENV);
-		Assert.notNull(amContainerId, "AM_CONTAINER_ID env variable has to exist to build appAttemptId");
-		ContainerId containerId = ConverterUtils.toContainerId(amContainerId);
-		applicationAttemptId = containerId.getApplicationAttemptId();
 		AppmasterRmTemplate armt = new AppmasterRmTemplate(getConfiguration());
 		armt.afterPropertiesSet();
 		rmTemplate = armt;

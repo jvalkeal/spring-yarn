@@ -22,14 +22,11 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.protocolrecords.FinishApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.FinishApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
-import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
 import org.springframework.yarn.fs.ResourceLocalizer;
@@ -38,6 +35,7 @@ import org.springframework.yarn.listener.AppmasterStateListener.AppmasterState;
 import org.springframework.yarn.listener.CompositeAppmasterStateListener;
 import org.springframework.yarn.support.LifecycleObjectSupport;
 import org.springframework.yarn.support.YarnContextUtils;
+import org.springframework.yarn.support.YarnUtils;
 
 /**
  * Base class providing functionality for common application
@@ -89,10 +87,7 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		String amContainerId = environment.get(ApplicationConstants.AM_CONTAINER_ID_ENV);
-		Assert.notNull(amContainerId, "AM_CONTAINER_ID env variable has to exist to build appAttemptId");
-		ContainerId containerId = ConverterUtils.toContainerId(amContainerId);
-		applicationAttemptId = containerId.getApplicationAttemptId();
+		applicationAttemptId = YarnUtils.getApplicationAttemptId(environment);
 		AppmasterRmTemplate armt = new AppmasterRmTemplate(getConfiguration());
 		armt.afterPropertiesSet();
 		rmTemplate = armt;
@@ -255,6 +250,12 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 * @return the register application master response
 	 */
 	protected RegisterApplicationMasterResponse registerAppmaster() {
+		Assert.notNull(applicationAttemptId, "applicationAttemptId must be set");
+		if(applicationRegistered) {
+			log.warn("Not sending register request because we are already registered");
+			return null;
+		}
+		log.info("Registering application master with applicationAttemptId=" + applicationAttemptId);
 		RegisterApplicationMasterResponse response =
 				rmTemplate.registerApplicationMaster(applicationAttemptId, null, null, null);
 		applicationRegistered = true;
@@ -267,6 +268,7 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 * @return the finish application master response
 	 */
 	protected FinishApplicationMasterResponse finishAppmaster() {
+		Assert.notNull(applicationAttemptId, "applicationAttemptId must be set");
 		if(!applicationRegistered) {
 			log.warn("Not sending finish request because we're not registered");
 			return null;
