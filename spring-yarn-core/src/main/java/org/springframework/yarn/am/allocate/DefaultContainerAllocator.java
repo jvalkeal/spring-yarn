@@ -63,6 +63,9 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	/** Resource capability as of memory */
 	private int memory = 64;
 
+	/** Increasing counter for rpc request id*/
+	private AtomicInteger requestId = new AtomicInteger();
+
 	@Override
 	public void allocateContainers(int count) {
 		// adding new container allocation count, poller
@@ -93,7 +96,8 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 		}
 
 		AllocateRequest request = Records.newRecord(AllocateRequest.class);
-		request.setResponseId(11);
+		// TODO: should probably handle request id better than just incrementing it
+		request.setResponseId(requestId.incrementAndGet());
 		request.setApplicationAttemptId(getApplicationAttemptId());
 		request.addAllAsks(requestedContainers);
 		// we don't release anything here
