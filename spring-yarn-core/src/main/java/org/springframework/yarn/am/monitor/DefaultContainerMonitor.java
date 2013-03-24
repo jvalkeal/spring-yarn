@@ -42,7 +42,7 @@ public class DefaultContainerMonitor extends AbstractMonitor implements Containe
 	@Override
 	public void monitorContainer(List<ContainerStatus> completedContainers) {
 		completed += completedContainers.size();
-		ContainerMonitorState state = new ContainerMonitorState(total, completed, total/(double)completed);
+		ContainerMonitorState state = new ContainerMonitorState(total, completed, completed/(double)total);
 		if(log.isDebugEnabled()) {
 			log.debug("New state: " + state);
 		}
