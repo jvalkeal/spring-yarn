@@ -78,8 +78,8 @@ public class ClientParser extends AbstractSingleBeanDefinitionParser {
 			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "context-file", false, "appmaster-context.xml");
 			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "bean-name", false, YarnSystemConstants.DEFAULT_ID_APPMASTER);
 			YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, masterRunnerElement, "arguments");
-			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "stdout");
-			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "stdout");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "stdout", false, "<LOG_DIR>/Appmaster.stdout");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, masterRunnerElement, "stderr", false, "<LOG_DIR>/Appmaster.stderr");
 			AbstractBeanDefinition beanDef = defBuilder.getBeanDefinition();
 			String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 			parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));

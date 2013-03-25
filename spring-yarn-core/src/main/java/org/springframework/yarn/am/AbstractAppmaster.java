@@ -15,6 +15,7 @@
  */
 package org.springframework.yarn.am;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -186,6 +187,15 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 */
 	public void setCommands(List<String> commands) {
 		this.commands = commands;
+	}
+
+	/**
+	 * Sets the commands.
+	 *
+	 * @param commands the new commands
+	 */
+	public void setCommands(String[] commands) {
+		this.commands = Arrays.asList(commands);
 	}
 
 	/**
