@@ -24,8 +24,11 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationResponse;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -35,20 +38,22 @@ import org.springframework.yarn.rpc.YarnRpcAccessor;
 import org.springframework.yarn.rpc.YarnRpcCallback;
 
 /**
- *
+ * Template implementation for {@link ClientRmOperations} wrapping
+ * communication using {@link ClientRMProtocol}. Methods for this
+ * template wraps possible exceptions into Spring Dao exception hierarchy.
  *
  * @author Janne Valkealahti
  *
  */
 public class ClientRmTemplate extends YarnRpcAccessor<ClientRMProtocol> implements ClientRmOperations {
 
+	/**
+	 * Constructs a {@link ClientRmTemplate} with a given yarn configuration.
+	 *
+	 * @param config the yarn configuration
+	 */
 	public ClientRmTemplate(Configuration config) {
 		super(ClientRMProtocol.class, config);
-	}
-
-	protected InetSocketAddress getRpcAddress(Configuration config) {
-		return config.getSocketAddr(YarnConfiguration.RM_ADDRESS, YarnConfiguration.DEFAULT_RM_ADDRESS,
-				YarnConfiguration.DEFAULT_RM_PORT);
 	}
 
 	@Override
@@ -84,6 +89,24 @@ public class ClientRmTemplate extends YarnRpcAccessor<ClientRMProtocol> implemen
 				return proxy.submitApplication(request);
 			}
 		});
+	}
+
+	@Override
+	public KillApplicationResponse killApplication(final ApplicationId applicationId) {
+		return execute(new YarnRpcCallback<KillApplicationResponse, ClientRMProtocol>() {
+			@Override
+			public KillApplicationResponse doInYarn(ClientRMProtocol proxy) throws YarnRemoteException {
+				KillApplicationRequest request = Records.newRecord(KillApplicationRequest.class);
+				request.setApplicationId(applicationId);
+				return proxy.forceKillApplication(request);
+			}
+		});
+	}
+
+	@Override
+	protected InetSocketAddress getRpcAddress(Configuration config) {
+		return config.getSocketAddr(YarnConfiguration.RM_ADDRESS, YarnConfiguration.DEFAULT_RM_ADDRESS,
+				YarnConfiguration.DEFAULT_RM_PORT);
 	}
 
 }

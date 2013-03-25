@@ -20,7 +20,15 @@
 	<yarn:configuration id="customConfiguration"/>
 	<yarn:localresources id="customResources"/>
 	<yarn:environment id="customEnv"/>
-	<yarn:client id="customClient" configuration="customConfiguration" resourcelocalizer="customResources" environment="customEnv">
+	<yarn:client id="customClient"
+		configuration="customConfiguration"
+		resource-localizer="customResources"
+		environment="customEnv"
+		priority="1"
+		virtualcores="2"
+		memory="11"
+		queue="customqueue"
+		app-name="customAppName">
 		<yarn:master-command>
 			<![CDATA[
 			customcommand

@@ -77,6 +77,9 @@ public class ClientNamespaceTest {
 		assertNotNull(commands);
 		assertThat(commands.size(), is(1));
 		assertThat(commands.get(0).trim(), is("fakecommand"));
+
+		String appName = TestUtils.readField("appName", defaultYarnClientFactoryBean);
+		assertThat(appName, is(""));
 	}
 
 	@Test
@@ -99,6 +102,21 @@ public class ClientNamespaceTest {
 		assertNotNull(commands);
 		assertThat(commands.size(), is(1));
 		assertThat(commands.get(0).trim(), is("customcommand"));
+
+		String appName = TestUtils.readField("appName", customYarnClientFactoryBean);
+		assertThat(appName, is("customAppName"));
+
+		int priority = TestUtils.readField("priority", customYarnClientFactoryBean);
+		assertThat(priority, is(1));
+
+		int memory = TestUtils.readField("memory", customYarnClientFactoryBean);
+		assertThat(memory, is(11));
+
+		String queue = TestUtils.readField("queue", customYarnClientFactoryBean);
+		assertThat(queue, is("customqueue"));
+
+		int virtualcores = TestUtils.readField("virtualcores", customYarnClientFactoryBean);
+		assertThat(virtualcores, is(2));
 	}
 
 }

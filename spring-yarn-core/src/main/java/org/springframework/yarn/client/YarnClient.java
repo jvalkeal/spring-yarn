@@ -17,6 +17,7 @@ package org.springframework.yarn.client;
 
 import java.util.List;
 
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 
 /**
@@ -27,8 +28,25 @@ import org.apache.hadoop.yarn.api.records.ApplicationReport;
  */
 public interface YarnClient {
 
-	void submitApplication();
+	/**
+	 * Submits the application known to {@link YarnClient} instance.
+	 *
+	 * @return the {@link ApplicationId} for submitted application
+	 */
+	ApplicationId submitApplication();
 
+	/**
+	 * Gets a list of known applications.
+	 *
+	 * @return List of {@link ApplicationReport}s
+	 */
 	List<ApplicationReport> listApplications();
+
+	/**
+	 * Requests a resource manager to kill the application.
+	 *
+	 * @param applicationId the {@link ApplicationId}
+	 */
+	void killApplication(ApplicationId applicationId);
 
 }

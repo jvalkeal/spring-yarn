@@ -18,6 +18,7 @@ package org.springframework.yarn.client;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
@@ -36,15 +37,41 @@ import org.springframework.yarn.fs.ResourceLocalizer;
  */
 public abstract class AbstractYarnClient implements YarnClient, InitializingBean {
 
+	/** Template communicating for resource manager */
 	private ClientRmOperations clientRmOperations;
 
-	private int priority;
+	/** Container request priority */
+	private int priority = 0;
+
+	/** Resource capability as of cores */
+	private int virtualcores = 1;
+
+	/** Resource capability as of memory */
+	private int memory = 64;
+
+	/** Yarn queue for the request */
 	private String queue = "default";
+
+	/** Resource localizer for application master */
 	private ResourceLocalizer resourceLocalizer;
+
+	/** Environment for application master */
 	private Map<String, String> environment;
+
+	/** Commands starting application master */
 	private List<String> commands;
+
+	/** Name of the application */
 	private String appName = "";
 
+	/** User of the application */
+	private String user;
+
+	/**
+	 * Constructs client with a given template.
+	 *
+	 * @param clientRmOperations the client to resource manager template
+	 */
 	public AbstractYarnClient(ClientRmOperations clientRmOperations) {
 		super();
 		this.clientRmOperations = clientRmOperations;
@@ -56,9 +83,16 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	}
 
 	@Override
-	public void submitApplication() {
+	public ApplicationId submitApplication() {
 		resourceLocalizer.distribute();
-		clientRmOperations.submitApplication(getSubmissionContext());
+		ApplicationSubmissionContext submissionContext = getSubmissionContext();
+		clientRmOperations.submitApplication(submissionContext);
+		return submissionContext.getApplicationId();
+	}
+
+	@Override
+	public void killApplication(ApplicationId applicationId) {
+		clientRmOperations.killApplication(applicationId);
 	}
 
 	@Override
@@ -76,27 +110,100 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 		this.clientRmOperations = clientRmOperations;
 	}
 
+	/**
+	 * Sets the environment for appmaster.
+	 *
+	 * @param environment the environment
+	 */
 	public void setEnvironment(Map<String, String> environment) {
 		this.environment = environment;
 	}
 
+	/**
+	 * Sets the commands starting appmaster.
+	 *
+	 * @param commands the commands starting appmaster
+	 */
 	public void setCommands(List<String> commands) {
 		this.commands = commands;
 	}
 
+	/**
+	 * Sets the resource localizer for appmaster container.
+	 *
+	 * @param resourceLocalizer the new resource localizer
+	 */
 	public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
 		this.resourceLocalizer = resourceLocalizer;
 	}
 
+	/**
+	 * Sets the name for submitted application.
+	 *
+	 * @param appName the new application name
+	 */
 	public void setAppName(String appName) {
 		this.appName = appName;
 	}
 
+	/**
+	 * Sets the priority.
+	 *
+	 * @param priority the new priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	/**
+	 * Sets the virtualcores.
+	 *
+	 * @param virtualcores the new virtualcores
+	 */
+	public void setVirtualcores(int virtualcores) {
+		this.virtualcores = virtualcores;
+	}
+
+	/**
+	 * Sets the memory.
+	 *
+	 * @param memory the new memory
+	 */
+	public void setMemory(int memory) {
+		this.memory = memory;
+	}
+
+	/**
+	 * Sets the queue.
+	 *
+	 * @param queue the new queue
+	 */
+	public void setQueue(String queue) {
+		this.queue = queue;
+	}
+
+	/**
+	 * Sets the user.
+	 *
+	 * @param user the new user
+	 */
+	public void setUser(String user) {
+		this.user = user;
+	}
+
+	/**
+	 * Gets the submission context for application master.
+	 *
+	 * @return the submission context
+	 */
 	protected ApplicationSubmissionContext getSubmissionContext() {
 		ApplicationSubmissionContext context = Records.newRecord(ApplicationSubmissionContext.class);
 		context.setApplicationId(clientRmOperations.getNewApplication().getApplicationId());
 		context.setApplicationName(appName);
 		context.setAMContainerSpec(getMasterContainerLaunchContext());
+		if(user != null) {
+			context.setUser(user);
+		}
 		Priority record = Records.newRecord(Priority.class);
 		record.setPriority(priority);
 		context.setPriority(record);
@@ -104,13 +211,19 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 		return context;
 	}
 
+	/**
+	 * Gets the master container launch context.
+	 *
+	 * @return the master container launch context
+	 */
 	protected ContainerLaunchContext getMasterContainerLaunchContext() {
 		ContainerLaunchContext context = Records.newRecord(ContainerLaunchContext.class);
 		context.setLocalResources(resourceLocalizer.getResources());
 		context.setEnvironment(environment);
 		context.setCommands(commands);
 		Resource capability = Records.newRecord(Resource.class);
-		capability.setMemory(100);
+		capability.setMemory(memory);
+		capability.setVirtualCores(virtualcores);
 		context.setResource(capability);
 		return context;
 	}

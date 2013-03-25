@@ -15,13 +15,21 @@
  */
 package org.springframework.yarn.client;
 
-
-
+/**
+ * Default Yarn client utilising functionality in {@link AbstractYarnClient}.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class CommandYarnClient extends AbstractYarnClient {
 
+	/**
+	 * Constructs a default client with a given template.
+	 *
+	 * @param clientRmOperations the client to resource manager template
+	 */
 	public CommandYarnClient(ClientRmOperations clientRmOperations) {
 		super(clientRmOperations);
 	}
-
 
 }

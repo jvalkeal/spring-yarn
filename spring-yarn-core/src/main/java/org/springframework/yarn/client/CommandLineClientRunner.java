@@ -22,14 +22,12 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.springframework.yarn.config.ClientParser;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.launch.AbstractCommandLineRunner;
 
 /**
- *
- * java CommandLineClientRunner <contextConfig> <beanName>
- * java CommandLineClientRunner <contextConfig> <beanName> -submit key1=val1
- * java CommandLineClientRunner <contextConfig> <beanName> -list key1=val1
+ * Command line implementation to run commands against
+ * a {@link YarnClient} implementation.
  *
  * @author Janne Valkealahti
  *
@@ -44,9 +42,6 @@ public class CommandLineClientRunner extends AbstractCommandLineRunner<YarnClien
 		validOpts.add("-list");
 	}
 
-	public CommandLineClientRunner() {
-	}
-
 	@Override
 	protected void handleBeanRun(YarnClient bean, String[] parameters, Set<String> opts) {
 		if(opts.contains("-list")) {
@@ -58,7 +53,7 @@ public class CommandLineClientRunner extends AbstractCommandLineRunner<YarnClien
 
 	@Override
 	protected String getDefaultBeanIdentifier() {
-		return ClientParser.DEFAULT_ID;
+		return YarnSystemConstants.DEFAULT_ID_CLIENT;
 	}
 
 	@Override

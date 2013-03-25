@@ -38,8 +38,6 @@ import org.w3c.dom.Element;
  */
 public class ClientParser extends AbstractSingleBeanDefinitionParser {
 
-	public static final String DEFAULT_ID = "yarnClient";
-
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return YarnClientFactoryBean.class;
@@ -53,6 +51,11 @@ public class ClientParser extends AbstractSingleBeanDefinitionParser {
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration", YarnSystemConstants.DEFAULT_ID_CONFIGURATION);
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "resource-localizer", YarnSystemConstants.DEFAULT_ID_LOCAL_RESOURCES);
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "app-name");
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "virtualcores");
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "memory");
+		YarnNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue");
 
 		// parsing command needed for master
 		List<Element> entries = DomUtils.getChildElementsByTagName(element, "master-command");
@@ -70,7 +73,7 @@ public class ClientParser extends AbstractSingleBeanDefinitionParser {
 			throws BeanDefinitionStoreException {
 		String name = super.resolveId(element, definition, parserContext);
 		if (!StringUtils.hasText(name)) {
-			name = DEFAULT_ID;
+			name = YarnSystemConstants.DEFAULT_ID_CLIENT;
 		}
 		return name;
 	}

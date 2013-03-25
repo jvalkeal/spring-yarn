@@ -18,7 +18,9 @@ package org.springframework.yarn.client;
 import java.util.List;
 
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationResponse;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 
@@ -26,12 +28,44 @@ import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
  * Interface for client to resource manager communication.
  *
  * @author Janne Valkealahti
+ * @see org.springframework.yarn.client.ClientRmTemplate
+ * @see org.apache.hadoop.yarn.api.ClientRMProtocol
  *
  */
 public interface ClientRmOperations {
 
+	/**
+	 * Requests a new application from a resource manager. Main purpose is to
+	 * get a new {@link org.apache.hadoop.yarn.api.records.ApplicationId} but response
+	 * also contains information about resource capabilities.
+	 *
+	 * @return the new {@link GetNewApplicationResponse}
+	 */
 	GetNewApplicationResponse getNewApplication();
+
+	/**
+	 * Submits a new application into resource manager. Returned response
+	 * is an empty placeholder, thus application submission is considered
+	 * to be successful if no exceptions are thrown.
+	 *
+	 * @param appSubContext the Application Submission Context
+	 * @return the new {@link SubmitApplicationResponse}
+	 */
 	SubmitApplicationResponse submitApplication(ApplicationSubmissionContext appSubContext);
+
+	/**
+	 * Gets a list of {@link ApplicationReport}s from a resource manager.
+	 *
+	 * @return a list of {@link ApplicationReport}s
+	 */
 	List<ApplicationReport> listApplications();
+
+	/**
+	 * Requests <code>ResourceManager</code> to abort submitted application.
+	 *
+	 * @param applicationId the application id
+	 * @return the {@link KillApplicationResponse}
+	 */
+	KillApplicationResponse killApplication(ApplicationId applicationId);
 
 }

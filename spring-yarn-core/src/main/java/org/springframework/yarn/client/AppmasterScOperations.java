@@ -26,6 +26,13 @@ import org.springframework.yarn.am.RpcMessage;
  */
 public interface AppmasterScOperations {
 
+	/**
+	 * Sends request wrapped in {@link RpcMessage} and
+	 * receives response similarly wrapped in {@link RpcMessage}.
+	 *
+	 * @param message the {@link RpcMessage} request
+	 * @return the {@link RpcMessage} response
+	 */
 	RpcMessage<?> get(RpcMessage<?> message);
 
 }

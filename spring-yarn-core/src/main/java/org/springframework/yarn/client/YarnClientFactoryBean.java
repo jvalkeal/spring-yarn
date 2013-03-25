@@ -31,26 +31,60 @@ import org.springframework.yarn.fs.ResourceLocalizer;
  */
 public class YarnClientFactoryBean implements InitializingBean, FactoryBean<YarnClient> {
 
-	private Map<String, String> environment;
-	private List<String> commands;
-	//private String queue;
-	private ClientRmOperations template;
+	/** Yarn configuration for client */
 	private Configuration configuration;
+
+	/** Template to set for client */
+	private ClientRmOperations template;
+
+	/** Client returned by this factory */
+	private CommandYarnClient client;
+
+	/** Container request priority */
+	private int priority = 0;
+
+	/** Resource capability as of cores */
+	private int virtualcores = 1;
+
+	/** Resource capability as of memory */
+	private int memory = 64;
+
+	/** Yarn queue for the request */
+	private String queue = "default";
+
+	/** Resource localizer for application master */
 	private ResourceLocalizer resourceLocalizer;
+
+	/** Environment for application master */
+	private Map<String, String> environment;
+
+	/** Commands starting application master */
+	private List<String> commands;
+
+	/** Name of the application */
 	private String appName = "";
 
-	private CommandYarnClient client;
+	/** User of the application */
+	private String user;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-
+		// set template if not defined
 		if(template == null) {
 			ClientRmTemplate crmt = new ClientRmTemplate(configuration);
 			crmt.afterPropertiesSet();
 			template = crmt;
 		}
-
-		client = buildClient();
+		client = new CommandYarnClient(template);
+		client.setPriority(priority);
+		client.setVirtualcores(virtualcores);
+		client.setMemory(memory);
+		client.setQueue(queue);
+		client.setAppName(appName);
+		client.setUser(user);
+		client.setCommands(commands);
+		client.setEnvironment(environment);
+		client.setResourceLocalizer(resourceLocalizer);
 	}
 
 	@Override
@@ -68,53 +102,94 @@ public class YarnClientFactoryBean implements InitializingBean, FactoryBean<Yarn
 		return true;
 	}
 
-	public void setEnvironment(Map<String, String> environment) {
-		this.environment = environment;
-	}
-
-	public void setCommands(List<String> commands) {
-		this.commands = commands;
-	}
-
-	public void setTemplate(ClientRmOperations template) {
-		this.template = template;
-	}
-
-	public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
-		this.resourceLocalizer = resourceLocalizer;
-	}
-
+	/**
+	 * Sets the Yarn configuration.
+	 *
+	 * @param configuration the Yarn configuration
+	 */
 	public void setConfiguration(Configuration configuration) {
 		this.configuration = configuration;
 	}
 
+	/**
+	 * Sets the environment for appmaster.
+	 *
+	 * @param environment the environment
+	 */
+	public void setEnvironment(Map<String, String> environment) {
+		this.environment = environment;
+	}
+
+	/**
+	 * Sets the commands starting appmaster.
+	 *
+	 * @param commands the commands starting appmaster
+	 */
+	public void setCommands(List<String> commands) {
+		this.commands = commands;
+	}
+
+	/**
+	 * Sets the resource localizer for appmaster container.
+	 *
+	 * @param resourceLocalizer the new resource localizer
+	 */
+	public void setResourceLocalizer(ResourceLocalizer resourceLocalizer) {
+		this.resourceLocalizer = resourceLocalizer;
+	}
+
+	/**
+	 * Sets the name for submitted application.
+	 *
+	 * @param appName the new application name
+	 */
 	public void setAppName(String appName) {
 		this.appName = appName;
 	}
 
-	private CommandYarnClient buildClient() {
-		CommandYarnClient client = new CommandYarnClient(template);
-		client.setCommands(commands);
+	/**
+	 * Sets the priority.
+	 *
+	 * @param priority the new priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
 
+	/**
+	 * Sets the virtualcores.
+	 *
+	 * @param virtualcores the new virtualcores
+	 */
+	public void setVirtualcores(int virtualcores) {
+		this.virtualcores = virtualcores;
+	}
 
-		//Circular placeholder reference 'CLASSPATH' in property definitions
-//      StringBuilder classPathEnv = new StringBuilder("${CLASSPATH}:./*");
+	/**
+	 * Sets the memory.
+	 *
+	 * @param memory the new memory
+	 */
+	public void setMemory(int memory) {
+		this.memory = memory;
+	}
 
-//        Map<String, String> env = new HashMap<String, String>();
-//        StringBuilder classPathEnv = new StringBuilder("./*");
-//        for (String c : configuration.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
-//                YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-//            classPathEnv.append(':');
-//            classPathEnv.append(c.trim());
-//        }
-//        classPathEnv.append(":./log4j.properties");
-//        env.put("CLASSPATH", classPathEnv.toString());
-//        client.setEnvironment(env);
+	/**
+	 * Sets the queue.
+	 *
+	 * @param queue the new queue
+	 */
+	public void setQueue(String queue) {
+		this.queue = queue;
+	}
 
-		client.setEnvironment(environment);
-		client.setResourceLocalizer(resourceLocalizer);
-		client.setAppName(appName);
-		return client;
+	/**
+	 * Sets the user.
+	 *
+	 * @param user the new user
+	 */
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 }

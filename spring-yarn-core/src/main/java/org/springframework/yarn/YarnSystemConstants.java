@@ -29,6 +29,9 @@ public class YarnSystemConstants {
 	/** Default bean id for container. */
 	public static final String DEFAULT_ID_CONTAINER = "yarnContainer";
 
+	/** Default bean id for client. */
+	public static final String DEFAULT_ID_CLIENT = "yarnClient";
+
 	/** Default bean id for resource localizer. */
 	public static final String DEFAULT_ID_LOCAL_RESOURCES = "yarnLocalresources";
 

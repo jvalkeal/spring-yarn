@@ -23,7 +23,7 @@
 	<xsd:element name="master">
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="clientType">
+				<xsd:extension base="masterType">
 					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
 						<xsd:choice>
 							<xsd:element name="container-command" type="containerCommandType"/>
@@ -41,7 +41,7 @@
 		<xsd:attribute name="command-impl-class" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
-	<xsd:complexType name="clientType">
+	<xsd:complexType name="masterType">
 		<xsd:attribute name="id" type="xsd:ID" use="optional">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
@@ -49,9 +49,9 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="configuration-ref" default="yarnConfiguration"/>
-		<xsd:attribute name="resourcelocalizer-ref" default="yarnLocalresources"/>
-		<xsd:attribute name="environment-ref" default="yarnEnvironment"/>
+		<xsd:attribute name="configuration" default="yarnConfiguration"/>
+		<xsd:attribute name="resource-localizer" default="yarnLocalresources"/>
+		<xsd:attribute name="environment" default="yarnEnvironment"/>
 		<xsd:attribute name="job-name" default="job"/>
 		<xsd:attribute name="job-launcher" default="jobLauncher"/>
 	</xsd:complexType>

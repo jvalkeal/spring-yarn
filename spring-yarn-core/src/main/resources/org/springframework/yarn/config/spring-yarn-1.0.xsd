@@ -241,8 +241,13 @@
 		</xsd:attribute>
 		<xsd:attribute name="template" use="optional"/>
 		<xsd:attribute name="configuration" default="yarnConfiguration"/>
-		<xsd:attribute name="resourcelocalizer" default="yarnLocalresources"/>
+		<xsd:attribute name="resource-localizer" default="yarnLocalresources"/>
 		<xsd:attribute name="environment" default="yarnEnvironment"/>
+		<xsd:attribute name="app-name" use="optional"/>
+		<xsd:attribute name="priority" use="optional"/>
+		<xsd:attribute name="virtualcores" use="optional"/>
+		<xsd:attribute name="memory" use="optional"/>
+		<xsd:attribute name="queue" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="masterType">
@@ -256,7 +261,7 @@
 		</xsd:attribute>
 		<xsd:attribute name="template" use="optional"/>
 		<xsd:attribute name="configuration" default="yarnConfiguration"/>
-		<xsd:attribute name="resourcelocalizer" default="yarnLocalresources"/>
+		<xsd:attribute name="resource-localizer" default="yarnLocalresources"/>
 		<xsd:attribute name="environment" default="yarnEnvironment"/>
 	</xsd:complexType>
 
