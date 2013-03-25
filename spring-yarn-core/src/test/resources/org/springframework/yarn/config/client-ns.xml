@@ -2,6 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:yarn="http://www.springframework.org/schema/yarn"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
@@ -34,6 +35,16 @@
 			customcommand
 			]]>
 		</yarn:master-command>
+	</yarn:client>
+
+	<yarn:client id="customClientWithRunnerDefaults">
+		<yarn:master-runner/>
+	</yarn:client>
+
+	<util:properties id="customArguments" location="props.properties"/>
+
+	<yarn:client id="customClientWithRunnerCustoms">
+		<yarn:master-runner command="command" context-file="contextFile" bean-name="beanName" stdout="stdout" stderr="stderr" arguments="customArguments"/>
 	</yarn:client>
 
 </beans>

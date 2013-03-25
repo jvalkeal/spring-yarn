@@ -57,6 +57,18 @@ public class ClientNamespaceTest {
 	@Resource(name = "&customClient")
 	private YarnClientFactoryBean customYarnClientFactoryBean;
 
+	@Resource(name = "customClientWithRunnerDefaults")
+	private YarnClient customYarnClientWithRunnerDefaults;
+
+	@Resource(name = "&customClientWithRunnerDefaults")
+	private YarnClientFactoryBean customYarnClientWithRunnerDefaultsFactoryBean;
+
+	@Resource(name = "customClientWithRunnerCustoms")
+	private YarnClient customYarnClientWithRunnerCustoms;
+
+	@Resource(name = "&customClientWithRunnerCustoms")
+	private YarnClientFactoryBean customYarnClientWithRunnerCustomsFactoryBean;
+
 	@Test
 	public void testDefaults() throws Exception {
 		assertNotNull(defaultYarnClient);
@@ -117,6 +129,36 @@ public class ClientNamespaceTest {
 
 		int virtualcores = TestUtils.readField("virtualcores", customYarnClientFactoryBean);
 		assertThat(virtualcores, is(2));
+	}
+
+	@Test
+	public void testCustomClientWithRunnerDefaults() throws Exception {
+		assertNotNull(customYarnClientWithRunnerDefaults);
+		assertNotNull(customYarnClientWithRunnerDefaultsFactoryBean);
+
+		List<String> commands  = TestUtils.readField("commands", customYarnClientWithRunnerDefaultsFactoryBean);
+		assertNotNull(commands);
+		assertThat(commands.size(), is(6));
+		assertThat(commands.get(0).trim(), is("java"));
+		assertThat(commands.get(1).trim(), is("org.springframework.yarn.am.CommandLineAppmasterRunner"));
+		assertThat(commands.get(2).trim(), is("appmaster-context.xml"));
+		assertThat(commands.get(3).trim(), is("yarnAppmaster"));
+	}
+
+	@Test
+	public void testCustomClientWithRunnerCustoms() throws Exception {
+		assertNotNull(customYarnClientWithRunnerCustoms);
+		assertNotNull(customYarnClientWithRunnerCustomsFactoryBean);
+
+		List<String> commands  = TestUtils.readField("commands", customYarnClientWithRunnerCustomsFactoryBean);
+		assertNotNull(commands);
+		assertThat(commands.size(), is(8));
+		assertThat(commands.get(0).trim(), is("command"));
+		assertThat(commands.get(1).trim(), is("org.springframework.yarn.am.CommandLineAppmasterRunner"));
+		assertThat(commands.get(2).trim(), is("contextFile"));
+		assertThat(commands.get(3).trim(), is("beanName"));
+		assertThat(commands.get(4).trim(), is("foo21=jee21"));
+		assertThat(commands.get(5).trim(), is("foo20=jee20"));
 	}
 
 }

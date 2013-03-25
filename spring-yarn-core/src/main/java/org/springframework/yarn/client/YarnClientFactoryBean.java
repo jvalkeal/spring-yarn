@@ -15,6 +15,7 @@
  */
 package org.springframework.yarn.client;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -127,6 +128,15 @@ public class YarnClientFactoryBean implements InitializingBean, FactoryBean<Yarn
 	 */
 	public void setCommands(List<String> commands) {
 		this.commands = commands;
+	}
+
+	/**
+	 * Sets the commands starting appmaster.
+	 *
+	 * @param commands the commands starting appmaster
+	 */
+	public void setCommands(String[] commands) {
+		this.commands = Arrays.asList(commands);
 	}
 
 	/**

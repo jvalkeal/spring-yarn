@@ -58,6 +58,22 @@ public class YarnNamespaceUtils {
 	 * Configures the provided bean definition builder with a property value
 	 * corresponding to the attribute whose name is provided if that attribute
 	 * is defined in the given element.
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element the XML element where the attribute should be defined
+	 * @param attributeName the name of the attribute whose value will be used to populate the property
+	 * @param propertyName the name of the property to be populated
+	 * @param defaultPropertyValue Property value to use as default
+	 */
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, String propertyName, String defaultPropertyValue) {
+		setValueIfAttributeDefined(builder, element, attributeName, propertyName, false, defaultPropertyValue);
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property value
+	 * corresponding to the attribute whose name is provided if that attribute
+	 * is defined in the given element.
 	 * <p>
 	 * The property name will be the camel-case equivalent of the lower case
 	 * hyphen separated attribute (e.g. the "foo-bar" attribute would match the
@@ -98,6 +114,30 @@ public class YarnNamespaceUtils {
 	 * Configures the provided bean definition builder with a property value
 	 * corresponding to the attribute whose name is provided if that attribute
 	 * is defined in the given element.
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element the XML element where the attribute should be defined
+	 * @param attributeName the name of the attribute whose value will be
+	 *            used to populate the property
+	 * @param propertyName the name of the property to be populated
+	 * @param emptyStringAllowed if true, the value is set, even if an empty String (""); if
+	 *            false, an empty String is treated as if the attribute wasn't provided.
+	 * @param defaultPropertyValue Property value to use as default
+	 */
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, String propertyName, boolean emptyStringAllowed, String defaultPropertyValue) {
+		String attributeValue = element.getAttribute(attributeName);
+		if (StringUtils.hasText(attributeValue) || (emptyStringAllowed && element.hasAttribute(attributeName))) {
+			builder.addPropertyValue(propertyName, new TypedStringValue(attributeValue));
+		} else if (StringUtils.hasText(defaultPropertyValue)) {
+			builder.addPropertyValue(propertyName, new TypedStringValue(defaultPropertyValue));
+		}
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property value
+	 * corresponding to the attribute whose name is provided if that attribute
+	 * is defined in the given element.
 	 * <p>
 	 * The property name will be the camel-case equivalent of the lower case
 	 * hyphen separated attribute (e.g. the "foo-bar" attribute would match the
@@ -115,6 +155,30 @@ public class YarnNamespaceUtils {
 			String attributeName, boolean emptyStringAllowed) {
 		setValueIfAttributeDefined(builder, element, attributeName,
 				Conventions.attributeNameToPropertyName(attributeName), emptyStringAllowed);
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property value
+	 * corresponding to the attribute whose name is provided if that attribute
+	 * is defined in the given element.
+	 * <p>
+	 * The property name will be the camel-case equivalent of the lower case
+	 * hyphen separated attribute (e.g. the "foo-bar" attribute would match the
+	 * "fooBar" property).
+	 *
+	 * @see Conventions#attributeNameToPropertyName(String)
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element the XML element where the attribute should be defined
+	 * @param attributeName the name of the attribute whose value will be set on the property
+	 * @param emptyStringAllowed if true, the value is set, even if an empty String (""); if
+	 *            false, an empty String is treated as if the attribute wasn't provided.
+	 * @param defaultPropertyValue Property value to use as default
+	 */
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, boolean emptyStringAllowed, String defaultPropertyValue) {
+		setValueIfAttributeDefined(builder, element, attributeName,
+				Conventions.attributeNameToPropertyName(attributeName), emptyStringAllowed, defaultPropertyValue);
 	}
 
 	/**

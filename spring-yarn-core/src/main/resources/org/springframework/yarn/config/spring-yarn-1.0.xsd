@@ -38,6 +38,7 @@
 					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
 						<xsd:choice>
 							<xsd:element name="master-command" type="containerCommandType"/>
+							<xsd:element name="master-runner" type="masterRunnerType"/>
 						</xsd:choice>
 					</xsd:sequence>
 				</xsd:extension>
@@ -210,6 +211,16 @@
 
 	<xsd:complexType name="containerCommandType" mixed="true">
 		<xsd:attribute name="command-impl-class" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="masterRunnerType" mixed="true">
+		<xsd:attribute name="command" type="xsd:string" use="optional"/>
+		<xsd:attribute name="runner" type="xsd:string" use="optional"/>
+		<xsd:attribute name="context-file" type="xsd:string" use="optional"/>
+		<xsd:attribute name="bean-name" type="xsd:string" use="optional"/>
+		<xsd:attribute name="arguments" type="xsd:string" use="optional"/>
+		<xsd:attribute name="stdout" type="xsd:string" use="optional"/>
+		<xsd:attribute name="stderr" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="containerAllocatorType" mixed="true">
