@@ -579,7 +579,7 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	<emphasis>Resource Manager</emphasis>, command
 	definition is not needed.</para>
 	
-    <programlisting language="xml"><![CDATA[<yarn:client>
+    <programlisting language="xml"><![CDATA[<yarn:client app-name="customAppName">
   <yarn:master-command>
     <![CDATA[
       /usr/local/java/bin/java
@@ -598,7 +598,55 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
 	<classname>YarnClientFactoryBean</classname>) named, by default,
 	<emphasis>yarnClient</emphasis>. It also defines a command launching
 	an <emphasis>Application Master</emphasis> using
-	<literal>&lt;master-command&gt;</literal> entry.</para>
+	<literal>&lt;master-command&gt;</literal> entry which is also a way
+	to define the raw commands. If this <emphasis>yarnClient</emphasis>
+	instance is used to submit an application, its name would come from
+	a <emphasis>app-name</emphasis> attribute.</para>
+
+    <programlisting language="xml"><![CDATA[<yarn:client app-name="customAppName">
+  <yarn:master-runner/>
+</yarn:client>]]></programlisting>     
+
+    <para>For a convinience entry <literal>&lt;master-runner&gt;</literal>
+	can be used to define same command entries.</para>
+
+    <programlisting language="xml"><![CDATA[<yarn:client app-name="customAppName">
+  <util:properties id="customArguments">
+    container-count=2
+  </util:properties>
+  <yarn:master-runner
+    command="java"
+    context-file="appmaster-context.xml"
+    bean-name="yarnAppmaster"
+    arguments="customArguments"
+    stdout="<LOG_DIR>/AppMaster.stdout"
+    stderr="<LOG_DIR>/AppMaster.stderr" />
+</yarn:client>]]></programlisting>     
+
+    <para>All previous three examples are effectively identical from
+	Spring Yarn point of view.</para>
+	
+	<note>
+	  <para>The &lt;LOG_DIR&gt; refers to Hadoop's dedicated log directory
+	  for the running container.</para>
+	</note>
+
+    <programlisting language="xml"><![CDATA[<yarn:client app-name="customAppName"
+  configuration="customConfiguration"
+  resource-localizer="customResources"
+  environment="customEnv"
+  priority="1"
+  virtualcores="2"
+  memory="11"
+  queue="customqueue">
+  <yarn:master-runner/>
+</yarn:client>]]></programlisting>     
+
+    <para>If there is a need to change some of the parameters for the
+	<emphasis>Application Master</emphasis> submission, <literal>memory</literal>
+	and <literal>virtualcores</literal> defines the container settings.
+	For submission, <literal>queue</literal> and <literal>priority</literal>
+	defines how submission is actually done.</para>
 
     <table id="yarn:client:clientflags" pgwide="1" align="center">
         <title><literal>yarn:client</literal> attributes</title>
@@ -615,6 +663,11 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
                 </row>
             </thead>
             <tbody>
+                <row>
+                    <entry><literal>app-name</literal></entry>
+                    <entry>Name as string, default is empty</entry>
+                    <entry>Yarn submitted application name</entry>
+                </row>
                 <row>
                     <entry><literal>configuration</literal></entry>
                     <entry>Bean Reference</entry>
@@ -639,11 +692,102 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
                     <entry>A reference to a bean implementing
 					<interfacename>ClientRmOperations</interfacename></entry>
                 </row>
+                <row>
+                    <entry><literal>memory</literal></entry>
+                    <entry>Memory as integer, default is "64"</entry>
+                    <entry>Amount of memory for appmaster resource</entry>
+                </row>
+                <row>
+                    <entry><literal>virtualcores</literal></entry>
+                    <entry>Cores as integer, default is "1"</entry>
+                    <entry>Number of appmaster resource virtual cores</entry>
+                </row>
+                <row>
+                    <entry><literal>priority</literal></entry>
+                    <entry>Priority as integer, default is "0"</entry>
+                    <entry>Submission priority</entry>
+                </row>
+                <row>
+                    <entry><literal>queue</literal></entry>
+                    <entry>Queue string, default is "default"</entry>
+                    <entry>Submission queue</entry>
+                </row>
             </tbody>
         </tgroup>  
     </table>
 
+    <table id="yarn:client:mastercommandflags" pgwide="1" align="center">
+        <title><literal>yarn:master-command</literal></title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>Entry content</entry>
+                    <entry>List of commands</entry>
+                    <entry>Commands defined in this entry are aggregated into a single command line</entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
 
+    <table id="yarn:client:masterrunnerflags" pgwide="1" align="center">
+        <title><literal>yarn:master-runner</literal> attributes</title>
+        <tgroup cols="3">
+            <colspec colname="c1" colwidth="1*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="4*"/>
+            <spanspec spanname="description" namest="c2" nameend="c3" align="center"/>
+            <thead>
+                <row>
+                    <entry>Name</entry>
+                    <entry>Values</entry>
+                    <entry align="center">Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry><literal>command</literal></entry>
+                    <entry>Main command as string, default is "java"</entry>
+                    <entry>Command line first entry</entry>
+                </row>
+                <row>
+                    <entry><literal>context-file</literal></entry>
+                    <entry>Name of the Spring context file, default is "appmaster-context.xml"</entry>
+                    <entry>Command line second entry</entry>
+                </row>
+                <row>
+                    <entry><literal>bean-name</literal></entry>
+                    <entry>Name of the Spring bean, default is "yarnAppmaster"</entry>
+                    <entry>Command line third entry</entry>
+                </row>
+                <row>
+                    <entry><literal>arguments</literal></entry>
+                    <entry>Reference to Java's Properties</entry>
+                    <entry>Added to command line parameters as key/value pairs separated by '='</entry>
+                </row>
+                <row>
+                    <entry><literal>stdout</literal></entry>
+                    <entry>Stdout, default is "&lt;LOG_DIR&gt;/AppMaster.stdout"</entry>
+                    <entry>Appended with 1></entry>
+                </row>
+                <row>
+                    <entry><literal>stderr</literal></entry>
+                    <entry>Stderr, default is "&lt;LOG_DIR&gt;/AppMaster.stderr"</entry>
+                    <entry>Appended with 2></entry>
+                </row>
+            </tbody>
+        </tgroup>  
+    </table>
 		
   </section>
 
