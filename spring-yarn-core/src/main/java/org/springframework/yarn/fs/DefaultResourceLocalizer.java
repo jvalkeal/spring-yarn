@@ -16,6 +16,8 @@
 package org.springframework.yarn.fs;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,11 +32,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.springframework.util.ObjectUtils;
+import org.springframework.yarn.YarnSystemException;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean.Entry;
 
 /**
  * Default implementation of {@link ResourceLocalizer} which
- * is capable of distributing files into hdfs and preparing
+ * is only capable of re-using files already in HDFS and preparing
  * correct parameters for created {@link LocalResource} entries.
  *
  * @author Janne Valkealahti
@@ -44,10 +48,19 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 
 	private final static Log log = LogFactory.getLog(DefaultResourceLocalizer.class);
 
+	/** Raw resource entries. */
 	private final Collection<Entry> transferEntries;
+
+	/** Yarn configuration, needed to access the hdfs */
 	private final Configuration configuration;
+
+	/** Map returned from this instance */
 	private Map<String, LocalResource> resources;
+
+	/** Flag if distribution work is done */
 	private boolean distributed = false;
+
+	/** Locking the work*/
 	private final ReentrantLock distributeLock = new ReentrantLock();
 
 	public DefaultResourceLocalizer(Configuration configuration, Collection<Entry> transferEntries) {
@@ -72,28 +85,37 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 				resources = new HashMap<String, LocalResource>();
 				FileSystem fs = FileSystem.get(configuration);
 				for (Entry e : transferEntries) {
-					Path localPath = new Path(e.local + e.path);
 					Path remotePath = new Path(e.remote + e.path);
-
-					// //hdfs://0.0.0.0.0:9000/user/janne/tmp/foo.jar
-					// //hdfs://192.168.223.139:9000/user/janne/tmp/foo.jar
-					// fs.copyFromLocalFile(false, true, src, dst);
-					FileStatus destStatus = fs.getFileStatus(remotePath);
-					LocalResource res = Records.newRecord(LocalResource.class);
-					res.setType(e.type);
-					res.setVisibility(e.visibility);
-					// res.setResource(ConverterUtils.getYarnUrlFromPath(dst));
-					res.setResource(ConverterUtils.getYarnUrlFromPath(remotePath));
-					res.setTimestamp(destStatus.getModificationTime());
-					res.setSize(destStatus.getLen());
-					resources.put(localPath.getName(), res);
+					URI localUri = new URI(e.local);
+					FileStatus[] fileStatuses = fs.globStatus(remotePath);
+					if (!ObjectUtils.isEmpty(fileStatuses)) {
+						for(FileStatus status : fileStatuses) {
+							if(status.isFile()) {
+								URI remoteUri = status.getPath().toUri();
+								Path path = new Path(new Path(localUri), remoteUri.getPath());
+								LocalResource res = Records.newRecord(LocalResource.class);
+								res.setType(e.type);
+								res.setVisibility(e.visibility);
+								res.setResource(ConverterUtils.getYarnUrlFromPath(path));
+								res.setTimestamp(status.getModificationTime());
+								res.setSize(status.getLen());
+								if(log.isDebugEnabled()) {
+									log.debug("Using remote uri [" + remoteUri + "] and local uri [" +
+											localUri + "] converted to path [" + path + "]");
+								}
+								resources.put(status.getPath().getName(), res);
+							}
+						}
+					}
 					distributed = true;
 				}
 			}
 		} catch (IOException e) {
-			// TODO: we should probably throw something. it's
-			//       unlikely that anything works if we failed
 			log.error("Error distributing files", e);
+			throw new YarnSystemException("Unable to distribute files", e);
+		} catch (URISyntaxException e1) {
+			log.error("Error distributing files", e1);
+			throw new YarnSystemException("Unable to distribute files", e1);
 		} finally {
 			distributeLock.unlock();
 		}

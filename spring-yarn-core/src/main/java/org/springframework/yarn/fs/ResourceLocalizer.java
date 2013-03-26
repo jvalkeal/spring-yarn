@@ -20,7 +20,9 @@ import java.util.Map;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 
 /**
- * Interface for resource localizer implementation.
+ * Interface for resource localizer implementation. This loosely
+ * follows requirements for Yarn's file distribution of
+ * {@link LocalResource} instances.
  *
  * @author Janne Valkealahti
  *
@@ -28,7 +30,10 @@ import org.apache.hadoop.yarn.api.records.LocalResource;
 public interface ResourceLocalizer {
 
 	/**
-	 * Gets a map of {@link LocalResource} instances.
+	 * Gets a map of {@link LocalResource} instances. Underlying
+	 * instances of {@link LocalResource}s needs to be fully
+	 * initialised including resource size and timestamp.
+	 *
 	 * @return The map containing {@link LocalResource} instances
 	 */
 	Map<String, LocalResource> getResources();

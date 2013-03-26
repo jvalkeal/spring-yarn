@@ -144,7 +144,8 @@ public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<
 		String local;
 		String remote;
 
-		public Entry(LocalResourceType type, LocalResourceVisibility visibility, String path, String local, String remote) {
+		public Entry(LocalResourceType type, LocalResourceVisibility visibility,
+				String path, String local, String remote) {
 			super();
 			this.type = type;
 			this.visibility = visibility;
