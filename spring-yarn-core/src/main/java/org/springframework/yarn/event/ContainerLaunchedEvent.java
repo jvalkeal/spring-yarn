@@ -40,6 +40,15 @@ public class ContainerLaunchedEvent extends AbstractYarnEvent {
 		this.container = container;
 	}
 
+	/**
+	 * Gets the container.
+	 *
+	 * @return the container
+	 */
+	public Container getContainer() {
+		return container;
+	}
+
 	@Override
 	public String toString() {
 		return "ContainerLaunchedEvent [containerId=" + container.getId()

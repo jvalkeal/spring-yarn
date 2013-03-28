@@ -40,6 +40,15 @@ public class ContainerAllocationEvent extends AbstractYarnEvent {
 		this.container = container;
 	}
 
+	/**
+	 * Gets the container.
+	 *
+	 * @return the container
+	 */
+	public Container getContainer() {
+		return container;
+	}
+
 	@Override
 	public String toString() {
 		return "ContainerAllocationEvent [containerId=" + container.getId()

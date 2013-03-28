@@ -41,6 +41,15 @@ public class ContainerCompletedEvent extends AbstractYarnEvent {
 		this.containerStatus = containerStatus;
 	}
 
+	/**
+	 * Gets the container status.
+	 *
+	 * @return the container status
+	 */
+	public ContainerStatus getContainerStatus() {
+		return containerStatus;
+	}
+
 	@Override
 	public String toString() {
 		return "ContainerCompletedEvent [containerStatus="
