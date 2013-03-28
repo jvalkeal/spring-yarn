@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.StaticAppmaster;
+import org.springframework.yarn.am.StaticEventingAppmaster;
 import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 import org.springframework.yarn.am.container.DefaultContainerLauncher;
 import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
@@ -49,7 +50,13 @@ public class MasterParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
 		// for now, defaulting to StaticAppmaster
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StaticAppmaster.class);
+		String type = element.getAttribute("type");
+		BeanDefinitionBuilder builder;
+		if(type.equals("event")) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticEventingAppmaster.class);
+		} else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticAppmaster.class);
+		}
 
 		// parsing command needed for master
 		Element containerCommandElement = DomUtils.getChildElementByTagName(element, "container-command");

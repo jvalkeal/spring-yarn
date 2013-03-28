@@ -272,6 +272,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="template" use="optional"/>
+		<xsd:attribute name="type" use="optional"/>
 		<xsd:attribute name="configuration" default="yarnConfiguration"/>
 		<xsd:attribute name="resource-localizer" default="yarnLocalresources"/>
 		<xsd:attribute name="environment" default="yarnEnvironment"/>

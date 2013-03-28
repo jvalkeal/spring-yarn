@@ -15,6 +15,16 @@
  */
 package org.springframework.yarn.am;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.springframework.context.ApplicationListener;
+import org.springframework.yarn.event.AbstractYarnEvent;
+import org.springframework.yarn.event.ContainerAllocationEvent;
+import org.springframework.yarn.event.ContainerCompletedEvent;
+import org.springframework.yarn.event.ContainerLaunchedEvent;
+
 /**
  * Base implementation of application master where life-cycle
  * is based on events rather than a static information existing
@@ -33,6 +43,56 @@ package org.springframework.yarn.am;
  * @author Janne Valkealahti
  *
  */
-public class AbstractEventingAppmaster extends AbstractAppmaster {
+public abstract class AbstractEventingAppmaster extends AbstractServicesAppmaster
+		implements ApplicationListener<AbstractYarnEvent> {
+
+	private static final Log log = LogFactory.getLog(AbstractEventingAppmaster.class);
+
+	@Override
+	public void onApplicationEvent(AbstractYarnEvent event) {
+		if (event instanceof ContainerAllocationEvent) {
+			onContainerAllocated(((ContainerAllocationEvent) event).getContainer());
+		} else if (event instanceof ContainerLaunchedEvent) {
+			onContainerLaunched(((ContainerLaunchedEvent) event).getContainer());
+		} else if (event instanceof ContainerCompletedEvent) {
+			onContainerCompleted(((ContainerCompletedEvent) event).getContainerStatus());
+		}
+	}
+
+	/**
+	 * Invoked when {@link ContainerAllocationEvent} is received as an
+	 * application event. Wrapped {@link Container} is passed to a method.
+	 *
+	 * @param container the container
+	 */
+	protected void onContainerAllocated(Container container) {
+		if (log.isDebugEnabled()) {
+			log.debug("onContainerAllocated:" + container);
+		}
+	}
+
+	/**
+	 * Invoked when {@link ContainerLaunchedEvent} is received as an
+	 * application event. Wrapped {@link Container} is passed to a method.
+	 *
+	 * @param container the container
+	 */
+	protected void onContainerLaunched(Container container) {
+		if (log.isDebugEnabled()) {
+			log.debug("onContainerLaunched:" + container);
+		}
+	}
+
+	/**
+	 * Invoked when {@link ContainerCompletedEvent} is received as an
+	 * application event. Wrapped {@link ContainerStatus} is passed to a method.
+	 *
+	 * @param status the container status
+	 */
+	protected void onContainerCompleted(ContainerStatus status) {
+		if (log.isDebugEnabled()) {
+			log.debug("onContainerCompleted:" + status);
+		}
+	}
 
 }
