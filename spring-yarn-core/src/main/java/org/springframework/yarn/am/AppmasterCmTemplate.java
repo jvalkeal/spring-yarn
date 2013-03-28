@@ -20,16 +20,30 @@ import java.net.InetSocketAddress;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.StopContainerResponse;
 import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
+import org.apache.hadoop.yarn.util.Records;
 import org.springframework.yarn.rpc.YarnRpcAccessor;
 import org.springframework.yarn.rpc.YarnRpcCallback;
 
+/**
+ * Template implementation for {@link AppmasterCmOperations} wrapping
+ * communication using {@link ContainerManager}. Methods for this
+ * template wraps possible exceptions into Spring Dao exception hierarchy.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class AppmasterCmTemplate extends YarnRpcAccessor<ContainerManager> implements AppmasterCmOperations {
 
-	private Container container;
+	/** Container we're working for */
+	private final Container container;
 
 	public AppmasterCmTemplate(Configuration config, Container container) {
 		super(ContainerManager.class, config);
@@ -42,6 +56,30 @@ public class AppmasterCmTemplate extends YarnRpcAccessor<ContainerManager> imple
 			@Override
 			public StartContainerResponse doInYarn(ContainerManager proxy) throws YarnRemoteException {
 				return proxy.startContainer(request);
+			}
+		});
+	}
+
+	@Override
+	public StopContainerResponse stopContainer() {
+		return execute(new YarnRpcCallback<StopContainerResponse, ContainerManager>() {
+			@Override
+			public StopContainerResponse doInYarn(ContainerManager proxy) throws YarnRemoteException {
+				StopContainerRequest request = Records.newRecord(StopContainerRequest.class);
+				request.setContainerId(container.getId());
+				return proxy.stopContainer(request);
+			}
+		});
+	}
+
+	@Override
+	public ContainerStatus getContainerStatus() {
+		return execute(new YarnRpcCallback<ContainerStatus, ContainerManager>() {
+			@Override
+			public ContainerStatus doInYarn(ContainerManager proxy) throws YarnRemoteException {
+				GetContainerStatusRequest request = Records.newRecord(GetContainerStatusRequest.class);
+				request.setContainerId(container.getId());
+				return proxy.getContainerStatus(request).getStatus();
 			}
 		});
 	}

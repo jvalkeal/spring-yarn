@@ -17,9 +17,39 @@ package org.springframework.yarn.am;
 
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.StopContainerResponse;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 
+/**
+ * Interface for appmaster to container manager communication.
+ *
+ * @author Janne Valkealahti
+ * @see org.springframework.yarn.am.AppmasterCmTemplate
+ * @see org.apache.hadoop.yarn.api.ContainerManager
+ *
+ */
 public interface AppmasterCmOperations {
 
+	/**
+	 * Start container.
+	 *
+	 * @param request the request
+	 * @return the start container response
+	 */
 	StartContainerResponse startContainer(StartContainerRequest request);
+
+	/**
+	 * Stop container.
+	 *
+	 * @return the stop container response
+	 */
+	StopContainerResponse stopContainer();
+
+	/**
+	 * Gets the container status.
+	 *
+	 * @return the container status
+	 */
+	ContainerStatus getContainerStatus();
 
 }

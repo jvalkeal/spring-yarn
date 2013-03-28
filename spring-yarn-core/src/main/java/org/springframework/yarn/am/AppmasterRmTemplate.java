@@ -32,6 +32,14 @@ import org.apache.hadoop.yarn.util.Records;
 import org.springframework.yarn.rpc.YarnRpcAccessor;
 import org.springframework.yarn.rpc.YarnRpcCallback;
 
+/**
+ * Template implementation for {@link AppmasterRmOperations} wrapping
+ * communication using {@link AMRMProtocol}. Methods for this
+ * template wraps possible exceptions into Spring Dao exception hierarchy.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class AppmasterRmTemplate extends YarnRpcAccessor<AMRMProtocol> implements AppmasterRmOperations {
 
 	public AppmasterRmTemplate(Configuration config) {
