@@ -43,6 +43,11 @@ public class DefaultContainerLauncher extends AbstractLauncher implements Contai
 		StartContainerRequest request = Records.newRecord(StartContainerRequest.class);
 		request.setContainerLaunchContext(ctx);
 		getCmTemplate(container).startContainer(request);
+
+		if(getYarnEventPublisher() != null) {
+			getYarnEventPublisher().publishContainerLaunched(this, container);
+		}
+
 	}
 
 }

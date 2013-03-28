@@ -19,7 +19,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AppmasterService;
+import org.springframework.yarn.event.YarnEventPublisher;
 
 /**
  * Utility methods for accessing common components from the BeanFactory.
@@ -66,6 +68,16 @@ public class YarnContextUtils {
 	 */
 	public static AppmasterService getAppmasterService(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, TASK_AMSERVER_BEAN_NAME, AppmasterService.class);
+	}
+
+	/**
+	 * Return the {@link YarnEventPublisher} bean whose name is "yarnEventPublisher" if
+	 * available.
+	 *
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 */
+	public static YarnEventPublisher getEventPublisher(BeanFactory beanFactory) {
+		return getBeanOfType(beanFactory, YarnSystemConstants.DEFAULT_ID_EVENT_PUBLISHER, YarnEventPublisher.class);
 	}
 
 	/**

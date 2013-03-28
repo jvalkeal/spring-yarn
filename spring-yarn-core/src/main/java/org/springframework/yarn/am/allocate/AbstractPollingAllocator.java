@@ -156,6 +156,11 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 				log.debug("response has " + allocatedContainers.size() + " new containers");
 			}
 			handleAllocatedContainers(allocatedContainers);
+			if(getYarnEventPublisher() != null) {
+				for(Container container : allocatedContainers) {
+					getYarnEventPublisher().publishContainerAllocated(this, container);
+				}
+			}
 			result = true;
 		}
 
@@ -165,6 +170,11 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 				log.debug("response has " + containerStatuses.size() + " completed containers");
 			}
 			handleCompletedContainers(containerStatuses);
+			if(getYarnEventPublisher() != null) {
+				for(ContainerStatus containerStatus : containerStatuses) {
+					getYarnEventPublisher().publishContainerCompleted(this, containerStatus);
+				}
+			}
 			result = true;
 		}
 

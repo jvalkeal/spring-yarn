@@ -28,6 +28,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.yarn.event.YarnEventPublisher;
 
 /**
  * Convenient base class for object which needs spring task scheduler, task
@@ -54,6 +55,9 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
 
 	// to access bean factory
 	private volatile BeanFactory beanFactory;
+
+	/** Context application event publisher if exist */
+	private volatile YarnEventPublisher yarnEventPublisher;
 
 	@Override
 	public final void afterPropertiesSet() {
@@ -209,6 +213,31 @@ public abstract class LifecycleObjectSupport implements InitializingBean, SmartL
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "taskExecutor must not be null");
 		this.taskExecutor = taskExecutor;
+	}
+
+	/**
+	 * Gets the yarn event publisher.
+	 *
+	 * @return the yarn event publisher
+	 */
+	public YarnEventPublisher getYarnEventPublisher() {
+		if(yarnEventPublisher == null && getBeanFactory() != null) {
+			if(log.isDebugEnabled()) {
+				log.debug("getting yarnEventPublisher service from bean factory " + getBeanFactory());
+			}
+			yarnEventPublisher = YarnContextUtils.getEventPublisher(getBeanFactory());
+		}
+		return yarnEventPublisher;
+	}
+
+	/**
+	 * Sets the yarn event publisher.
+	 *
+	 * @param yarnEventPublisher the new yarn event publisher
+	 */
+	public void setYarnEventPublisher(YarnEventPublisher yarnEventPublisher) {
+		Assert.notNull(yarnEventPublisher, "YarnEventPublisher cannot be null");
+		this.yarnEventPublisher = yarnEventPublisher;
 	}
 
 	/**

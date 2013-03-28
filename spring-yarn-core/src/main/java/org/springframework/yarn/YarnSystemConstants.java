@@ -44,6 +44,9 @@ public class YarnSystemConstants {
 	/** Default bean id for appmaster service. */
 	public static final String DEFAULT_ID_AMSERVICE = "yarnAmservice";
 
+	/** Default bean id for Yarn event publisher. */
+	public static final String DEFAULT_ID_EVENT_PUBLISHER = "yarnEventPublisher";
+
 	/** Default bean id for appmaster service client. */
 	public static final String DEFAULT_ID_AMSERVICE_CLIENT = "yarnAmserviceClient";
 
