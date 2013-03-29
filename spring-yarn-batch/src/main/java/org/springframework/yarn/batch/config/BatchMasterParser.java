@@ -33,6 +33,8 @@ import org.springframework.yarn.am.container.DefaultContainerLauncher;
 import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
 import org.springframework.yarn.batch.am.BatchAppmaster;
 import org.springframework.yarn.config.YarnNamespaceUtils;
+import org.springframework.yarn.container.CommandLineContainerRunner;
+import org.springframework.yarn.launch.LaunchCommandsFactoryBean;
 import org.springframework.yarn.support.ParsingUtils;
 import org.w3c.dom.Element;
 
@@ -50,13 +52,31 @@ public class BatchMasterParser extends AbstractBeanDefinitionParser {
 		// for now, defaulting to StaticAppmaster
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BatchAppmaster.class);
 
-		List<Element> cp = DomUtils.getChildElementsByTagName(element, "container-command");
-		for (Element entry : cp) {
-			String textContent = entry.getTextContent();
+		// parsing command needed for master
+		Element containerCommandElement = DomUtils.getChildElementByTagName(element, "container-command");
+		if(containerCommandElement != null) {
+			String textContent = containerCommandElement.getTextContent();
 			String command = ParsingUtils.extractRunnableCommand(textContent);
 			List<String> commands = new ArrayList<String>();
 			commands.add(command);
 			builder.addPropertyValue("commands", commands);
+		}
+
+		// build commands from master-runner element
+		Element containerRunnerElement = DomUtils.getChildElementByTagName(element, "container-runner");
+		if(containerRunnerElement != null && containerCommandElement == null) {
+			BeanDefinitionBuilder defBuilder = BeanDefinitionBuilder.genericBeanDefinition(LaunchCommandsFactoryBean.class);
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, containerRunnerElement, "command");
+			defBuilder.addPropertyValue("runner", CommandLineContainerRunner.class);
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, containerRunnerElement, "context-file", false, "container-context.xml");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, containerRunnerElement, "bean-name", false, YarnSystemConstants.DEFAULT_ID_CONTAINER);
+			YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, containerRunnerElement, "arguments");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, containerRunnerElement, "stdout", false, "<LOG_DIR>/Container.stdout");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, containerRunnerElement, "stderr", false, "<LOG_DIR>/Container.stderr");
+			AbstractBeanDefinition beanDef = defBuilder.getBeanDefinition();
+			String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+			parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+			builder.addPropertyReference("commands", beanName);
 		}
 
 		// allocator - for now, defaulting to DefaultContainerAllocator
