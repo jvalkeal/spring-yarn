@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.config;
-
+package org.springframework.yarn.container;
 
 /**
- * Handler for 'yarn' namespace. All element parsers will be
- * registered here.
+ * Just a dummy container class.
  *
  * @author Janne Valkealahti
  *
  */
-public class YarnNamespaceHandler extends AbstractYarnNamespaceHandler {
+public class TestContainer extends AbstractYarnContainer {
+
+	public TestContainer() {
+	}
 
 	@Override
-	public void init() {
-		registerBeanDefinitionParser("client", new ClientParser());
-		registerBeanDefinitionParser("master", new MasterParser());
-		registerBeanDefinitionParser("container", new ContainerParser());
-		registerBeanDefinitionParser("configuration", new YarnConfigParser());
-		registerBeanDefinitionParser("localresources", new LocalresourcesParser());
-		registerBeanDefinitionParser("environment", new EnvironmentParser());
+	protected void runInternal() {
 	}
 
 }

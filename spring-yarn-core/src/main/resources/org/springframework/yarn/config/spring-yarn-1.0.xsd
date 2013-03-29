@@ -74,6 +74,29 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="container">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+			Defines a yarn container.
+			]]>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.yarn.container.YarnContainer"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent mixed="true">
+				<xsd:extension base="containerType">
+					<xsd:sequence>
+						<xsd:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="localresources">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
@@ -276,6 +299,38 @@
 		<xsd:attribute name="configuration" default="yarnConfiguration"/>
 		<xsd:attribute name="resource-localizer" default="yarnLocalresources"/>
 		<xsd:attribute name="environment" default="yarnEnvironment"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="containerType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="container-class" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Container implementation class.
+				]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="direct">
+						<tool:expected-type type="java.lang.Class" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="container-ref" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Reference to existing container bean.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="propertiesConfigurableType" mixed="true">
