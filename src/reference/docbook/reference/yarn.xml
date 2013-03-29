@@ -937,22 +937,51 @@ $HADOOP_YARN_HOME/share/hadoop/yarn/lib/*]]></programlisting>
   
     <title>Application Container</title>
 	
-    <para>Currently there are no namespace integration defining
-	application containers. However there are a simple contract
+    <para>There is very little what Spring Yarn needs
+	to know about the Container in terms of its configuration.
+	There is a simple contract
 	between <classname>org.springframework.yarn.container.CommandLineContainerRunner</classname>
 	and a bean it's trying to run on default. Default bean name
 	is <emphasis>yarnContainer</emphasis>.</para>
 	
-    <programlisting language="xml"><![CDATA[<bean id="yarnContainer" class="org.springframework.yarn.examples.BatchPartitionBeanExample">	
-]]></programlisting>
-	
 	<para>There is a simple interface
 	<interfacename>org.springframework.yarn.container.YarnContainer</interfacename>
 	which container needs to implement.</para>
-	
+
     <programlisting language="java"><![CDATA[public interface YarnContainer {
   void run();
 }]]></programlisting>
+
+    <para>There are few different ways how Container can be defined in Spring
+	xml configuration. Natively without using namespaces bean can be defined with
+	a correct name:</para>
+
+    <programlisting language="xml"><![CDATA[<bean id="yarnContainer" class="org.springframework.yarn.container.TestContainer">	
+]]></programlisting>
+		
+    <para>Spring Yarn namespace will make it even more simpler. Below example
+	just defines class which implements needed interface.</para>
+
+    <programlisting language="xml"><![CDATA[
+<yarn:container container-class="org.springframework.yarn.container.TestContainer"/>
+]]></programlisting>
+
+    <para>It's possible to make a reference to existing bean. This is 
+	usefull if bean cannot be instantiated with default constructor.</para>
+
+    <programlisting language="xml"><![CDATA[
+<bean id="testContainer" class="org.springframework.yarn.container.TestContainer"/>
+<yarn:container container-ref="testContainer"/>
+]]></programlisting>
+
+    <para>It's also possible to inline the bean definition.</para>
+
+    <programlisting language="xml"><![CDATA[
+<yarn:container>
+  <bean class="org.springframework.yarn.container.TestContainer"/>
+</yarn:container>
+]]></programlisting>
+	
 	
   </section>
   
