@@ -15,7 +15,7 @@
  */
 package org.springframework.yarn.integration.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.yarn.config.AbstractYarnNamespaceHandler;
 
 /**
  * Handler for &lt;yarn-int&gt; namespace. All element parsers will be registered
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Janne Valkealahti
  *
  */
-public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
+public class IntegrationNamespaceHandler extends AbstractYarnNamespaceHandler {
 
 	@Override
 	public void init() {

@@ -15,7 +15,6 @@
  */
 package org.springframework.yarn.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * Handler for 'yarn' namespace. All element parsers will be
@@ -24,7 +23,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Janne Valkealahti
  *
  */
-public class YarnNamespaceHandler extends NamespaceHandlerSupport {
+public class YarnNamespaceHandler extends AbstractYarnNamespaceHandler {
 
 	@Override
 	public void init() {
