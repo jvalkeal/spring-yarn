@@ -15,8 +15,13 @@
  */
 package org.springframework.yarn.am.container;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
@@ -40,6 +45,25 @@ public class DefaultContainerLauncher extends AbstractLauncher implements Contai
 		ctx.setCommands(commands);
 		ctx.setEnvironment(getEnvironment());
 		ctx = getInterceptors().preLaunch(ctx);
+
+		try {
+			ByteBuffer credentialsBuffer = ByteBuffer.wrap(new byte[]{});
+			Credentials credentials = new Credentials();
+
+			credentials.addSecretKey(new Text("syarn.secret"), "foo".getBytes());
+
+			DataOutputBuffer containerTokens_dob = new DataOutputBuffer();
+			credentials.writeTokenStorageToStream(containerTokens_dob);
+			credentialsBuffer =
+					ByteBuffer.wrap(containerTokens_dob.getData(), 0,
+						containerTokens_dob.getLength());
+
+			ctx.setContainerTokens(credentialsBuffer);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		StartContainerRequest request = Records.newRecord(StartContainerRequest.class);
 		request.setContainerLaunchContext(ctx);
 		getCmTemplate(container).startContainer(request);

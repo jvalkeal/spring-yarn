@@ -55,6 +55,7 @@ public class ContainerAllocationEvent extends AbstractYarnEvent {
 				+ ", nodeId=" + container.getNodeId()
 				+ ", containerState=" + container.getState()
 				+ ", containerStatus=" + container.getContainerStatus()
+				+ ", containerToken=" + container.getContainerToken()
 				+ "]";
 	}
 

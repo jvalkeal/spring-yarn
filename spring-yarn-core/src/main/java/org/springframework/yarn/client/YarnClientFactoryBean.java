@@ -202,4 +202,10 @@ public class YarnClientFactoryBean implements InitializingBean, FactoryBean<Yarn
 		this.user = user;
 	}
 
+	public void setTemplate(ClientRmOperations template) {
+		this.template = template;
+	}
+
+
+
 }
