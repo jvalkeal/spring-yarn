@@ -76,6 +76,9 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	/** State if we're done successful registration */
 	private boolean applicationRegistered;
 
+	/** Appstatus when we send finish request */
+	private FinalApplicationStatus finalApplicationStatus;
+
 	/** Listener handling state events */
 	private CompositeAppmasterStateListener stateListener = new CompositeAppmasterStateListener();
 
@@ -235,6 +238,15 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	}
 
 	/**
+	 * Sets the final application status.
+	 *
+	 * @param finalApplicationStatus the new final application status
+	 */
+	protected void setFinalApplicationStatus(FinalApplicationStatus finalApplicationStatus) {
+		this.finalApplicationStatus = finalApplicationStatus;
+	}
+
+	/**
 	 * Notify completed state to appmaster state listeners.
 	 */
 	protected void notifyCompleted() {
@@ -273,7 +285,9 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	}
 
 	/**
-	 * Finish appmaster.
+	 * Finish appmaster by sending request to resource manager. Default
+	 * application status is {@code FinalApplicationStatus.SUCCEEDED} which
+	 * can be changed using method {@link #setFinalApplicationStatus(FinalApplicationStatus)}.
 	 *
 	 * @return the finish application master response
 	 */
@@ -289,7 +303,11 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 		}
 		FinishApplicationMasterRequest finishReq = Records.newRecord(FinishApplicationMasterRequest.class);
 		finishReq.setAppAttemptId(applicationAttemptId);
-		finishReq.setFinishApplicationStatus(FinalApplicationStatus.SUCCEEDED);
+
+		// assume succeed if not set
+		FinalApplicationStatus status = finalApplicationStatus != null ?
+				finalApplicationStatus : FinalApplicationStatus.SUCCEEDED;
+		finishReq.setFinishApplicationStatus(status);
 		return rmTemplate.finish(finishReq);
 	}
 
