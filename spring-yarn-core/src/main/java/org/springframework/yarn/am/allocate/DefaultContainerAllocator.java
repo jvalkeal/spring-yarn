@@ -66,6 +66,9 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	/** Increasing counter for rpc request id*/
 	private AtomicInteger requestId = new AtomicInteger();
 
+	/** Current progress reported during allocate requests */
+	private float applicationProgress = 0;
+
 	@Override
 	public void allocateContainers(int count) {
 		// adding new container allocation count, poller
@@ -102,7 +105,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 		request.addAllAsks(requestedContainers);
 		// we don't release anything here
 		request.addAllReleases(new ArrayList<ContainerId>());
-		request.setProgress(0.5f);
+		request.setProgress(applicationProgress);
 
 		AllocateResponse allocate = getRmTemplate().allocate(request);
 		return allocate.getAMResponse();
@@ -116,6 +119,11 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	@Override
 	protected void handleCompletedContainers(List<ContainerStatus> containerStatuses) {
 		allocatorListener.completed(containerStatuses);
+	}
+
+	@Override
+	public void setProgress(float progress) {
+		applicationProgress = progress;
 	}
 
 	/**

@@ -39,4 +39,11 @@ public interface ContainerAllocator {
 	 */
 	void addListener(ContainerAllocatorListener listener);
 
+	/**
+	 * Sets the current progress of application.
+	 *
+	 * @param progress the current progress of application
+	 */
+	void setProgress(float progress);
+
 }
