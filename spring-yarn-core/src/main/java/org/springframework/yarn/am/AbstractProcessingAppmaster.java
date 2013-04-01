@@ -23,11 +23,7 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.util.Assert;
-import org.springframework.yarn.am.allocate.ContainerAllocator;
 import org.springframework.yarn.am.container.AbstractLauncher;
-import org.springframework.yarn.am.container.ContainerLauncher;
-import org.springframework.yarn.am.monitor.ContainerMonitor;
-import org.springframework.yarn.am.monitor.DefaultContainerMonitor;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
 import org.springframework.yarn.listener.ContainerMonitorListener;
 
@@ -45,55 +41,42 @@ import org.springframework.yarn.listener.ContainerMonitorListener;
  * @author Janne Valkealahti
  *
  */
-public abstract class AbstractProcessingAppmaster extends AbstractAppmaster implements ContainerLauncherInterceptor {
+public abstract class AbstractProcessingAppmaster extends AbstractServicesAppmaster implements ContainerLauncherInterceptor {
 
 	private static final Log log = LogFactory.getLog(AbstractProcessingAppmaster.class);
-
-	/** Container allocator for this class */
-	private ContainerAllocator allocator;
-
-	/** Container launcher for this class */
-	private ContainerLauncher launcher;
-
-	/** Container monitor for this class */
-	private ContainerMonitor monitor;
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		Assert.notNull(allocator, "Container allocator must be set");
-		Assert.notNull(launcher, "Container launcher must be set");
-		Assert.notNull(monitor, "Container monitor must be set");
+		Assert.notNull(getAllocator(), "Container allocator must be set");
+		Assert.notNull(getLauncher(), "Container launcher must be set");
+		Assert.notNull(getMonitor(), "Container monitor must be set");
 
-		if(launcher instanceof AbstractLauncher) {
-			((AbstractLauncher)launcher).addInterceptor(this);
-		}
-
-		if(monitor == null) {
-			monitor = new DefaultContainerMonitor();
+		if(getLauncher() instanceof AbstractLauncher) {
+			((AbstractLauncher)getLauncher()).addInterceptor(this);
 		}
 
 		if(log.isDebugEnabled()) {
-			log.debug("Using handlers allocator=" + allocator +
-					" launcher=" + launcher +
-					" monitor=" + monitor);
+			log.debug("Using handlers allocator=" + getAllocator() +
+					" launcher=" + getLauncher() +
+					" monitor=" + getMonitor());
 		}
 
 		// setting up internal dispatcher
-		allocator.addListener(new ContainerAllocatorListener() {
+		getAllocator().addListener(new ContainerAllocatorListener() {
 			@Override
 			public void allocated(List<Container> allocatedContainers) {
 				for(Container container : allocatedContainers) {
-					launcher.launchContainer(container, getCommands());
+					getLauncher().launchContainer(container, getCommands());
 				}
 			}
 			@Override
 			public void completed(List<ContainerStatus> completedContainers) {
-				monitor.monitorContainer(completedContainers);
+				getMonitor().monitorContainer(completedContainers);
 			}
 		});
 
-		monitor.addContainerMonitorStateListener(new ContainerMonitorListener() {
+		getMonitor().addContainerMonitorStateListener(new ContainerMonitorListener() {
 			@Override
 			public void state(ContainerMonitorState state) {
 				if(state.getProgress() >= 1) {
@@ -107,69 +90,6 @@ public abstract class AbstractProcessingAppmaster extends AbstractAppmaster impl
 	@Override
 	public ContainerLaunchContext preLaunch(ContainerLaunchContext context) {
 		return context;
-	}
-
-	/**
-	 * Gets a used {@link ContainerAllocator} for this class.
-	 *
-	 * @return {@link ContainerAllocator} used in this class
-	 */
-	public ContainerAllocator getAllocator() {
-		return allocator;
-	}
-
-	/**
-	 * Sets the {@link ContainerAllocator} used for this class.
-	 * This should be called before {@link #onInit() onInit} for this class
-	 * is called.
-	 *
-	 * @param allocator the {@link ContainerAllocator}
-	 */
-	public void setAllocator(ContainerAllocator allocator) {
-		Assert.isNull(this.allocator, "ContainerAllocator is already set");
-		this.allocator = allocator;
-	}
-
-	/**
-	 * Gets a used {@link ContainerLauncher} for this class.
-	 *
-	 * @return {@link ContainerLauncher} used in this class
-	 */
-	public ContainerLauncher getLauncher() {
-		return launcher;
-	}
-
-	/**
-	 * Sets the {@link ContainerLauncher} used for this class.
-	 * This should be called before {@link #onInit() onInit} for this class
-	 * is called.
-	 *
-	 * @param launcher the {@link ContainerLauncher}
-	 */
-	public void setLauncher(ContainerLauncher launcher) {
-		Assert.isNull(this.launcher, "ContainerLauncher is already set");
-		this.launcher = launcher;
-	}
-
-	/**
-	 * Gets a used {@link ContainerMonitor} for this class.
-	 *
-	 * @return {@link ContainerMonitor} used in this class
-	 */
-	public ContainerMonitor getMonitor() {
-		return monitor;
-	}
-
-	/**
-	 * Sets the {@link ContainerMonitor} used for this class.
-	 * This should be called before {@link #onInit() onInit} for this class
-	 * is called.
-	 *
-	 * @param monitor the {@link ContainerMonitor}
-	 */
-	public void setMonitor(ContainerMonitor monitor) {
-		Assert.isNull(this.monitor, "ContainerMonitor is already set");
-		this.monitor = monitor;
 	}
 
 }
