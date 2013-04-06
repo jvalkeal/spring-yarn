@@ -18,6 +18,7 @@ package org.springframework.yarn.client;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
@@ -67,6 +68,12 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	/** User of the application */
 	private String user;
 
+	/** Base path for app staging directory */
+	private String stagingDirPath;
+
+	/** Name of the app specific dir name under staging dir */
+	private String applicationDirName;
+
 	/**
 	 * Constructs client with a given template.
 	 *
@@ -84,10 +91,18 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 
 	@Override
 	public ApplicationId submitApplication() {
-		resourceLocalizer.distribute();
 		ApplicationSubmissionContext submissionContext = getSubmissionContext();
+		ApplicationId applicationId = submissionContext.getApplicationId();
+
+		// if not already set, get it from application id
+		if (applicationDirName == null) {
+			applicationDirName = Integer.toString(applicationId.getId());
+		}
+
+		resourceLocalizer.setStagingDirectory(getStagingPath());
+		resourceLocalizer.distribute();
 		clientRmOperations.submitApplication(submissionContext);
-		return submissionContext.getApplicationId();
+		return applicationId;
 	}
 
 	@Override
@@ -189,6 +204,37 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	 */
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	/**
+	 * Sets the staging dir path.
+	 *
+	 * @param stagingDirPath the new staging dir path
+	 */
+	public void setStagingDirPath(String stagingDirPath) {
+		this.stagingDirPath = stagingDirPath;
+	}
+
+	/**
+	 * Sets the application dir name.
+	 *
+	 * @param applicationDirName the new application dir name
+	 */
+	public void setApplicationDirName(String applicationDirName) {
+		this.applicationDirName = applicationDirName;
+	}
+
+	/**
+	 * Gets the staging path.
+	 *
+	 * @return the staging path
+	 */
+	protected Path getStagingPath() {
+		if (stagingDirPath != null &&  applicationDirName != null) {
+			return new Path(stagingDirPath, applicationDirName);
+		} else {
+			return null;
+		}
 	}
 
 	/**

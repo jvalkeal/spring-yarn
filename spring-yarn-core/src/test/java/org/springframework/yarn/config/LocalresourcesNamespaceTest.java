@@ -36,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.yarn.TestUtils;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean;
-import org.springframework.yarn.fs.LocalResourcesFactoryBean.Entry;
+import org.springframework.yarn.fs.LocalResourcesFactoryBean.TransferEntry;
 import org.springframework.yarn.fs.ResourceLocalizer;
 
 /**
@@ -93,11 +93,11 @@ public class LocalresourcesNamespaceTest {
 		assertThat(defaultFs, startsWith("hdfs"));
 		assertThat(defaultFs, endsWith("9000"));
 
-		Collection<Entry> hdfsEntries = TestUtils.readField("hdfsEntries", defaultLocalResourcesFactoryBean);
+		Collection<TransferEntry> hdfsEntries = TestUtils.readField("hdfsEntries", defaultLocalResourcesFactoryBean);
 		assertNotNull(hdfsEntries);
 		assertThat(hdfsEntries.size(), is(1));
 
-		Entry entry = (Entry) hdfsEntries.toArray()[0];
+		TransferEntry entry = (TransferEntry) hdfsEntries.toArray()[0];
 		String path = TestUtils.readField("path", entry);
 		assertThat(path, is("/tmp/foo.jar"));
 		LocalResourceType type = TestUtils.readField("type", entry);
@@ -121,11 +121,11 @@ public class LocalresourcesNamespaceTest {
 		Configuration configuration = TestUtils.readField("configuration", localResourcesFactoryBeanWithGlobal);
 		assertNotNull(configuration);
 
-		Collection<Entry> hdfsEntries = TestUtils.readField("hdfsEntries", localResourcesFactoryBeanWithGlobal);
+		Collection<TransferEntry> hdfsEntries = TestUtils.readField("hdfsEntries", localResourcesFactoryBeanWithGlobal);
 		assertNotNull(hdfsEntries);
 		assertThat(hdfsEntries.size(), is(1));
 
-		Entry entry = (Entry) hdfsEntries.toArray()[0];
+		TransferEntry entry = (TransferEntry) hdfsEntries.toArray()[0];
 		String path = TestUtils.readField("path", entry);
 		assertThat(path, is("/tmp/foo.jar"));
 		LocalResourceType type = TestUtils.readField("type", entry);
@@ -145,11 +145,11 @@ public class LocalresourcesNamespaceTest {
 		Configuration configuration = TestUtils.readField("configuration", localResourcesFactoryBeanWithMixed);
 		assertNotNull(configuration);
 
-		Collection<Entry> hdfsEntries = TestUtils.readField("hdfsEntries", localResourcesFactoryBeanWithMixed);
+		Collection<TransferEntry> hdfsEntries = TestUtils.readField("hdfsEntries", localResourcesFactoryBeanWithMixed);
 		assertNotNull(hdfsEntries);
 		assertThat(hdfsEntries.size(), is(3));
 
-		Entry entry = (Entry) hdfsEntries.toArray()[0];
+		TransferEntry entry = (TransferEntry) hdfsEntries.toArray()[0];
 		String path = TestUtils.readField("path", entry);
 		assertThat(path, is("/tmp/foo.jar"));
 		LocalResourceType type = TestUtils.readField("type", entry);
@@ -161,7 +161,7 @@ public class LocalresourcesNamespaceTest {
 		String remote = TestUtils.readField("remote", entry);
 		assertThat(remote, is("hdfs://192.168.223.139:9000"));
 
-		entry = (Entry) hdfsEntries.toArray()[1];
+		entry = (TransferEntry) hdfsEntries.toArray()[1];
 		path = TestUtils.readField("path", entry);
 		assertThat(path, is("/tmp/jee.jar"));
 		type = TestUtils.readField("type", entry);
@@ -173,7 +173,7 @@ public class LocalresourcesNamespaceTest {
 		remote = TestUtils.readField("remote", entry);
 		assertThat(remote, is("hdfs://192.168.223.139:9001"));
 
-		entry = (Entry) hdfsEntries.toArray()[2];
+		entry = (TransferEntry) hdfsEntries.toArray()[2];
 		path = TestUtils.readField("path", entry);
 		assertThat(path, is("/tmp/bar.jar"));
 		type = TestUtils.readField("type", entry);

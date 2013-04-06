@@ -26,15 +26,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.yarn.YarnSystemException;
-import org.springframework.yarn.fs.LocalResourcesFactoryBean.Entry;
+import org.springframework.yarn.fs.LocalResourcesFactoryBean.CopyEntry;
+import org.springframework.yarn.fs.LocalResourcesFactoryBean.TransferEntry;
 
 /**
  * Default implementation of {@link ResourceLocalizer} which
@@ -48,8 +54,11 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 
 	private final static Log log = LogFactory.getLog(DefaultResourceLocalizer.class);
 
-	/** Raw resource entries. */
-	private final Collection<Entry> transferEntries;
+	/** Raw resource transfer entries. */
+	private final Collection<TransferEntry> transferEntries;
+
+	/** Raw resource copy entries. */
+	private final Collection<CopyEntry> copyEntries;
 
 	/** Yarn configuration, needed to access the hdfs */
 	private final Configuration configuration;
@@ -63,9 +72,38 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	/** Locking the work*/
 	private final ReentrantLock distributeLock = new ReentrantLock();
 
-	public DefaultResourceLocalizer(Configuration configuration, Collection<Entry> transferEntries) {
+	/** Staging directory */
+	private Path stagingDirectory;
+
+	/** Resolve copy resources */
+	private PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+
+	/**
+	 * Instantiates a new default resource localizer.
+	 *
+	 * @param configuration the configuration
+	 * @param transferEntries the transfer entries
+	 * @param copyEntries the copy entries
+	 */
+	public DefaultResourceLocalizer(Configuration configuration, Collection<TransferEntry> transferEntries,
+			Collection<CopyEntry> copyEntries) {
+		this(configuration, transferEntries, copyEntries, null);
+	}
+
+	/**
+	 * Instantiates a new default resource localizer.
+	 *
+	 * @param configuration the configuration
+	 * @param transferEntries the transfer entries
+	 * @param copyEntries the copy entries
+	 * @param stagingDirectory the staging directory
+	 */
+	public DefaultResourceLocalizer(Configuration configuration, Collection<TransferEntry> transferEntries,
+			Collection<CopyEntry> copyEntries, Path stagingDirectory) {
 		this.configuration = configuration;
 		this.transferEntries = transferEntries;
+		this.copyEntries = copyEntries;
+		this.stagingDirectory = stagingDirectory;
 	}
 
 	@Override
@@ -77,38 +115,20 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	}
 
 	@Override
+	public void setStagingDirectory(Path stagingDirectory) {
+		this.stagingDirectory = stagingDirectory;
+	}
+
+	@Override
 	public void distribute() {
 		// guard by lock to distribute only once
 		distributeLock.lock();
 		try {
 			if (!distributed) {
-				resources = new HashMap<String, LocalResource>();
 				FileSystem fs = FileSystem.get(configuration);
-				for (Entry e : transferEntries) {
-					Path remotePath = new Path(e.remote + e.path);
-					URI localUri = new URI(e.local);
-					FileStatus[] fileStatuses = fs.globStatus(remotePath);
-					if (!ObjectUtils.isEmpty(fileStatuses)) {
-						for(FileStatus status : fileStatuses) {
-							if(status.isFile()) {
-								URI remoteUri = status.getPath().toUri();
-								Path path = new Path(new Path(localUri), remoteUri.getPath());
-								LocalResource res = Records.newRecord(LocalResource.class);
-								res.setType(e.type);
-								res.setVisibility(e.visibility);
-								res.setResource(ConverterUtils.getYarnUrlFromPath(path));
-								res.setTimestamp(status.getModificationTime());
-								res.setSize(status.getLen());
-								if(log.isDebugEnabled()) {
-									log.debug("Using remote uri [" + remoteUri + "] and local uri [" +
-											localUri + "] converted to path [" + path + "]");
-								}
-								resources.put(status.getPath().getName(), res);
-							}
-						}
-					}
-					distributed = true;
-				}
+				doFileCopy(fs);
+				resources = doFileTransfer(fs);
+				distributed = true;
 			}
 		} catch (IOException e) {
 			log.error("Error distributing files", e);
@@ -119,6 +139,79 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 		} finally {
 			distributeLock.unlock();
 		}
+	}
+
+	/**
+	 * Do file copy.
+	 *
+	 * @param fs the fs
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	protected void doFileCopy(FileSystem fs) throws IOException {
+		for (CopyEntry e : copyEntries) {
+			for (Resource res : resolver.getResources(e.src)) {
+				FSDataOutputStream os = fs.create(getDestinationPath(e, res));
+				FileCopyUtils.copy(res.getInputStream(), os);
+			}
+		}
+	}
+
+	/**
+	 * Gets the destination path.
+	 *
+	 * @param entry the entry
+	 * @param res the res
+	 * @return the destination path
+	 */
+	private Path getDestinationPath(CopyEntry entry, Resource res) {
+		if (stagingDirectory != null) {
+			if (StringUtils.hasText(entry.dest)) {
+				return new Path(stagingDirectory, entry.dest);
+			} else {
+				return new Path(stagingDirectory, res.getFilename());
+			}
+		} else {
+			return new Path(entry.dest);
+		}
+	}
+
+	/**
+	 * Gets a map of localized resources.
+	 *
+	 * @param fs the file system
+	 * @return a map of localized resources
+	 * @throws IOException if problem occurred getting file status
+	 * @throws URISyntaxException if file path is wrong
+	 */
+	protected Map<String, LocalResource> doFileTransfer(FileSystem fs) throws IOException, URISyntaxException {
+		Map<String, LocalResource> returned =  new HashMap<String, LocalResource>();
+		for (TransferEntry e : transferEntries) {
+			Path remotePath = (stagingDirectory == null && !e.staging) ?
+					new Path(e.remote + e.path) :
+					new Path(e.remote + stagingDirectory.toUri().getPath() + e.path);
+			URI localUri = new URI(e.local);
+			FileStatus[] fileStatuses = fs.globStatus(remotePath);
+			if (!ObjectUtils.isEmpty(fileStatuses)) {
+				for(FileStatus status : fileStatuses) {
+					if(status.isFile()) {
+						URI remoteUri = status.getPath().toUri();
+						Path path = new Path(new Path(localUri), remoteUri.getPath());
+						LocalResource res = Records.newRecord(LocalResource.class);
+						res.setType(e.type);
+						res.setVisibility(e.visibility);
+						res.setResource(ConverterUtils.getYarnUrlFromPath(path));
+						res.setTimestamp(status.getModificationTime());
+						res.setSize(status.getLen());
+						if(log.isDebugEnabled()) {
+							log.debug("Using remote uri [" + remoteUri + "] and local uri [" +
+									localUri + "] converted to path [" + path + "]");
+						}
+						returned.put(status.getPath().getName(), res);
+					}
+				}
+			}
+		}
+		return returned;
 	}
 
 }

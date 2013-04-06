@@ -22,7 +22,8 @@
 	</yarn:configuration>
 
 	<yarn:localresources>
-		<yarn:hdfs path="/tmp/foo.jar"/>
+		<yarn:copy src="foo.jar" dest="/tmp" staging="true"/>
+		<yarn:hdfs path="/tmp/foo.jar" staging="false"/>
 	</yarn:localresources>
 
 	<yarn:localresources id="yarnLocalresourcesWithDefaults" local="hdfs://0.0.0.0:9000" remote="hdfs://192.168.223.139:9000" type="ARCHIVE" visibility="PRIVATE">

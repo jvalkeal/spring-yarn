@@ -17,6 +17,7 @@ package org.springframework.yarn.fs;
 
 import java.util.Map;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 
 /**
@@ -47,4 +48,10 @@ public interface ResourceLocalizer {
 	 */
 	void distribute();
 
+	/**
+	 * Sets the staging directory.
+	 *
+	 * @param stagingDirectory the new staging directory
+	 */
+	void setStagingDirectory(Path stagingDirectory);
 }

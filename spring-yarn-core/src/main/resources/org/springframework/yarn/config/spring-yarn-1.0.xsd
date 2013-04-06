@@ -108,6 +108,7 @@
 			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
 				<xsd:choice>
 					<xsd:element name="hdfs" type="hdfsEntryType"/>
+					<xsd:element name="copy" type="copyEntryType"/>
 				</xsd:choice>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="optional"/>
@@ -207,7 +208,14 @@
 
 	<xsd:complexType name="hdfsEntryType">
 		<xsd:attribute name="path" type="xsd:string" use="required"/>
+		<xsd:attribute name="staging" type="xsd:string" use="optional"/>
 		<xsd:attributeGroup ref="hdfs-common-attributes"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="copyEntryType">
+		<xsd:attribute name="src" type="xsd:string" use="required"/>
+		<xsd:attribute name="dest" type="xsd:string" use="optional"/>
+		<xsd:attribute name="staging" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="hdfs-common-attributes">

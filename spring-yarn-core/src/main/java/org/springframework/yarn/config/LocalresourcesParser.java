@@ -26,7 +26,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean;
-import org.springframework.yarn.fs.LocalResourcesFactoryBean.Entry;
+import org.springframework.yarn.fs.LocalResourcesFactoryBean.CopyEntry;
+import org.springframework.yarn.fs.LocalResourcesFactoryBean.TransferEntry;
 import org.w3c.dom.Element;
 
 /**
@@ -52,15 +53,20 @@ public class LocalresourcesParser extends AbstractImprovedSimpleBeanDefinitionPa
 		super.doParse(element, parserContext, builder);
 
 		ManagedList<BeanDefinition> entries = new ManagedList<BeanDefinition>();
-		parseEntries(element, "hdfs", entries);
+		parseTransferEntries(element, "hdfs", entries);
 		builder.addPropertyValue("hdfsEntries", entries);
+
+		entries = new ManagedList<BeanDefinition>();
+		parseCopyEntries(element, "copy", entries);
+		builder.addPropertyValue("copyEntries", entries);
+
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration");
 	}
 
-	private void parseEntries(Element element, String name, List<BeanDefinition> entries) {
+	private void parseTransferEntries(Element element, String name, List<BeanDefinition> entries) {
 		List<Element> cp = DomUtils.getChildElementsByTagName(element, name);
 		for (Element entry : cp) {
-			BeanDefinitionBuilder bd = BeanDefinitionBuilder.genericBeanDefinition(Entry.class);
+			BeanDefinitionBuilder bd = BeanDefinitionBuilder.genericBeanDefinition(TransferEntry.class);
 
 			bd.addConstructorArgValue(
 					entry.hasAttribute("type") ?
@@ -77,6 +83,18 @@ public class LocalresourcesParser extends AbstractImprovedSimpleBeanDefinitionPa
 			// if set to null, factory will try to set defaults
 			bd.addConstructorArgValue(entry.hasAttribute("local") ? entry.getAttribute("local") : null);
 			bd.addConstructorArgValue(entry.hasAttribute("remote") ? entry.getAttribute("remote") : null);
+			bd.addConstructorArgValue(entry.hasAttribute("staging") ? entry.getAttribute("staging") : false);
+			entries.add(bd.getBeanDefinition());
+		}
+	}
+
+	private void parseCopyEntries(Element element, String name, List<BeanDefinition> entries) {
+		List<Element> cp = DomUtils.getChildElementsByTagName(element, name);
+		for (Element entry : cp) {
+			BeanDefinitionBuilder bd = BeanDefinitionBuilder.genericBeanDefinition(CopyEntry.class);
+			bd.addConstructorArgValue(entry.getAttribute("src"));
+			bd.addConstructorArgValue(entry.getAttribute("dest"));
+			bd.addConstructorArgValue(entry.hasAttribute("staging") ? entry.getAttribute("staging") : false);
 			entries.add(bd.getBeanDefinition());
 		}
 	}

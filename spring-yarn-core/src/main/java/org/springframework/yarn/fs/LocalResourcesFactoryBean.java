@@ -33,10 +33,19 @@ import org.springframework.util.Assert;
  */
 public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<ResourceLocalizer> {
 
+	/** Localizer returned from this factory */
 	private ResourceLocalizer resources;
-	private Collection<Entry> hdfsEntries;
+
+	/** Localizer transfer entries*/
+	private Collection<TransferEntry> hdfsEntries;
+
+	/** Localizer copy entries*/
+	private Collection<CopyEntry> copyEntries;
+
+	/** Yarn configuration*/
 	private Configuration configuration;
 
+	// defaults
 	private LocalResourceType defaultType;
 	private LocalResourceVisibility defaultVisibility;
 	private String defaultLocal;
@@ -63,7 +72,7 @@ public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<
 		String defaultFs = configuration.get(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY);
 
 		// defaults if defined
-		for(Entry entry : hdfsEntries) {
+		for(TransferEntry entry : hdfsEntries) {
 			if(entry.type == null) {
 				entry.type = (defaultType != null ? defaultType : LocalResourceType.FILE);
 			}
@@ -78,7 +87,7 @@ public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<
 			}
 			Assert.isTrue(entry.local != null && entry.remote != null, "Entry local/remote hdfs address can't be null");
 		}
-		resources = new DefaultResourceLocalizer(configuration, hdfsEntries);
+		resources = new DefaultResourceLocalizer(configuration, hdfsEntries, copyEntries);
 	}
 
 	/**
@@ -121,8 +130,16 @@ public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<
 	 * Sets hdfs entries reference for this factory.
 	 * @param hdfsEntries Collection of hdfs entries
 	 */
-	public void setHdfsEntries(Collection<Entry> hdfsEntries) {
+	public void setHdfsEntries(Collection<TransferEntry> hdfsEntries) {
 		this.hdfsEntries = hdfsEntries;
+	}
+
+	/**
+	 * Sets copy entries reference for this factory.
+	 * @param copyEntries Collection of copy entries
+	 */
+	public void setCopyEntries(Collection<CopyEntry> copyEntries) {
+		this.copyEntries = copyEntries;
 	}
 
 	/**
@@ -134,24 +151,43 @@ public class LocalResourcesFactoryBean implements InitializingBean, FactoryBean<
 	}
 
 	/**
-	 * Helper class to store entries.
+	 * Helper class storing transfer entries.
 	 */
-	public static class Entry {
+	public static class TransferEntry {
 
 		LocalResourceType type;
 		LocalResourceVisibility visibility;
 		String path;
 		String local;
 		String remote;
+		boolean staging;
 
-		public Entry(LocalResourceType type, LocalResourceVisibility visibility,
-				String path, String local, String remote) {
+		public TransferEntry(LocalResourceType type, LocalResourceVisibility visibility,
+				String path, String local, String remote, boolean staging) {
 			super();
 			this.type = type;
 			this.visibility = visibility;
 			this.path = path;
 			this.local = local;
 			this.remote = remote;
+			this.staging = staging;
+		}
+
+	}
+
+	/**
+	 * Helper class storing copy entries.
+	 */
+	public static class CopyEntry {
+
+		String src;
+		String dest;
+		boolean staging;
+
+		public CopyEntry(String src, String dest, boolean staging) {
+			this.src = src;
+			this.dest = dest;
+			this.staging = staging;
 		}
 
 	}
