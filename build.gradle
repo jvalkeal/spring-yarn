@@ -24,6 +24,14 @@ configure(allprojects) {
         maven { url "http://repo.springsource.org/libs-release" }
 		mavenLocal()
     }
+
+	task integrationTest(type: Test) {
+		include '**/*IntegrationTests.*'
+	}
+
+	test {
+		exclude '**/*IntegrationTests.*'
+	}
     
     // servlet-api (2.5) and tomcat-servlet-api (3.0) classpath entries should not be
     // exported to dependent projects in Eclipse to avoid false compilation errors due
@@ -47,7 +55,7 @@ configure(subprojects) { subproject ->
             expand(copyright: new Date().format('yyyy'), version: project.version)
         }
     }
-
+	
     javadoc {
         options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
         options.author = true
