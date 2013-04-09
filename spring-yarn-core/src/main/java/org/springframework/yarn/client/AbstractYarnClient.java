@@ -269,7 +269,7 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 		context.setCommands(commands);
 		Resource capability = Records.newRecord(Resource.class);
 		capability.setMemory(memory);
-		capability.setVirtualCores(virtualcores);
+//		capability.setVirtualCores(virtualcores);
 		context.setResource(capability);
 		return context;
 	}
