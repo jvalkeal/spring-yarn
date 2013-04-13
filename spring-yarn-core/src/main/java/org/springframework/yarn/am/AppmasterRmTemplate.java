@@ -15,10 +15,19 @@
  */
 package org.springframework.yarn.am;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
+import org.apache.hadoop.yarn.YarnException;
 import org.apache.hadoop.yarn.api.AMRMProtocol;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.FinishApplicationMasterRequest;
@@ -41,6 +50,8 @@ import org.springframework.yarn.rpc.YarnRpcCallback;
  *
  */
 public class AppmasterRmTemplate extends YarnRpcAccessor<AMRMProtocol> implements AppmasterRmOperations {
+
+	private static final Log log = LogFactory.getLog(AppmasterCmTemplate.class);
 
 	public AppmasterRmTemplate(Configuration config) {
 		super(AMRMProtocol.class, config);
@@ -81,9 +92,36 @@ public class AppmasterRmTemplate extends YarnRpcAccessor<AMRMProtocol> implement
 		});
 	}
 
+	@Override
 	protected InetSocketAddress getRpcAddress(Configuration config) {
-		return config.getSocketAddr(YarnConfiguration.RM_SCHEDULER_ADDRESS,
+		InetSocketAddress addr = config.getSocketAddr(YarnConfiguration.RM_SCHEDULER_ADDRESS,
 				YarnConfiguration.DEFAULT_RM_SCHEDULER_ADDRESS, YarnConfiguration.DEFAULT_RM_SCHEDULER_PORT);
+
+		UserGroupInformation currentUser;
+		try {
+			currentUser = UserGroupInformation.getCurrentUser();
+		} catch (IOException e) {
+			throw new YarnException(e);
+		}
+
+		if (UserGroupInformation.isSecurityEnabled()) {
+			String tokenURLEncodedStr = System.getenv().get(
+				ApplicationConstants.APPLICATION_MASTER_TOKEN_ENV_NAME);
+			Token<? extends TokenIdentifier> token = new Token<TokenIdentifier>();
+
+			try {
+			token.decodeFromUrlString(tokenURLEncodedStr);
+			} catch (IOException e) {
+			throw new YarnException(e);
+			}
+
+			SecurityUtil.setTokenService(token, addr);
+			if (log.isDebugEnabled()) {
+				log.debug("AppMasterToken is " + token);
+			}
+			currentUser.addToken(token);
+		}
+		return addr;
 	}
 
 }

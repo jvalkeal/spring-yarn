@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.ClientRMProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.GetDelegationTokenRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationRequest;
@@ -31,6 +32,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
+import org.apache.hadoop.yarn.api.records.DelegationToken;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.util.Records;
@@ -99,6 +101,18 @@ public class ClientRmTemplate extends YarnRpcAccessor<ClientRMProtocol> implemen
 				KillApplicationRequest request = Records.newRecord(KillApplicationRequest.class);
 				request.setApplicationId(applicationId);
 				return proxy.forceKillApplication(request);
+			}
+		});
+	}
+
+	@Override
+	public DelegationToken getDelegationToken(final String renewer) {
+		return execute(new YarnRpcCallback<DelegationToken, ClientRMProtocol>() {
+			@Override
+			public DelegationToken doInYarn(ClientRMProtocol proxy) throws YarnRemoteException {
+				GetDelegationTokenRequest request = Records.newRecord(GetDelegationTokenRequest.class);
+				request.setRenewer(renewer);
+				return proxy.getDelegationToken(request).getRMDelegationToken();
 			}
 		});
 	}

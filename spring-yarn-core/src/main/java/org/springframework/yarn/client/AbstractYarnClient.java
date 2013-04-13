@@ -15,10 +15,17 @@
  */
 package org.springframework.yarn.client;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
@@ -29,6 +36,8 @@ import org.apache.hadoop.yarn.util.Records;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.springframework.yarn.fs.ResourceLocalizer;
+import org.springframework.yarn.support.YarnUtils;
+import org.springframework.yarn.support.compat.ResourceCompat;
 
 /**
  * Base implementation providing functionality for {@link YarnClient}.
@@ -52,6 +61,9 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 
 	/** Yarn queue for the request */
 	private String queue = "default";
+
+	/** Yarn configuration for client */
+	private Configuration configuration;
 
 	/** Resource localizer for application master */
 	private ResourceLocalizer resourceLocalizer;
@@ -126,6 +138,15 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	}
 
 	/**
+	 * Gets the client rm operations.
+	 *
+	 * @return the client rm operations
+	 */
+	public ClientRmOperations getClientRmOperations() {
+		return clientRmOperations;
+	}
+
+	/**
 	 * Sets the environment for appmaster.
 	 *
 	 * @param environment the environment
@@ -141,6 +162,15 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	 */
 	public void setCommands(List<String> commands) {
 		this.commands = commands;
+	}
+
+	/**
+	 * Sets the Yarn configuration.
+	 *
+	 * @param configuration the Yarn configuration
+	 */
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
 	}
 
 	/**
@@ -269,8 +299,23 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 		context.setCommands(commands);
 		Resource capability = Records.newRecord(Resource.class);
 		capability.setMemory(memory);
-//		capability.setVirtualCores(virtualcores);
+		ResourceCompat.setVirtualCores(capability, virtualcores);
 		context.setResource(capability);
+
+		try {
+			// TODO: this still looks a bit dodgy!!
+			if (UserGroupInformation.isSecurityEnabled()) {
+				Credentials credentials = new Credentials();
+				final FileSystem fs = FileSystem.get(configuration);
+				fs.addDelegationTokens(YarnUtils.getPrincipal(configuration), credentials);
+				DataOutputBuffer dob = new DataOutputBuffer();
+				credentials.writeTokenStorageToStream(dob);
+				ByteBuffer containerToken  = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+				context.setContainerTokens(containerToken);
+			}
+		} catch (IOException e) {
+		}
+
 		return context;
 	}
 

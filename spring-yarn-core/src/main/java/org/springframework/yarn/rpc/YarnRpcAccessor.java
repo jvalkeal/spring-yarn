@@ -16,16 +16,19 @@
 package org.springframework.yarn.rpc;
 
 import java.net.InetSocketAddress;
+import java.security.PrivilegedAction;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RemoteException;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.YarnException;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.util.Assert;
 import org.springframework.yarn.support.YarnUtils;
 
 /**
@@ -38,11 +41,25 @@ import org.springframework.yarn.support.YarnUtils;
  */
 public abstract class YarnRpcAccessor<P> implements InitializingBean, DisposableBean {
 
+	/** Protocol class used to create rpc connection */
 	private Class<P> protocolClazz;
+
+	/** Yarn configuration */
 	private Configuration configuration;
+
+	/** Address for rpc end point */
 	private InetSocketAddress address;
+
+	/** Created proxy */
 	private P proxy;
 
+	/**
+	 * Instantiates a new yarn rpc accessor with a protocol class
+	 * and Yarn configuration.
+	 *
+	 * @param protocolClazz the protocol clazz
+	 * @param config the yarn configuration
+	 */
 	public YarnRpcAccessor(Class<P> protocolClazz, Configuration config) {
 		this.protocolClazz = protocolClazz;
 		this.configuration = config;
@@ -50,6 +67,11 @@ public abstract class YarnRpcAccessor<P> implements InitializingBean, Disposable
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(configuration, "Yarn configuration must be set");
+		Assert.notNull(protocolClazz, "Rpc protocol class must be set");
+		if (UserGroupInformation.isSecurityEnabled()) {
+			UserGroupInformation.setConfiguration(configuration);
+		}
 		address = getRpcAddress(configuration);
 		proxy = createProxy();
 	}
@@ -59,10 +81,24 @@ public abstract class YarnRpcAccessor<P> implements InitializingBean, Disposable
 		RPC.stopProxy(proxy);
 	}
 
+	/**
+	 * Gets the proxy handled by this accessor.
+	 *
+	 * @return the proxy
+	 */
 	public P getProxy() {
 		return proxy;
 	}
 
+	/**
+	 * Execute given action callback on the rpc proxy.
+	 *
+	 * @param <T> the return type
+	 * @param <S> the proxy type
+	 * @param action the action
+	 * @return the result from a callback execution
+	 * @throws DataAccessException the data access exception
+	 */
 	public <T, S extends P> T execute(YarnRpcCallback<T, S> action) throws DataAccessException {
 		@SuppressWarnings("unchecked")
 		S proxy = (S) getProxy();
@@ -80,10 +116,49 @@ public abstract class YarnRpcAccessor<P> implements InitializingBean, Disposable
 		}
 	}
 
+	/**
+	 * Gets the Yarn configuration.
+	 *
+	 * @return the Yarn configuration
+	 */
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Creates the proxy. If {@link #getUser()} returns
+	 * a non null {@link UserGroupInformation user}, that
+	 * will be used to request the proxy with
+	 * a {@link PrivilegedAction}.
+	 *
+	 * @return the proxy
+	 */
 	@SuppressWarnings("unchecked")
 	protected P createProxy() {
-		YarnRPC rpc = YarnRPC.create(configuration);
-		return (P) rpc.getProxy(protocolClazz, address, configuration);
+		final YarnRPC rpc = YarnRPC.create(configuration);
+		UserGroupInformation user = getUser();
+		if (user != null) {
+			return user.doAs(new PrivilegedAction<P>() {
+				@Override
+				public P run() {
+					return (P) rpc.getProxy(protocolClazz, address, configuration);
+				}
+			});
+		} else {
+			return (P) rpc.getProxy(protocolClazz, address, configuration);
+		}
+	}
+
+	/**
+	 * Gets the {@link UserGroupInformation user} used to
+	 * create the proxy. Default implementation returns {@code null}
+	 * which means no security is used.
+	 *
+	 * @return the user
+	 * @see #createProxy()
+	 */
+	protected UserGroupInformation getUser() {
+		return null;
 	}
 
 	/**

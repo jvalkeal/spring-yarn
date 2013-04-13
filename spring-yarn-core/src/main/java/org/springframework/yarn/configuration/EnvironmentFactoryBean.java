@@ -15,12 +15,13 @@
  */
 package org.springframework.yarn.configuration;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -91,7 +92,22 @@ public class EnvironmentFactoryBean implements InitializingBean, FactoryBean<Map
 		}
 
 		if(defaultYarnAppClasspath) {
-			Iterator<String> iterator = Arrays.asList(YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH).iterator();
+			ArrayList<String> paths = new ArrayList<String>();
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_CONF_DIR);
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_COMMON_HOME + "/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_COMMON_HOME + "/lib/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_COMMON_HOME + "/share/hadoop/common/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_COMMON_HOME + "/share/hadoop/common/lib/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_HDFS_HOME + "/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_HDFS_HOME + "/lib*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_HDFS_HOME + "/share/hadoop/hdfs/*");
+			paths.add("$" + ApplicationConstants.Environment.HADOOP_HDFS_HOME + "/share/hadoop/hdfs/lib/*");
+			paths.add("$YARN_HOME/*");
+			paths.add("$YARN_HOME/lib*");
+			paths.add("$HADOOP_YARN_HOME/share/hadoop/yarn/*");
+			paths.add("$HADOOP_YARN_HOME/share/hadoop/yarn/lib*");
+
+			Iterator<String> iterator = paths.iterator();
 
 			// add delimiter if we're about to add something
 			if(iterator.hasNext()) {

@@ -86,6 +86,7 @@ public class YarnClientFactoryBean implements InitializingBean, FactoryBean<Yarn
 		client.setCommands(commands);
 		client.setEnvironment(environment);
 		client.setResourceLocalizer(resourceLocalizer);
+		client.setConfiguration(configuration);
 	}
 
 	@Override

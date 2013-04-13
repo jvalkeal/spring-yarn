@@ -15,13 +15,18 @@
  */
 package org.springframework.yarn.support;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RemoteException;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.yarn.YarnException;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.springframework.dao.DataAccessException;
@@ -77,6 +82,39 @@ public class YarnUtils {
 		Assert.notNull(amContainerId, "AM_CONTAINER_ID env variable has to exist to build appAttemptId");
 		ContainerId containerId = ConverterUtils.toContainerId(amContainerId);
 		return containerId.getApplicationAttemptId();
+	}
+
+	/**
+	 * Gets the principal.
+	 *
+	 * @param conf the conf
+	 * @return the principal
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public static String getPrincipal(Configuration conf) throws IOException {
+		String masterHostname = getAddress(conf).getHostName();
+		return SecurityUtil.getServerPrincipal(getUserName(conf), masterHostname);
+	}
+
+	/**
+	 * Gets the user name.
+	 *
+	 * @param conf the Yarn configuration
+	 * @return the user name
+	 */
+	public static String getUserName(Configuration conf) {
+		return conf.get(YarnConfiguration.RM_PRINCIPAL);
+	}
+
+	/**
+	 * Gets the address.
+	 *
+	 * @param conf the Yarn configuration
+	 * @return the address
+	 */
+	public static InetSocketAddress getAddress(Configuration conf) {
+		return conf.getSocketAddr(YarnConfiguration.RM_ADDRESS, YarnConfiguration.DEFAULT_RM_ADDRESS,
+				YarnConfiguration.DEFAULT_RM_PORT);
 	}
 
 }
