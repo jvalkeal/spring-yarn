@@ -53,4 +53,11 @@ public interface YarnEventPublisher {
 	 */
 	void publishContainerCompleted(Object source, ContainerStatus status);
 
+	/**
+	 * Publish a general application event of type {@link AbstractYarnEvent}.
+	 *
+	 * @param event the event
+	 */
+	void publishEvent(AbstractYarnEvent event);
+
 }

@@ -74,4 +74,11 @@ public class DefaultYarnEventPublisher implements YarnEventPublisher, Applicatio
 		}
 	}
 
+	@Override
+	public void publishEvent(AbstractYarnEvent event) {
+		if (applicationEventPublisher != null) {
+			applicationEventPublisher.publishEvent(event);
+		}
+	}
+
 }

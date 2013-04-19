@@ -15,17 +15,15 @@
  */
 package org.springframework.yarn.am.container;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.security.Credentials;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.util.Records;
+import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 
 /**
  * Default container launcher.
@@ -35,8 +33,13 @@ import org.apache.hadoop.yarn.util.Records;
  */
 public class DefaultContainerLauncher extends AbstractLauncher implements ContainerLauncher {
 
+	private final static Log log = LogFactory.getLog(DefaultContainerAllocator.class);
+
 	@Override
 	public void launchContainer(Container container, List<String> commands) {
+		if (log.isDebugEnabled()) {
+			log.debug("Launching container: " + container);
+		}
 		ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
 		ctx.setContainerId(container.getId());
 		ctx.setResource(container.getResource());
@@ -46,24 +49,6 @@ public class DefaultContainerLauncher extends AbstractLauncher implements Contai
 		ctx.setEnvironment(getEnvironment());
 		ctx = getInterceptors().preLaunch(ctx);
 
-		try {
-			ByteBuffer credentialsBuffer = ByteBuffer.wrap(new byte[]{});
-			Credentials credentials = new Credentials();
-
-			credentials.addSecretKey(new Text("syarn.secret"), "foo".getBytes());
-
-			DataOutputBuffer containerTokens_dob = new DataOutputBuffer();
-			credentials.writeTokenStorageToStream(containerTokens_dob);
-			credentialsBuffer =
-					ByteBuffer.wrap(containerTokens_dob.getData(), 0,
-						containerTokens_dob.getLength());
-
-			ctx.setContainerTokens(credentialsBuffer);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		StartContainerRequest request = Records.newRecord(StartContainerRequest.class);
 		request.setContainerLaunchContext(ctx);
 		getCmTemplate(container).startContainer(request);
@@ -71,7 +56,6 @@ public class DefaultContainerLauncher extends AbstractLauncher implements Contai
 		if(getYarnEventPublisher() != null) {
 			getYarnEventPublisher().publishContainerLaunched(this, container);
 		}
-
 	}
 
 }

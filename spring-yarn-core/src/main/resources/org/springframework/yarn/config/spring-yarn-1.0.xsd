@@ -195,6 +195,14 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="register-url-handler" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Registers an HDFS url handler in the running VM. Note that this operation can be executed at most once
+					in a given JVM hence the default is false.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:extension>
 		</xsd:complexContent>
 		</xsd:complexType>

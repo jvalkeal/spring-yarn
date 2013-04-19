@@ -17,6 +17,9 @@ package org.springframework.yarn.am.allocate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -30,9 +33,11 @@ import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
+import org.springframework.yarn.support.compat.ResourceCompat;
 
 /**
  * Default allocator which polls resource manager, requests new containers
@@ -69,6 +74,17 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	/** Current progress reported during allocate requests */
 	private float applicationProgress = 0;
 
+	/** Queued container id's to be released */
+	private Queue<ContainerId> releaseContainers = new ConcurrentLinkedQueue<ContainerId>();
+
+	/**
+	 * Map for resource requests. Resource request is kept in both key and value
+	 * because we use comparator to get request by its priority, hostname and capability.
+	 * This allows us to update the container count on a mapped value.
+	 */
+	private TreeMap<ResourceRequest, ResourceRequest> resourceRequests =
+			new TreeMap<ResourceRequest, ResourceRequest>(new BuilderUtils.ResourceRequestComparator());
+
 	@Override
 	public void allocateContainers(int count) {
 		// adding new container allocation count, poller
@@ -85,29 +101,74 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	@Override
+	public void allocateContainers(List<ResourceRequest> requests) {
+		for (ResourceRequest request : requests) {
+			synchronized (resourceRequests) {
+				ResourceRequest resourceRequest = resourceRequests.get(request);
+				if (resourceRequest != null) {
+					int count = resourceRequest.getNumContainers() + request.getNumContainers();
+					request.setNumContainers(count);
+				}
+				if(log.isDebugEnabled()) {
+					log.debug("Adding new container using request=" + request);
+				}
+				resourceRequests.put(request, request);
+			}
+		}
+	}
+
+	@Override
+	public void releaseContainers(List<Container> containers) {
+		for (Container container : containers) {
+			releaseContainer(container.getId());
+		}
+	}
+
+	@Override
+	public void releaseContainer(ContainerId containerId) {
+		releaseContainers.add(containerId);
+	}
+
+	@Override
 	protected AMResponse doContainerRequest() {
 		int count = numRequestedContainers.getAndSet(0);
-
-		if(log.isDebugEnabled()) {
-			log.debug("Requesting " + count + " new containers.");
-		}
 
 		List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();
 		if(count > 0) {
 			ResourceRequest containerAsk = getContainerResourceRequest(count);
 			requestedContainers.add(containerAsk);
+			allocateContainers(requestedContainers);
+			requestedContainers.clear();
+		}
+
+		synchronized (resourceRequests) {
+			requestedContainers.addAll(resourceRequests.values());
+			resourceRequests.clear();
+		}
+
+		if(log.isDebugEnabled()) {
+			log.debug("Requesting containers using " +requestedContainers.size() + " requests.");
+			for (ResourceRequest resourceRequest : requestedContainers) {
+				log.debug("ResourceRequest: " + resourceRequest + " with count=" +
+						resourceRequest.getNumContainers() + " with hostName=" + resourceRequest.getHostName());
+			}
+		}
+
+		List<ContainerId> release = new ArrayList<ContainerId>();
+		ContainerId element = null;
+		while ((element = releaseContainers.poll()) != null) {
+			release.add(element);
 		}
 
 		AllocateRequest request = Records.newRecord(AllocateRequest.class);
-		// TODO: should probably handle request id better than just incrementing it
-		request.setResponseId(requestId.incrementAndGet());
+		request.setResponseId(requestId.get());
 		request.setApplicationAttemptId(getApplicationAttemptId());
 		request.addAllAsks(requestedContainers);
-		// we don't release anything here
-		request.addAllReleases(new ArrayList<ContainerId>());
+		request.addAllReleases(release);
 		request.setProgress(applicationProgress);
 
 		AllocateResponse allocate = getRmTemplate().allocate(request);
+		requestId.set(allocate.getAMResponse().getResponseId());
 		return allocate.getAMResponse();
 	}
 
@@ -217,6 +278,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 		request.setPriority(pri);
 		Resource capability = Records.newRecord(Resource.class);
 		capability.setMemory(memory);
+		ResourceCompat.setVirtualCores(capability, virtualcores);
 		request.setCapability(capability);
 		return request;
 	}

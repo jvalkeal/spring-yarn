@@ -18,6 +18,8 @@ package org.springframework.yarn.integration.support;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.springframework.yarn.support.NetworkUtils;
+
 /**
  * Implementation of {@link org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport}
  * which extends its base functionality by catching socket information, like listen address and port.
@@ -33,7 +35,9 @@ public class DefaultPortExposingTcpSocketSupport implements PortExposingTcpSocke
 	@Override
 	public void postProcessServerSocket(ServerSocket serverSocket) {
 		serverSocketPort = serverSocket.getLocalPort();
-		serverSocketAddress = serverSocket.getInetAddress().getHostAddress();
+		serverSocketAddress = NetworkUtils.getDefaultAddress();
+		// TODO: do better address resolving
+		//serverSocketAddress = serverSocket.getInetAddress().getHostAddress();
 	}
 
 	@Override

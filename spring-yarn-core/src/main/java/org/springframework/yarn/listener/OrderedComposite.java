@@ -36,7 +36,7 @@ import org.springframework.core.annotation.Order;
  *
  * @param <S> the type of the item
  */
-class OrderedComposite<S> {
+public class OrderedComposite<S> {
 
 	private List<S> unordered = new ArrayList<S>();
 

@@ -15,29 +15,15 @@
  */
 package org.springframework.yarn.batch.am;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.partition.support.Partitioner;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.yarn.YarnSystemConstants;
-import org.springframework.yarn.am.AbstractProcessingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.am.YarnAppmaster;
 import org.springframework.yarn.am.allocate.AbstractAllocator;
@@ -62,25 +48,13 @@ import org.springframework.yarn.integration.ip.mind.binding.BaseResponseObject;
  * @author Janne Valkealahti
  *
  */
-public class BatchAppmaster extends AbstractProcessingAppmaster
-		implements YarnAppmaster, Partitioner, ApplicationContextAware {
+public class BatchAppmaster extends AbstractBatchAppmaster
+		implements YarnAppmaster, ApplicationContextAware {
 
 	private static final Log log = LogFactory.getLog(BatchAppmaster.class);
 
-	/** Batch job launcher */
-	private JobLauncher jobLauncher;
-
-	/** Job to run */
-	private String jobName;
-
-	/** Context to find the job */
+	/** Context used to find the job */
 	private ApplicationContext applicationContext;
-
-	/** Holder for helper entries */
-	private Queue<SplitEntry> splitEntries = new ConcurrentLinkedQueue<BatchAppmaster.SplitEntry>();
-
-	/** Step executions as reported back from containers */
-	private List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
 
 	@Override
 	public void submitApplication() {
@@ -90,9 +64,10 @@ public class BatchAppmaster extends AbstractProcessingAppmaster
 			((AbstractAllocator)getAllocator()).setApplicationAttemptId(getApplicationAttemptId());
 		}
 		try {
-			Job job = (Job) applicationContext.getBean(jobName);
+			Job job = (Job) applicationContext.getBean(getJobName());
 			log.info("launching job:" + job);
-			jobLauncher.run(job, new JobParameters());
+			JobParameters jobParameters = getJobParametersConverter().getJobParameters(getParameters());
+			getJobLauncher().run(job, jobParameters);
 		} catch (Exception e) {
 			log.error("Error running job", e);
 		}
@@ -118,7 +93,7 @@ public class BatchAppmaster extends AbstractProcessingAppmaster
 					if(baseObject.getType().equals("PartitionedStepExecutionStatusReq")) {
 						StepExecutionType stepExecutionType = ((PartitionedStepExecutionStatusReq)baseObject).stepExecution;
 						StepExecution convertStepExecution = JobRepositoryRpcFactory.convertStepExecutionType(stepExecutionType);
-						stepExecutions.add(convertStepExecution);
+						getStepExecutions().add(convertStepExecution);
 						return null;
 					} else {
 						return baseObject;
@@ -158,96 +133,8 @@ public class BatchAppmaster extends AbstractProcessingAppmaster
 	}
 
 	@Override
-	public Map<String, ExecutionContext> partition(int gridSize) {
-		Map<String, ExecutionContext> map = new HashMap<String, ExecutionContext>(gridSize);
-		for (int i = 0; i < gridSize; i++) {
-			map.put("partition" + i, new ExecutionContext());
-		}
-		return map;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Override
-	public ContainerLaunchContext preLaunch(ContainerLaunchContext context) {
-		AppmasterService service = getAppmasterService();
-
-		if(log.isDebugEnabled()) {
-			log.debug("Intercept launch context: " + context);
-		}
-
-		SplitEntry splitEntry = splitEntries.poll();
-
-		if(service != null) {
-			int port = service.getPort();
-			String address = service.getHost();
-			Map<String, String> env = new HashMap(context.getEnvironment());
-			env.put(YarnSystemConstants.AMSERVICE_PORT, Integer.toString(port));
-			env.put(YarnSystemConstants.AMSERVICE_HOST, address);
-			env.put(YarnSystemConstants.AMSERVICE_BATCH_STEPNAME, splitEntry.stepName);
-			env.put(YarnSystemConstants.AMSERVICE_BATCH_JOBEXECUTIONID, Long.toString(splitEntry.stepExecution.getJobExecutionId()));
-			env.put(YarnSystemConstants.AMSERVICE_BATCH_STEPEXECUTIONID, Long.toString(splitEntry.stepExecution.getId()));
-			context.setEnvironment(env);
-			return context;
-		} else {
-			return super.preLaunch(context);
-		}
-	}
-
-	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-	}
-
-	/**
-	 * Sets the job launcher.
-	 *
-	 * @param jobLauncher the new job launcher
-	 */
-	public void setJobLauncher(JobLauncher jobLauncher) {
-		this.jobLauncher = jobLauncher;
-	}
-
-	/**
-	 * Sets the job name.
-	 *
-	 * @param jobName the new job name
-	 */
-	public void setJobName(String jobName) {
-		this.jobName = jobName;
-	}
-
-	/**
-	 * Gets the step executions.
-	 *
-	 * @return the step executions
-	 */
-	public List<StepExecution> getStepExecutions() {
-		return stepExecutions;
-	}
-
-	/**
-	 * Adds the step splits.
-	 *
-	 * @param stepName the step name
-	 * @param stepSplits the step splits
-	 */
-	public void addStepSplits(String stepName, Set<StepExecution> stepSplits) {
-		for(StepExecution stepExecution : stepSplits) {
-			splitEntries.add(new SplitEntry(stepName, stepExecution));
-		}
-	}
-
-	/**
-	 * Helper class keeping step name and execution together.
-	 */
-	private static class SplitEntry {
-		public String stepName;
-		public StepExecution stepExecution;
-		public SplitEntry(String stepName, StepExecution stepExecution) {
-			super();
-			this.stepName = stepName;
-			this.stepExecution = stepExecution;
-		}
 	}
 
 }
