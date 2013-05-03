@@ -23,7 +23,6 @@ import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.util.Records;
-import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
 
 /**
  * Default container launcher.
@@ -33,7 +32,7 @@ import org.springframework.yarn.am.allocate.DefaultContainerAllocator;
  */
 public class DefaultContainerLauncher extends AbstractLauncher implements ContainerLauncher {
 
-	private final static Log log = LogFactory.getLog(DefaultContainerAllocator.class);
+	private final static Log log = LogFactory.getLog(DefaultContainerLauncher.class);
 
 	@Override
 	public void launchContainer(Container container, List<String> commands) {
