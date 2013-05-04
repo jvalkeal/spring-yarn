@@ -35,6 +35,7 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.springframework.util.Assert;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
 import org.springframework.yarn.support.compat.ResourceCompat;
@@ -59,8 +60,11 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	/** Container request priority */
 	private int priority = 0;
 
-	/** Desired allocation location */
-	private String hostname = "*";
+	/** Default hosts to schedule */
+	private String[] hosts = new String[0];
+
+	/** Default racks to schedule */
+	private String[] racks = new String[0];
 
 	/** Resource capability as of cores */
 	private int virtualcores = 1;
@@ -135,8 +139,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 		List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();
 		if(count > 0) {
-			ResourceRequest containerAsk = getContainerResourceRequest(count);
-			requestedContainers.add(containerAsk);
+			requestedContainers.addAll(buildResourceRequests(count));
 			allocateContainers(requestedContainers);
 			requestedContainers.clear();
 		}
@@ -206,23 +209,41 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	/**
-	 * Gets the hostname for container request.
+	 * Gets the hosts.
 	 *
-	 * @return the hostname
+	 * @return the hosts
 	 */
-	public String getHostname() {
-		return hostname;
+	public String[] getHosts() {
+		return hosts;
 	}
 
 	/**
-	 * Sets the hostname for container request defining <em>host/rack</em> on
-	 * which the allocation is desired. A special value of <em>*</em> signifies
-	 * that <em>any</em> host/rack is acceptable.
+	 * Sets the hosts.
 	 *
-	 * @param hostname the new hostname
+	 * @param hosts the new hosts
 	 */
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
+	public void setHosts(String[] hosts) {
+		Assert.notNull(hosts, "Hosts array must not be null");
+		this.hosts = hosts;
+	}
+
+	/**
+	 * Gets the racks.
+	 *
+	 * @return the racks
+	 */
+	public String[] getRacks() {
+		return racks;
+	}
+
+	/**
+	 * Sets the racks.
+	 *
+	 * @param racks the new racks
+	 */
+	public void setRacks(String[] racks) {
+		Assert.notNull(racks, "Racks array must not be null");
+		this.racks = racks;
 	}
 
 	/**
@@ -264,14 +285,36 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	/**
+	 * Builds a list of resource requests.
+	 *
+	 * @param count the container count
+	 * @return the list of {@link ResourceRequest}s
+	 */
+	private List<ResourceRequest> buildResourceRequests(int count) {
+		List<ResourceRequest> requests = new ArrayList<ResourceRequest>();
+
+		for (String host : getHosts()) {
+			requests.add(getContainerResourceRequest(count, host));
+		}
+
+		for (String rack : getRacks()) {
+			requests.add(getContainerResourceRequest(count, rack));
+		}
+
+		requests.add(getContainerResourceRequest(count, "*"));
+
+		return requests;
+	}
+
+	/**
 	 * Creates a request to allocate new containers.
 	 *
 	 * @param numContainers number of containers to request
 	 * @return request to be sent to resource manager
 	 */
-	private ResourceRequest getContainerResourceRequest(int numContainers) {
+	private ResourceRequest getContainerResourceRequest(int numContainers, String hostName) {
 		ResourceRequest request = Records.newRecord(ResourceRequest.class);
-		request.setHostName(hostname);
+		request.setHostName(hostName);
 		request.setNumContainers(numContainers);
 		Priority pri = Records.newRecord(Priority.class);
 		pri.setPriority(priority);

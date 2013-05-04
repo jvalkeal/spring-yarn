@@ -91,7 +91,8 @@ public class MasterParser extends AbstractBeanDefinitionParser {
 		Element allocElement = DomUtils.getChildElementByTagName(element, "container-allocator");
 		YarnNamespaceUtils.setReferenceIfAttributeDefined(defBuilder, element, "environment", YarnSystemConstants.DEFAULT_ID_ENVIRONMENT);
 		if(allocElement != null) {
-			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "hostname");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "hosts");
+			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "racks");
 			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "virtualcores");
 			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "memory");
 			YarnNamespaceUtils.setValueIfAttributeDefined(defBuilder, allocElement, "priority");

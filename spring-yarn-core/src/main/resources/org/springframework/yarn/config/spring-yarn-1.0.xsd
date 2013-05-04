@@ -264,7 +264,8 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="containerAllocatorType" mixed="true">
-		<xsd:attribute name="hostname" type="xsd:string" use="optional"/>
+		<xsd:attribute name="hosts" type="xsd:string" use="optional"/>
+		<xsd:attribute name="racks" type="xsd:string" use="optional"/>
 		<xsd:attribute name="virtualcores" type="xsd:string" use="optional"/>
 		<xsd:attribute name="memory" type="xsd:string" use="optional"/>
 		<xsd:attribute name="priority" type="xsd:string" use="optional"/>
