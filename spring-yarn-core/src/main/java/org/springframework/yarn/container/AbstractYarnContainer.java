@@ -60,6 +60,15 @@ public abstract class AbstractYarnContainer implements YarnContainer {
 	}
 
 	/**
+	 * Gets the environment.
+	 *
+	 * @return the environment
+	 */
+	public Map<String, String> getEnvironment() {
+		return environment;
+	}
+
+	/**
 	 * Gets the parameters.
 	 *
 	 * @return the parameters

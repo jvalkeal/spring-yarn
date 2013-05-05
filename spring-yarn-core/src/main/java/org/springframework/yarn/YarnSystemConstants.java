@@ -65,4 +65,7 @@ public class YarnSystemConstants {
 	/** Default env variable for amservice batch step execution id. */
 	public static final String AMSERVICE_BATCH_STEPEXECUTIONID = "syarn.amservice.batch.stepexecutionid";
 
+	/** Env variable for container id. */
+	public static final String SYARN_CONTAINER_ID = "syarn.containerid";
+
 }

@@ -16,6 +16,7 @@
 package org.springframework.yarn.am.container;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,6 +24,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.util.Records;
+import org.springframework.yarn.YarnSystemConstants;
 
 /**
  * Default container launcher.
@@ -45,7 +47,10 @@ public class DefaultContainerLauncher extends AbstractLauncher implements Contai
 		ctx.setUser(getUsername());
 		ctx.setLocalResources(getResourceLocalizer().getResources());
 		ctx.setCommands(commands);
-		ctx.setEnvironment(getEnvironment());
+
+		Map<String, String> env = getEnvironment();
+		env.put(YarnSystemConstants.SYARN_CONTAINER_ID, Integer.toString(container.getId().getId()));
+		ctx.setEnvironment(env);
 		ctx = getInterceptors().preLaunch(ctx);
 
 		StartContainerRequest request = Records.newRecord(StartContainerRequest.class);
