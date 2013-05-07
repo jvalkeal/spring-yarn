@@ -15,10 +15,13 @@
  */
 package org.springframework.yarn.am.monitor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonitorState;
 
@@ -31,40 +34,89 @@ import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonit
  */
 public class DefaultContainerMonitor extends AbstractMonitor implements ContainerMonitor {
 
-	private static final Log log = LogFactory.getLog(DefaultContainerMonitor.class);
+	/** Containers which has been allocated */
+	private Set<ContainerId> allocated = new HashSet<ContainerId>();
 
-	/** Total number of requested containers */
-	private int total = -1;
+	/** Containers are currently running */
+	private Set<ContainerId> running = new HashSet<ContainerId>();
 
-	/** Total number of completed containers */
-	private int completed = 0;
+	/** Containers which has been completed */
+	private Set<ContainerId> completed = new HashSet<ContainerId>();
+
+	/** Containers which has been completed with failed status */
+	private Set<ContainerId> failed = new HashSet<ContainerId>();
 
 	@Override
 	public void monitorContainer(List<ContainerStatus> completedContainers) {
-		completed += completedContainers.size();
-		ContainerMonitorState state = new ContainerMonitorState(total, completed, completed/(double)total);
-		if(log.isDebugEnabled()) {
-			log.debug("New state: " + state);
+		for (ContainerStatus status : completedContainers) {
+			ContainerId containerId = status.getContainerId();
+			int exitStatus = status.getExitStatus();
+			ContainerState state = status.getState();
+
+			if (state.equals(ContainerState.COMPLETE)) {
+				if (exitStatus != 0) {
+					failed.add(containerId);
+				} else {
+					completed.add(containerId);
+				}
+			}
+			running.remove(containerId);
 		}
-		notifyState(state);
+		int total = allocated.size();
+		int fail = failed.size();
+		int comp = completed.size()+fail;
+		notifyState(new ContainerMonitorState(total, comp, fail, comp/(double)total));
 	}
 
 	@Override
-	public void setTotal(int count) {
-		total = count;
-	}
+	public void monitorContainer(ContainerStatus completedContainer) {
+		ContainerId containerId = completedContainer.getContainerId();
+		int exitStatus = completedContainer.getExitStatus();
+		ContainerState state = completedContainer.getState();
 
-	@Override
-	public boolean isCompleted() {
-		if(log.isDebugEnabled()) {
-			log.debug("complete: completed=" + completed + " total=" + total);
+		if (state.equals(ContainerState.COMPLETE)) {
+			if (exitStatus != 0) {
+				failed.add(containerId);
+			} else {
+				completed.add(containerId);
+			}
 		}
-		return completed >= total;
+		running.remove(containerId);
+		int total = allocated.size();
+		int fail = failed.size();
+		int comp = completed.size()+fail;
+		notifyState(new ContainerMonitorState(total, comp, fail, comp/(double)total));
 	}
 
 	@Override
-	public void setCompleted() {
-		completed = total;
+	public void reportContainer(Container container) {
+		if (container.getState().equals(ContainerState.NEW)) {
+			allocated.add(container.getId());
+		}
+		if (container.getState().equals(ContainerState.RUNNING)) {
+			running.add(container.getId());
+			allocated.remove(container.getId());
+		}
+	}
+
+	@Override
+	public void addContainer(Container container) {
+		allocated.add(container.getId());
+	}
+
+	@Override
+	public boolean hasRunning() {
+		return !running.isEmpty();
+	}
+
+	@Override
+	public boolean hasFailed() {
+		return !failed.isEmpty();
+	}
+
+	@Override
+	public boolean hasFree() {
+		return !allocated.isEmpty();
 	}
 
 }

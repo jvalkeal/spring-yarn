@@ -25,7 +25,6 @@ import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.util.Assert;
 import org.springframework.yarn.am.container.AbstractLauncher;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
-import org.springframework.yarn.listener.ContainerMonitorListener;
 
 /**
  * Base application master implementation which handles a simple
@@ -66,30 +65,43 @@ public abstract class AbstractProcessingAppmaster extends AbstractServicesAppmas
 		getAllocator().addListener(new ContainerAllocatorListener() {
 			@Override
 			public void allocated(List<Container> allocatedContainers) {
-				for(Container container : allocatedContainers) {
+				for (Container container : allocatedContainers) {
+					getMonitor().addContainer(container);
 					getLauncher().launchContainer(container, getCommands());
+					onContainerAllocated(container);
 				}
 			}
 			@Override
 			public void completed(List<ContainerStatus> completedContainers) {
 				getMonitor().monitorContainer(completedContainers);
-			}
-		});
-
-		getMonitor().addContainerMonitorStateListener(new ContainerMonitorListener() {
-			@Override
-			public void state(ContainerMonitorState state) {
-				if(state.getProgress() >= 1) {
-					notifyCompleted();
+				for (ContainerStatus status : completedContainers) {
+					onContainerCompleted(status);
 				}
 			}
 		});
-
 	}
 
 	@Override
 	public ContainerLaunchContext preLaunch(ContainerLaunchContext context) {
 		return context;
+	}
+
+	/**
+	 * Called when container has been allocated. Default
+	 * implementation is not doing anything.
+	 *
+	 * @param container the container
+	 */
+	protected void onContainerAllocated(Container container) {
+	}
+
+	/**
+	 * Called when container has been completed. Default
+	 * implementation is not doing anything.
+	 *
+	 * @param status the status
+	 */
+	protected void onContainerCompleted(ContainerStatus status) {
 	}
 
 }

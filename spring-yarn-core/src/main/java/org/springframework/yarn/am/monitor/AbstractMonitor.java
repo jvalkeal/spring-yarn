@@ -15,6 +15,8 @@
  */
 package org.springframework.yarn.am.monitor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.yarn.listener.CompositeContainerMonitorStateListener;
 import org.springframework.yarn.listener.ContainerMonitorListener;
 import org.springframework.yarn.listener.ContainerMonitorListener.ContainerMonitorState;
@@ -27,6 +29,8 @@ import org.springframework.yarn.support.LifecycleObjectSupport;
  *
  */
 public abstract class AbstractMonitor extends LifecycleObjectSupport {
+
+	private static final Log log = LogFactory.getLog(AbstractMonitor.class);
 
 	/** Handler for state listener */
 	private CompositeContainerMonitorStateListener stateListener =
@@ -47,6 +51,9 @@ public abstract class AbstractMonitor extends LifecycleObjectSupport {
 	 * @param state the {@link ContainerMonitorState}
 	 */
 	protected void notifyState(ContainerMonitorState state) {
+		if (log.isDebugEnabled()) {
+			log.debug("Notify new state: " + state);
+		}
 		stateListener.state(state);
 	}
 

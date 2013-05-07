@@ -18,10 +18,17 @@ package org.springframework.yarn.am;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.springframework.yarn.am.allocate.AbstractAllocator;
 
 /**
+ * A simple application master implementation which will allocate
+ * and launch a number of containers, monitor container statuses
+ * and finally exit the application by sending corresponding
+ * message back to resource manager. This implementation also
+ * is able to handle failed containers.
  *
  * @author Janne Valkealahti
  *
@@ -30,8 +37,8 @@ public class StaticEventingAppmaster extends AbstractEventingAppmaster implement
 
 	private static final Log log = LogFactory.getLog(StaticEventingAppmaster.class);
 
-	private int runCount;
-	private int okCount;
+	/** Static count of containers to run */
+	private int containerCount;
 
 	@Override
 	public void submitApplication() {
@@ -41,34 +48,56 @@ public class StaticEventingAppmaster extends AbstractEventingAppmaster implement
 		if(getAllocator() instanceof AbstractAllocator) {
 			((AbstractAllocator)getAllocator()).setApplicationAttemptId(getApplicationAttemptId());
 		}
-		runCount = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
-		log.info("count: " + runCount);
-		getMonitor().setTotal(runCount);
-		getAllocator().allocateContainers(runCount);
+		containerCount = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
+		log.info("count: " + containerCount);
+		getAllocator().allocateContainers(containerCount);
 	}
 
 	@Override
 	protected void onContainerAllocated(Container container) {
+		getMonitor().addContainer(container);
 		getLauncher().launchContainer(container, getCommands());
 	}
 
 	@Override
 	protected void onContainerLaunched(Container container) {
+		getMonitor().reportContainer(container);
 	}
 
 	@Override
 	protected void onContainerCompleted(ContainerStatus status) {
 		super.onContainerCompleted(status);
+
+		getMonitor().monitorContainer(status);
+
 		int exitStatus = status.getExitStatus();
-		if(exitStatus == 0) {
-			okCount++;
+		ContainerId containerId = status.getContainerId();
+
+		boolean handled = false;
+		if (exitStatus > 0) {
+			handled = onContainerFailed(containerId);
+			if (!handled) {
+				setFinalApplicationStatus(FinalApplicationStatus.FAILED);
+				notifyCompleted();
+			}
 		} else {
-			getAllocator().allocateContainers(1);
+			if (!getMonitor().hasRunning()) {
+				notifyCompleted();
+			}
 		}
-		if(okCount >= runCount) {
-			getMonitor().setCompleted();
-			notifyCompleted();
-		}
+	}
+
+	/**
+	 * Called if completed container has failed. User
+	 * may override this method to process failed container,
+	 * i.e. making a request to re-allocate new container istead
+	 * of failing the application.
+	 *
+	 * @param containerId the container id
+	 * @return true, if container was handled.
+	 */
+	protected boolean onContainerFailed(ContainerId containerId) {
+		return false;
 	}
 
 }

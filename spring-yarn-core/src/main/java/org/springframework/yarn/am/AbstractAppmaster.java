@@ -30,6 +30,8 @@ import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
+import org.springframework.yarn.am.assign.ContainerAssing;
+import org.springframework.yarn.am.assign.DefaultContainerAssing;
 import org.springframework.yarn.fs.ResourceLocalizer;
 import org.springframework.yarn.listener.AppmasterStateListener;
 import org.springframework.yarn.listener.AppmasterStateListener.AppmasterState;
@@ -81,6 +83,9 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 
 	/** Listener handling state events */
 	private CompositeAppmasterStateListener stateListener = new CompositeAppmasterStateListener();
+
+	/** Holder for container assigned data */
+	private ContainerAssing<Object> containerAssing = new DefaultContainerAssing();
 
 	/**
 	 * Global application master instance specific {@link ApplicationAttemptId}
@@ -235,6 +240,24 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 */
 	public void addAppmasterStateListener(AppmasterStateListener listener) {
 		stateListener.register(listener);
+	}
+
+	/**
+	 * Gets the container assing.
+	 *
+	 * @return the container assing
+	 */
+	public ContainerAssing<Object> getContainerAssing() {
+		return containerAssing;
+	}
+
+	/**
+	 * Sets the container assing.
+	 *
+	 * @param containerAssing the new container assing
+	 */
+	public void setContainerAssing(ContainerAssing<Object> containerAssing) {
+		this.containerAssing = containerAssing;
 	}
 
 	/**

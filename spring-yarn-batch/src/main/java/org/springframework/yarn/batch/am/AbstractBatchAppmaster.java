@@ -173,7 +173,6 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 				stepExecutionStateListener.state(PartitionedStepExecutionState.COMPLETED, entry.getKey());
 				// TODO: this is wrong. we don't actually know if we
 				// are complete. other partitioned steps may come later
-				getMonitor().setCompleted();
 				notifyCompleted();
 			}
 		}
@@ -324,7 +323,6 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 
 		getAllocator().allocateContainers(remaining);
 		getAllocator().allocateContainers(requests);
-		getMonitor().setTotal(requests.size());
 	}
 
 	/**

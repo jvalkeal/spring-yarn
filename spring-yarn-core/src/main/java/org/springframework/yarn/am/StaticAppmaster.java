@@ -17,8 +17,10 @@ package org.springframework.yarn.am;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.yarn.am.allocate.AbstractAllocator;
+import org.springframework.yarn.listener.ContainerMonitorListener;
 
 /**
  * A simple application master implementation which will allocate
@@ -33,6 +35,9 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 
 	private static final Log log = LogFactory.getLog(StaticAppmaster.class);
 
+	/** Static count of containers to run */
+	private int containerCount;
+
 	@Override
 	public void submitApplication() {
 		log.info("Submitting application");
@@ -41,22 +46,41 @@ public class StaticAppmaster extends AbstractProcessingAppmaster implements Yarn
 		if(getAllocator() instanceof AbstractAllocator) {
 			((AbstractAllocator)getAllocator()).setApplicationAttemptId(getApplicationAttemptId());
 		}
-		int count = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
-		log.info("count: " + count);
-		getMonitor().setTotal(count);
-		getAllocator().allocateContainers(count);
+		containerCount = Integer.parseInt(getParameters().getProperty(AppmasterConstants.CONTAINER_COUNT, "1"));
+		log.info("count: " + containerCount);
+		getAllocator().allocateContainers(containerCount);
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		getMonitor().addContainerMonitorStateListener(new ContainerMonitorListener() {
+			@Override
+			public void state(ContainerMonitorState state) {
+				if (!getMonitor().hasRunning()) {
+					int completed = state.getCompleted();
+					int failed = state.getFailed();
+					if (completed + failed >= containerCount) {
+						if (failed > 0) {
+							setFinalApplicationStatus(FinalApplicationStatus.FAILED);
+						}
+						notifyCompleted();
+					}
+				}
+			}
+		});
 	}
 
 	@Override
 	protected void doStart() {
 		super.doStart();
-
 		AppmasterService service = getAppmasterService();
-		log.info("AppmasterService: " + service);
+		if (service != null) {
+			log.info("AppmasterService implementation is " + service);
+		}
 		if(getAppmasterService() instanceof SmartLifecycle) {
 			((SmartLifecycle)getAppmasterService()).start();
 		}
-
 	}
 
 }

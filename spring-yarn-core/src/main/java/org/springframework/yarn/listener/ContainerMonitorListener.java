@@ -24,7 +24,7 @@ package org.springframework.yarn.listener;
 public interface ContainerMonitorListener {
 
 	/**
-	 * Invoked when monitoring state is changes.
+	 * Invoked when monitoring state is changed.
 	 *
 	 * @param state the {@link ContainerMonitorState}
 	 */
@@ -34,28 +34,72 @@ public interface ContainerMonitorListener {
 	 * Class holding state info.
 	 */
 	public class ContainerMonitorState {
-		private int total;
+
+		/** Number of free allocations */
+		private int allocated;
+		/** Number of completed */
 		private int completed;
+		/** Number of failed */
+		private int failed;
+		/** Progress as 0..1 */
 		private double progress;
-		public ContainerMonitorState(int total, int completed, double progress) {
+
+		/**
+		 * Instantiates a new container monitor state.
+		 *
+		 * @param allocated the allocated
+		 * @param completed the completed
+		 * @param failed the failed
+		 * @param progress the progress
+		 */
+		public ContainerMonitorState(int allocated, int completed, int failed, double progress) {
 			super();
-			this.total = total;
+			this.allocated = allocated;
 			this.completed = completed;
+			this.failed = failed;
 			this.progress = progress;
 		}
-		public int getTotal() {
-			return total;
+
+		/**
+		 * Gets the allocated.
+		 *
+		 * @return the allocated
+		 */
+		public int getAllocated() {
+			return allocated;
 		}
+
+		/**
+		 * Gets the completed.
+		 *
+		 * @return the completed
+		 */
 		public int getCompleted() {
 			return completed;
 		}
+
+		/**
+		 * Gets the failed.
+		 *
+		 * @return the failed
+		 */
+		public int getFailed() {
+			return failed;
+		}
+
+		/**
+		 * Gets the progress.
+		 *
+		 * @return the progress
+		 */
 		public double getProgress() {
 			return progress;
 		}
+
 		@Override
 		public String toString() {
-			return "ContainerMonitorState [total=" + total + ", completed="
-					+ completed + ", progress=" + progress + "]";
+			return "ContainerMonitorState [allocated=" + allocated + ", completed=" + completed + ", failed=" + failed
+					+ ", progress=" + progress + "]";
 		}
 	}
 

@@ -50,9 +50,14 @@ public class MasterParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 
 		// for now, defaulting to StaticAppmaster
+		// and checking if implementation class was defined
 		String type = element.getAttribute("type");
+		String clazz = element.getAttribute("class");
+
 		BeanDefinitionBuilder builder;
-		if(type.equals("event")) {
+		if (StringUtils.hasText(clazz)) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(clazz);
+		} else if (type.equals("event")) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticEventingAppmaster.class);
 		} else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticAppmaster.class);

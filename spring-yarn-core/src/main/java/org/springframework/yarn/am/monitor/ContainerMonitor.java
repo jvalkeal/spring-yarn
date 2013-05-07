@@ -17,6 +17,7 @@ package org.springframework.yarn.am.monitor;
 
 import java.util.List;
 
+import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.springframework.yarn.listener.ContainerMonitorListener;
 
@@ -30,18 +31,11 @@ import org.springframework.yarn.listener.ContainerMonitorListener;
 public interface ContainerMonitor {
 
 	/**
-	 * Sets the total number of containers.
+	 * Adds a container into monitor.
 	 *
-	 * @param count the new total container count
+	 * @param container the container
 	 */
-	void setTotal(int count);
-
-	/**
-	 * Checks if is completed.
-	 *
-	 * @return true, if is completed
-	 */
-	boolean isCompleted();
+	void addContainer(Container container);
 
 	/**
 	 * Notifies monitor for completed containers.
@@ -51,9 +45,39 @@ public interface ContainerMonitor {
 	void monitorContainer(List<ContainerStatus> completedContainers);
 
 	/**
-	 * Sets the state of monitor to be completed.
+	 * Notifies monitor for completed container.
+	 *
+	 * @param completedContainer the completed container
 	 */
-	void setCompleted();
+	void monitorContainer(ContainerStatus completedContainer);
+
+	/**
+	 * Report container.
+	 *
+	 * @param container the container
+	 */
+	void reportContainer(Container container);
+
+	/**
+	 * Checks for running containers.
+	 *
+	 * @return true, if running containers exist
+	 */
+	boolean hasRunning();
+
+	/**
+	 * Checks for failed containers.
+	 *
+	 * @return true, if failed containers exist
+	 */
+	boolean hasFailed();
+
+	/**
+	 * Checks for free allocated containers.
+	 *
+	 * @return true, if free allocated containers exist
+	 */
+	boolean hasFree();
 
 	/**
 	 * Adds the container monitor state listener.
