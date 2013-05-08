@@ -30,9 +30,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.yarn.TestUtils;
 import org.springframework.yarn.integration.IntegrationAppmasterServiceFactoryBean;
 import org.springframework.yarn.integration.ip.mind.TestService;
+import org.springframework.yarn.test.TestUtils;
 
 /**
  * Testing 'int:amservice' namespace.

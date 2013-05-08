@@ -99,6 +99,7 @@ project('spring-yarn-core') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		
+		testCompile project(":spring-yarn-test")
         testCompile "commons-daemon:commons-daemon:1.0.10"		
         testCompile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"		
 		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
@@ -118,7 +119,8 @@ project('spring-yarn-integration') {
 		compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
 		compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		testCompile project(":spring-yarn-core").sourceSets.test.output
+		//testCompile project(":spring-yarn-core").sourceSets.test.output
+		testCompile project(":spring-yarn-test")
 		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
@@ -137,6 +139,7 @@ project('spring-yarn-batch') {
         compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
         compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
+		testCompile project(":spring-yarn-test")
 		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
@@ -146,6 +149,19 @@ project('spring-yarn-batch') {
 			exclude group: 'org.jboss.netty'
 		}
     }
+}
+
+project('spring-yarn-test') {
+
+    description = "Spring YARN test"
+    
+    dependencies {		
+		compile "org.springframework:spring-test:$springVersion"
+		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
+		testCompile "junit:junit:$junitVersion"
+    }
+	
 }
 
 configure(rootProject) {

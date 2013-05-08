@@ -29,9 +29,9 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.yarn.TestUtils;
 import org.springframework.yarn.integration.IntegrationAppmasterServiceClientFactoryBean;
 import org.springframework.yarn.integration.ip.mind.TestServiceClient;
+import org.springframework.yarn.test.TestUtils;
 
 /**
  * Testing 'int:amservice-client' namespace.

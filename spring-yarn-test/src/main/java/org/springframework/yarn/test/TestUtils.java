@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn;
+package org.springframework.yarn.test;
 
 import java.lang.reflect.Field;
 
