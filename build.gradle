@@ -155,7 +155,28 @@ project('spring-yarn-test') {
 
     description = "Spring YARN test"
     
-    dependencies {		
+    dependencies {
+        compile ("org.apache.hadoop:hadoop-yarn-api:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-common:$hadoopVersion") {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-client:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-common:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-server-common:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-server-nodemanager:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
+        compile ("org.apache.hadoop:hadoop-yarn-server-resourcemanager:$hadoopVersion")  {
+			exclude group: 'org.jboss.netty'
+		}
 		compile "org.springframework:spring-test:$springVersion"
 		testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"		
