@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        maven { url 'http://repo.springsource.org/libs-release'}
         maven { url 'http://repo.springsource.org/plugins-release' }
     }
     dependencies {
@@ -145,6 +146,7 @@ project('spring-yarn-batch') {
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
+        testCompile "org.springframework.data:spring-data-hadoop:1.0.0.RELEASE"
 		testRuntime ("io.netty:netty:3.5.9.Final") {
 			exclude group: 'org.jboss.netty'
 		}

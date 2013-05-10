@@ -114,11 +114,6 @@ public abstract class AbstractBatchPartitionHandler implements PartitionHandler 
 			}
 		}
 
-//		int remaining = split.size();
-//		if (resourceRequests != null && resourceRequests.size() > 0) {
-//			remaining -= resourceRequests.size();
-//		}
-
 		batchAppmaster.addStepSplits(stepExecution, stepName, split, resourceRequests);
 
 		waitCompleteState(stepExecution);
