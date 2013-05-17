@@ -18,7 +18,6 @@ package org.springframework.yarn.batch.am;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -66,8 +65,7 @@ public class BatchAppmaster extends AbstractBatchAppmaster
 		try {
 			Job job = (Job) applicationContext.getBean(getJobName());
 			log.info("launching job:" + job);
-			JobParameters jobParameters = getJobParametersConverter().getJobParameters(getParameters());
-			getJobLauncher().run(job, jobParameters);
+			runJob(job);
 		} catch (Exception e) {
 			log.error("Error running job", e);
 		}

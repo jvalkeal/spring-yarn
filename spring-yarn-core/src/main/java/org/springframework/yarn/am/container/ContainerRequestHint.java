@@ -21,15 +21,16 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 
 /**
- * Helper class to keep container request data together and
- * still keeping hosts/racks information around. With
- * {@link org.apache.hadoop.yarn.api.records.ResourceRequest}
- * we'd lose specific data whether we're requesting locality.
+ * Helper class used to add request data hints. None of
+ * the parameters set here are not guaranteed to be
+ * used. For example setting an array of hosts and racks
+ * just tells user of this class that we'd like to
+ * localise into those locations.
  *
  * @author Janne Valkealahti
  *
  */
-public class ContainerRequestData {
+public class ContainerRequestHint {
 
 	/** Id acts as a convenience field for user to be used for key */
 	private final Object id;
@@ -48,7 +49,7 @@ public class ContainerRequestData {
 	 * @param racks the racks
 	 * @param priority the priority
 	 */
-	public ContainerRequestData(Object id, Resource capability, String[] hosts, String[] racks, Priority priority) {
+	public ContainerRequestHint(Object id, Resource capability, String[] hosts, String[] racks, Priority priority) {
 		this.id = id;
 		this.capability = capability;
 		this.hosts = hosts;

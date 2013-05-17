@@ -27,16 +27,12 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.yarn.api.records.Priority;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.util.Records;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.StepExecutionSplitter;
 import org.springframework.util.StringUtils;
-import org.springframework.yarn.am.container.ContainerRequestData;
+import org.springframework.yarn.am.container.ContainerRequestHint;
 import org.springframework.yarn.batch.am.AbstractBatchAppmaster;
-import org.springframework.yarn.support.compat.ResourceCompat;
 
 /**
  * Implementation of Spring Batch {@link PartitionHandler} which does
@@ -105,16 +101,10 @@ public class HdfsSplitBatchPartitionHandler extends AbstractBatchPartitionHandle
 	}
 
 	@Override
-	protected Map<StepExecution, ContainerRequestData> createResourceRequestData(Set<StepExecution> stepExecutions) throws Exception {
-		Map<StepExecution, ContainerRequestData> requests = new HashMap<StepExecution, ContainerRequestData>();
+	protected Map<StepExecution, ContainerRequestHint> createResourceRequestData(Set<StepExecution> stepExecutions) throws Exception {
+		Map<StepExecution, ContainerRequestHint> requests = new HashMap<StepExecution, ContainerRequestHint>();
 
 		for (StepExecution execution : stepExecutions) {
-			Resource capability = Records.newRecord(Resource.class);
-			capability.setMemory(64);
-			ResourceCompat.setVirtualCores(capability, 1);
-			Priority priority = Records.newRecord(Priority.class);
-			priority.setPriority(0);
-
 			String fileName = execution.getExecutionContext().getString("fileName");
 			long splitStart = execution.getExecutionContext().getLong("splitStart");
 			long splitLength = execution.getExecutionContext().getLong("splitLength");
@@ -136,9 +126,9 @@ public class HdfsSplitBatchPartitionHandler extends AbstractBatchPartitionHandle
 			}
 
 			String[] hosts = hostsSet.toArray(new String[0]);
-//			String[] racks = new String[]{"default-rack"};
 			String[] racks = new String[0];
-			requests.put(execution, new ContainerRequestData(execution, capability, hosts, racks, priority));
+			// hints only for hosts
+			requests.put(execution, new ContainerRequestHint(execution, null, hosts, racks, null));
 		}
 
 		return requests;

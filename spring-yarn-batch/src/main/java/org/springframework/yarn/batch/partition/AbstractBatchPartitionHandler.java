@@ -29,7 +29,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.StepExecutionSplitter;
-import org.springframework.yarn.am.container.ContainerRequestData;
+import org.springframework.yarn.am.container.ContainerRequestHint;
 import org.springframework.yarn.am.container.ContainerResolver;
 import org.springframework.yarn.batch.am.AbstractBatchAppmaster;
 import org.springframework.yarn.batch.listener.PartitionedStepExecutionStateListener;
@@ -68,7 +68,7 @@ public abstract class AbstractBatchPartitionHandler implements PartitionHandler 
 			throws Exception;
 
 	/**
-	 * Subclass may override this method to assign a specific {@link ContainerRequestData} to
+	 * Subclass may override this method to assign a specific {@link ContainerRequestHint} to
 	 * a {@link StepExecution}. This would be needed in cases where step should be executed
 	 * in a specific host or rack considering data locality. Default implementation
 	 * returns an empty map.
@@ -77,9 +77,9 @@ public abstract class AbstractBatchPartitionHandler implements PartitionHandler 
 	 * @return Mapping between step executions and container request data
 	 * @throws Exception If error occurred
 	 */
-	protected Map<StepExecution, ContainerRequestData> createResourceRequestData(Set<StepExecution> stepExecutions)
+	protected Map<StepExecution, ContainerRequestHint> createResourceRequestData(Set<StepExecution> stepExecutions)
 			throws Exception {
-		return new HashMap<StepExecution, ContainerRequestData>();
+		return new HashMap<StepExecution, ContainerRequestHint>();
 	}
 
 	@Override
@@ -105,11 +105,11 @@ public abstract class AbstractBatchPartitionHandler implements PartitionHandler 
 			}
 		}
 
-		Map<StepExecution, ContainerRequestData> resourceRequests = createResourceRequestData(split);
+		Map<StepExecution, ContainerRequestHint> resourceRequests = createResourceRequestData(split);
 
 		if (log.isDebugEnabled()) {
 			log.debug("Resource request map size is " + resourceRequests.size());
-			for (Entry<StepExecution, ContainerRequestData> entry : resourceRequests.entrySet()) {
+			for (Entry<StepExecution, ContainerRequestHint> entry : resourceRequests.entrySet()) {
 				log.debug("Entry stepExecution=" + entry.getKey() + " requestData=" + entry.getValue());
 			}
 		}
