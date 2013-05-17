@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.springframework.yarn.listener.ContainerAllocatorListener;
 
 /**
@@ -40,9 +39,9 @@ public interface ContainerAllocator {
 	/**
 	 * Allocate new containers.
 	 *
-	 * @param requests the list of {@link ResourceRequest}s
+	 * @param containerAllocateData the {@link ContainerAllocateData}
 	 */
-	void allocateContainers(List<ResourceRequest> requests);
+	void allocateContainers(ContainerAllocateData containerAllocateData);
 
 	/**
 	 * Release containers.

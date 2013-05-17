@@ -98,6 +98,18 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 	protected abstract AMResponse doContainerRequest();
 
 	/**
+	 * Pre process allocated containers. Allows implementors to
+	 * intercept containers before further processing is done.
+	 * Default implementation returns list as it is.
+	 *
+	 * @param containers the containers
+	 * @return the list of containers
+	 */
+	protected List<Container> preProcessAllocatedContainers(List<Container> containers) {
+		return containers;
+	}
+
+	/**
 	 * Subclasses needs to implement this method to handle newly
 	 * allocated containers.
 	 *
@@ -150,7 +162,7 @@ public abstract class AbstractPollingAllocator extends AbstractAllocator {
 
 		AMResponse response = doContainerRequest();
 
-		List<Container> allocatedContainers = response.getAllocatedContainers();
+		List<Container> allocatedContainers = preProcessAllocatedContainers(response.getAllocatedContainers());
 		if(allocatedContainers != null && allocatedContainers.size() > 0) {
 			if (log.isDebugEnabled()){
 				log.debug("response has " + allocatedContainers.size() + " new containers");

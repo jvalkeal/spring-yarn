@@ -17,8 +17,9 @@ package org.springframework.yarn.am.allocate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,7 +34,6 @@ import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
-import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.springframework.util.Assert;
 import org.springframework.yarn.listener.CompositeContainerAllocatorListener;
@@ -53,9 +53,6 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 	/** Listener dispatcher for events */
 	private CompositeContainerAllocatorListener allocatorListener = new CompositeContainerAllocatorListener();
-
-	/** Counter of current requested containers */
-	private AtomicInteger numRequestedContainers = new AtomicInteger();
 
 	/** Container request priority */
 	private int priority = 0;
@@ -81,22 +78,15 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	/** Queued container id's to be released */
 	private Queue<ContainerId> releaseContainers = new ConcurrentLinkedQueue<ContainerId>();
 
-	/**
-	 * Map for resource requests. Resource request is kept in both key and value
-	 * because we use comparator to get request by its priority, hostname and capability.
-	 * This allows us to update the container count on a mapped value.
-	 */
-	private TreeMap<ResourceRequest, ResourceRequest> resourceRequests =
-			new TreeMap<ResourceRequest, ResourceRequest>(new BuilderUtils.ResourceRequestComparator());
+	/** Tracker for request counts */
+	private DefaultAllocateCountTracker allocateCountTracker = new DefaultAllocateCountTracker();
 
 	@Override
 	public void allocateContainers(int count) {
-		// adding new container allocation count, poller
-		// will pick it up later
-		int newCount = numRequestedContainers.addAndGet(count);
 		if(log.isDebugEnabled()) {
-			log.debug("Adding " + count + " new containers. New count is " + newCount);
+			log.debug("Incoming count: " + count);
 		}
+		allocateCountTracker.addContainers(count);
 	}
 
 	@Override
@@ -105,19 +95,19 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	@Override
-	public void allocateContainers(List<ResourceRequest> requests) {
-		for (ResourceRequest request : requests) {
-			synchronized (resourceRequests) {
-				ResourceRequest resourceRequest = resourceRequests.get(request);
-				if (resourceRequest != null) {
-					int count = resourceRequest.getNumContainers() + request.getNumContainers();
-					request.setNumContainers(count);
-				}
-				if(log.isDebugEnabled()) {
-					log.debug("Adding new container using request=" + request);
-				}
-				resourceRequests.put(request, request);
-			}
+	public void allocateContainers(ContainerAllocateData containerAllocateData) {
+		if(log.isDebugEnabled()) {
+			log.debug("Incoming containerAllocateData: " + containerAllocateData);
+		}
+
+		if(log.isDebugEnabled()) {
+			log.debug("State allocateCountTracker before adding allocation data: " + allocateCountTracker);
+		}
+
+		allocateCountTracker.addContainers(containerAllocateData);
+
+		if(log.isDebugEnabled()) {
+			log.debug("State allocateCountTracker after adding allocation data: " + allocateCountTracker);
 		}
 	}
 
@@ -135,34 +125,30 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 	@Override
 	protected AMResponse doContainerRequest() {
-		int count = numRequestedContainers.getAndSet(0);
-
 		List<ResourceRequest> requestedContainers = new ArrayList<ResourceRequest>();
-		if(count > 0) {
-			requestedContainers.addAll(buildResourceRequests(count));
-			allocateContainers(requestedContainers);
-			requestedContainers.clear();
+		Map<String, Integer> allocateCounts = allocateCountTracker.getAllocateCounts();
+
+		for (Entry<String, Integer> entry : allocateCounts.entrySet()) {
+			requestedContainers.add(getContainerResourceRequest(entry.getValue(), entry.getKey()));
 		}
 
-		synchronized (resourceRequests) {
-			requestedContainers.addAll(resourceRequests.values());
-			resourceRequests.clear();
-		}
-
-		if(log.isDebugEnabled()) {
-			log.debug("Requesting containers using " +requestedContainers.size() + " requests.");
-			for (ResourceRequest resourceRequest : requestedContainers) {
-				log.debug("ResourceRequest: " + resourceRequest + " with count=" +
-						resourceRequest.getNumContainers() + " with hostName=" + resourceRequest.getHostName());
-			}
-		}
-
+		// add pending containers to be released
 		List<ContainerId> release = new ArrayList<ContainerId>();
 		ContainerId element = null;
 		while ((element = releaseContainers.poll()) != null) {
 			release.add(element);
 		}
 
+		if(log.isDebugEnabled()) {
+			log.debug("Requesting containers using " + requestedContainers.size() + " requests.");
+			for (ResourceRequest resourceRequest : requestedContainers) {
+				log.debug("ResourceRequest: " + resourceRequest + " with count=" +
+						resourceRequest.getNumContainers() + " with hostName=" + resourceRequest.getHostName());
+			}
+			log.debug("Request id will be: " + requestId.get());
+		}
+
+		// build the allocation request
 		AllocateRequest request = Records.newRecord(AllocateRequest.class);
 		request.setResponseId(requestId.get());
 		request.setApplicationAttemptId(getApplicationAttemptId());
@@ -170,13 +156,68 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 		request.addAllReleases(release);
 		request.setProgress(applicationProgress);
 
+		// do request and return response
 		AllocateResponse allocate = getRmTemplate().allocate(request);
 		requestId.set(allocate.getAMResponse().getResponseId());
 		return allocate.getAMResponse();
 	}
 
 	@Override
+	protected List<Container> preProcessAllocatedContainers(List<Container> containers) {
+		// checking if we have standing allocation counts,
+		// if not assume as garbage and send to release queue.
+		// what's left will be out of our hand and expected to be
+		// processed by the listener and eventually send back
+		// to us as a released container.
+
+		if(log.isDebugEnabled()) {
+			log.debug("State allocateCountTracker before handling allocated container: " + allocateCountTracker);
+		}
+
+		List<Container> preProcessed = new ArrayList<Container>();
+		for (Container container : containers) {
+			Container processed = allocateCountTracker.processAllocatedContainer(container);
+			if (processed != null) {
+				preProcessed.add(processed);
+			} else {
+				releaseContainers.add(container.getId());
+			}
+		}
+
+		if(log.isDebugEnabled()) {
+			log.debug("State allocateCountTracker after handling allocated container: " + allocateCountTracker);
+		}
+
+		return preProcessed;
+	}
+
+	@Override
 	protected void handleAllocatedContainers(List<Container> containers) {
+//		// checking if we have standing allocation counts,
+//		// if not assume as garbage and send to release queue.
+//		// what's left will be out of our hand and expected to be
+//		// processed by the listener and eventually send back
+//		// to us as a released container.
+//
+//		if(log.isDebugEnabled()) {
+//			log.debug("State allocateCountTracker before handling allocated container: " + allocateCountTracker);
+//		}
+//
+//		List<Container> preProcessed = new ArrayList<Container>();
+//		for (Container container : containers) {
+//			Container processed = allocateCountTracker.processAllocatedContainer(container);
+//			if (processed != null) {
+//				preProcessed.add(processed);
+//			} else {
+//				releaseContainers.add(container.getId());
+//			}
+//		}
+//
+//		if(log.isDebugEnabled()) {
+//			log.debug("State allocateCountTracker after handling allocated container: " + allocateCountTracker);
+//		}
+//
+//		allocatorListener.allocated(preProcessed);
 		allocatorListener.allocated(containers);
 	}
 
@@ -285,29 +326,7 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 	}
 
 	/**
-	 * Builds a list of resource requests.
-	 *
-	 * @param count the container count
-	 * @return the list of {@link ResourceRequest}s
-	 */
-	private List<ResourceRequest> buildResourceRequests(int count) {
-		List<ResourceRequest> requests = new ArrayList<ResourceRequest>();
-
-		for (String host : getHosts()) {
-			requests.add(getContainerResourceRequest(count, host));
-		}
-
-		for (String rack : getRacks()) {
-			requests.add(getContainerResourceRequest(count, rack));
-		}
-
-		requests.add(getContainerResourceRequest(count, "*"));
-
-		return requests;
-	}
-
-	/**
-	 * Creates a request to allocate new containers.
+	 * Utility method creating a {@link ResourceRequest}.
 	 *
 	 * @param numContainers number of containers to request
 	 * @return request to be sent to resource manager

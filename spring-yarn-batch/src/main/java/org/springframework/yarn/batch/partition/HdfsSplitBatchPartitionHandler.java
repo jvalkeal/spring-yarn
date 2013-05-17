@@ -16,6 +16,7 @@
 package org.springframework.yarn.batch.partition;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.StepExecutionSplitter;
+import org.springframework.util.StringUtils;
 import org.springframework.yarn.am.container.ContainerRequestData;
 import org.springframework.yarn.batch.am.AbstractBatchAppmaster;
 import org.springframework.yarn.support.compat.ResourceCompat;
@@ -113,15 +115,29 @@ public class HdfsSplitBatchPartitionHandler extends AbstractBatchPartitionHandle
 			Priority priority = Records.newRecord(Priority.class);
 			priority.setPriority(0);
 
+			String fileName = execution.getExecutionContext().getString("fileName");
+			long splitStart = execution.getExecutionContext().getLong("splitStart");
+			long splitLength = execution.getExecutionContext().getLong("splitLength");
+
+			log.debug("Creating request data for stepExecution=" + execution + " with fileName=" +
+					fileName + " splitStart=" + splitStart + " splitLength=" + splitLength);
+
 			FileSystem fs = FileSystem.get(configuration);
 			Path path = new Path(execution.getExecutionContext().getString("fileName"));
-			BlockLocation[] fileBlockLocations = fs.getFileBlockLocations(path, 0, 1);
+
+			HashSet<String> hostsSet = new HashSet<String>();
+
+			BlockLocation[] fileBlockLocations = fs.getFileBlockLocations(path, splitStart, splitLength);
 			for (BlockLocation blockLocation : fileBlockLocations) {
-				log.debug("block: " + blockLocation);
+				for (String host : blockLocation.getHosts()) {
+					hostsSet.add(host);
+				}
+				log.debug("block: " + blockLocation + " topologypaths=" + StringUtils.arrayToCommaDelimitedString(blockLocation.getTopologyPaths()));
 			}
 
-			String[] hosts = fileBlockLocations[0].getHosts();
-			String[] racks = new String[]{"default-rack"};
+			String[] hosts = hostsSet.toArray(new String[0]);
+//			String[] racks = new String[]{"default-rack"};
+			String[] racks = new String[0];
 			requests.put(execution, new ContainerRequestData(execution, capability, hosts, racks, priority));
 		}
 

@@ -17,6 +17,7 @@ package org.springframework.yarn.batch.am;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,9 +32,7 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.util.RackResolver;
-import org.apache.hadoop.yarn.util.Records;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
@@ -42,6 +41,7 @@ import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.am.AbstractEventingAppmaster;
 import org.springframework.yarn.am.AppmasterService;
 import org.springframework.yarn.am.ContainerLauncherInterceptor;
+import org.springframework.yarn.am.allocate.ContainerAllocateData;
 import org.springframework.yarn.am.container.AbstractLauncher;
 import org.springframework.yarn.am.container.ContainerRequestData;
 import org.springframework.yarn.batch.event.PartitionedStepExecutionEvent;
@@ -68,8 +68,8 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 	/** Step executions as reported back from containers */
 	private List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
 
-	private Map<String, StepExecution> hostMapping = new LinkedHashMap<String, StepExecution>();
-	private Map<String, StepExecution> rackMapping = new LinkedHashMap<String, StepExecution>();
+//	private Map<String, StepExecution> hostMapping = new LinkedHashMap<String, StepExecution>();
+//	private Map<String, StepExecution> rackMapping = new LinkedHashMap<String, StepExecution>();
 
 	private Map<StepExecution, ContainerRequestData> requestData = new LinkedHashMap<StepExecution, ContainerRequestData>();
 	private Map<StepExecution, Set<StepExecution>> masterExecutions = new HashMap<StepExecution, Set<StepExecution>>();
@@ -173,7 +173,7 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 				stepExecutionStateListener.state(PartitionedStepExecutionState.COMPLETED, entry.getKey());
 				// TODO: this is wrong. we don't actually know if we
 				// are complete. other partitioned steps may come later
-				notifyCompleted();
+//				notifyCompleted();
 			}
 		}
 
@@ -273,7 +273,14 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 	public void addStepSplits(StepExecution masterStepExecution, String remoteStepName,
 			Set<StepExecution> stepExecutions, Map<StepExecution, ContainerRequestData> resourceRequests) {
 
-		List<ResourceRequest> requests = new ArrayList<ResourceRequest>();
+		// from request data we get hints where container should be run.
+		// find a well distributed union of hosts.
+		// ContainerAllocateData
+
+
+		ContainerAllocateData containerAllocateData = new ContainerAllocateData();
+		int countNeeded = 0;
+		HashSet<String> hostUnion = new HashSet<String>();
 		for (Entry<StepExecution, ContainerRequestData> entry : resourceRequests.entrySet()) {
 			StepExecution se = entry.getKey();
 			ContainerRequestData crd = entry.getValue();
@@ -281,34 +288,25 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 			requestData.put(se, crd);
 			remoteStepNames.put(se, remoteStepName);
 
-			ResourceRequest request = null;
+			countNeeded++;
 			for (String host : crd.getHosts()) {
-				hostMapping.put(host, se);
-				request = Records.newRecord(ResourceRequest.class);
-				request.setHostName(host);
-				request.setNumContainers(1);
-				request.setPriority(crd.getPriority());
-				request.setCapability(crd.getCapability());
-				requests.add(request);
+				hostUnion.add(host);
 			}
-			for (String rack : crd.getRacks()) {
-				rackMapping.put(rack, se);
-				request = Records.newRecord(ResourceRequest.class);
-				request.setHostName(rack);
-				request.setNumContainers(1);
-				request.setPriority(crd.getPriority());
-				request.setCapability(crd.getCapability());
-				requests.add(request);
-			}
-
-			request = Records.newRecord(ResourceRequest.class);
-			request.setHostName("*");
-			request.setNumContainers(stepExecutions.size());
-			request.setPriority(crd.getPriority());
-			request.setCapability(crd.getCapability());
-			requests.add(request);
+//			for (String rack : crd.getRacks()) {
+//				rackMapping.put(rack, se);
+//			}
 
 		}
+
+		while (countNeeded > 0) {
+			Iterator<String> iterator = hostUnion.iterator();
+			while (countNeeded > 0 && iterator.hasNext()) {
+				String host = iterator.next();
+				containerAllocateData.addHosts(host, 1);
+				countNeeded--;
+			}
+		}
+
 		masterExecutions.put(masterStepExecution, stepExecutions);
 
 		int remaining = stepExecutions.size() - resourceRequests.size();
@@ -322,7 +320,7 @@ public abstract class AbstractBatchAppmaster extends AbstractEventingAppmaster i
 		}
 
 		getAllocator().allocateContainers(remaining);
-		getAllocator().allocateContainers(requests);
+		getAllocator().allocateContainers(containerAllocateData);
 	}
 
 	/**
