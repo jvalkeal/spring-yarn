@@ -193,31 +193,6 @@ public class DefaultContainerAllocator extends AbstractPollingAllocator implemen
 
 	@Override
 	protected void handleAllocatedContainers(List<Container> containers) {
-//		// checking if we have standing allocation counts,
-//		// if not assume as garbage and send to release queue.
-//		// what's left will be out of our hand and expected to be
-//		// processed by the listener and eventually send back
-//		// to us as a released container.
-//
-//		if(log.isDebugEnabled()) {
-//			log.debug("State allocateCountTracker before handling allocated container: " + allocateCountTracker);
-//		}
-//
-//		List<Container> preProcessed = new ArrayList<Container>();
-//		for (Container container : containers) {
-//			Container processed = allocateCountTracker.processAllocatedContainer(container);
-//			if (processed != null) {
-//				preProcessed.add(processed);
-//			} else {
-//				releaseContainers.add(container.getId());
-//			}
-//		}
-//
-//		if(log.isDebugEnabled()) {
-//			log.debug("State allocateCountTracker after handling allocated container: " + allocateCountTracker);
-//		}
-//
-//		allocatorListener.allocated(preProcessed);
 		allocatorListener.allocated(containers);
 	}
 
