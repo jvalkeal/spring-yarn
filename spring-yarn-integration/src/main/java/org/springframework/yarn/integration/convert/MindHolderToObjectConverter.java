@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
 import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 
@@ -37,46 +38,116 @@ public class MindHolderToObjectConverter implements Converter<MindRpcMessageHold
 	/** Jackson object mapper */
 	private ObjectMapper objectMapper;
 
-	/** Base package prefix */
-	private String basePackage;
+	/** Base package prefixes */
+	private String[] basePackage;
 
 	/** Simple class cache*/
 	private Map<String, Class<? extends BaseObject>> classCache;
 
 	/**
-	 * Constructs converter with a jackson object mapper and
-	 * a base package prefix.
+	 * Instantiates a new mind holder to object converter.
+	 *
+	 * @param objectMapper the object mapper
+	 */
+	public MindHolderToObjectConverter(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+		this.classCache = new ConcurrentHashMap<String, Class<? extends BaseObject>>();
+	}
+
+	/**
+	 * Instantiates a new mind holder to object converter.
 	 *
 	 * @param objectMapper the object mapper
 	 * @param basePackage the base package
 	 */
 	public MindHolderToObjectConverter(ObjectMapper objectMapper, String basePackage) {
+		this(objectMapper, new String[]{basePackage});
+	}
+
+	/**
+	 * Instantiates a new mind holder to object converter.
+	 *
+	 * @param objectMapper the object mapper
+	 * @param basePackage the array of base packages
+	 */
+	public MindHolderToObjectConverter(ObjectMapper objectMapper, String basePackage[]) {
 		this.objectMapper = objectMapper;
 		this.basePackage = basePackage;
 		this.classCache = new ConcurrentHashMap<String, Class<? extends BaseObject>>();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public BaseObject convert(MindRpcMessageHolder source) {
 		Map<String, String> headers = source.getHeaders();
 		String type = headers.get("type").trim();
 		byte[] content = source.getContent();
+		Class<?> clazz = resolveClass(type);
+
+		if (clazz == null) {
+			throw new MindDataConversionException("Failed to convert source object. Can't resolve type=" + type);
+		}
 
 		try {
-			String clazzName = basePackage + "." + type;
-			Class<?> clazz = classCache.get(clazzName);
-			if (clazz == null) {
-				clazz = ClassUtils.resolveClassName(clazzName, getClass().getClassLoader());
-				if (clazz != null) {
-					classCache.put(clazzName, (Class<? extends BaseObject>) clazz);
-				}
-			}
 			BaseObject object = (BaseObject) objectMapper.readValue(content, clazz);
 			return object;
 		} catch (Exception e) {
 			throw new MindDataConversionException("Failed to convert source object.", e);
 		}
+	}
+
+	/**
+	 * Sets the base packages.
+	 *
+	 * @param basePackage the new array base packages
+	 */
+	public void setBasePackage(String[] basePackage) {
+		this.basePackage = basePackage;
+	}
+
+	/**
+	 * Resolve the class.
+	 *
+	 * @param type the type
+	 * @return the class
+	 */
+	@SuppressWarnings("unchecked")
+	private Class<?> resolveClass(String type) {
+		String clazzName = type;
+		Class<?> clazz = classCache.get(clazzName);
+
+		if (clazz == null) {
+			try {
+				clazz = ClassUtils.resolveClassName(clazzName, getClass().getClassLoader());
+			} catch (IllegalArgumentException e) {
+			}
+			if (clazz != null) {
+				classCache.put(clazzName, (Class<? extends BaseObject>) clazz);
+			}
+		}
+		if (clazz != null) {
+			return clazz;
+		}
+
+		if (!ObjectUtils.isEmpty(basePackage)) {
+			for (String base : basePackage) {
+				clazzName = base + "." + type;
+				clazz = classCache.get(clazzName);
+				if (clazz == null) {
+					try {
+						clazz = ClassUtils.resolveClassName(clazzName, getClass().getClassLoader());
+					} catch (IllegalArgumentException e) {
+					}
+					if (clazz != null) {
+						classCache.put(clazzName, (Class<? extends BaseObject>) clazz);
+					}
+				}
+				if (clazz != null) {
+					return clazz;
+				}
+			}
+		}
+
+		return clazz;
 	}
 
 }

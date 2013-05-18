@@ -13,40 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.yarn.integration.ip.mind.binding;
+package org.springframework.yarn.integration.ip.mind;
 
-/**
- * Base object of messages meant for pojo mapping.
- *
- * @author Janne Valkealahti
- *
- */
-public abstract class BaseObject {
+import org.springframework.yarn.integration.ip.mind.binding.BaseObject;
 
-	/** Type identifier of the object */
-	public String type;
+public class SimpleTestRequest2 extends BaseObject {
 
-	/**
-	 * Constructs an empty object
-	 */
-	public BaseObject() {
-		type = this.getClass().getCanonicalName();
-	}
+	public String stringField;
+	public String nullStringField;
 
-	/**
-	 * Constructs object with a given type
-	 * @param type the type identifier
-	 */
-	public BaseObject(String type) {
-		this.type = type;
-	}
-
-	/**
-	 * Get type of this object.
-	 * @return type of the object
-	 */
-	public String getType() {
-		return type;
+	public SimpleTestRequest2() {
+		stringField = "stringFieldValue";
 	}
 
 }

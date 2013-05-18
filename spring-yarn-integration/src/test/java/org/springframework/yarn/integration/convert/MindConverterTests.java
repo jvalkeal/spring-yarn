@@ -19,10 +19,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.yarn.integration.ip.mind.MindRpcMessageHolder;
 import org.springframework.yarn.integration.ip.mind.SimpleTestRequest;
+import org.springframework.yarn.integration.ip.mind.SimpleTestRequest2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,18 +35,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class MindConverterTests {
 
-	private MindHolderToObjectConverter holderToObject;
-	private MindObjectToHolderConverter objectToHolder;
-
-	@Before
-	public void setUp() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		holderToObject = new MindHolderToObjectConverter(objectMapper, "org.springframework.yarn.integration.ip.mind");
-		objectToHolder = new MindObjectToHolderConverter(objectMapper);
-	}
-
 	@Test
-	public void testSimpleConversion() {
+	public void testSimpleConversionWithPackage() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		MindHolderToObjectConverter holderToObject = new MindHolderToObjectConverter(objectMapper, "org.springframework.yarn.integration.ip.mind");
+		MindObjectToHolderConverter objectToHolder = new MindObjectToHolderConverter(objectMapper);
+
 		SimpleTestRequest request1 = new SimpleTestRequest();
 		MindRpcMessageHolder holder = objectToHolder.convert(request1);
 		assertThat(holder, notNullValue());
@@ -55,5 +49,21 @@ public class MindConverterTests {
 		assertThat(request1.type, is(request2.type));
 		assertThat(request1.stringField, is(request2.stringField));
 	}
+
+	@Test
+	public void testSimpleConversionNoPackage() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		MindHolderToObjectConverter holderToObject = new MindHolderToObjectConverter(objectMapper);
+		MindObjectToHolderConverter objectToHolder = new MindObjectToHolderConverter(objectMapper);
+
+		SimpleTestRequest2 request1 = new SimpleTestRequest2();
+		MindRpcMessageHolder holder = objectToHolder.convert(request1);
+		assertThat(holder, notNullValue());
+		SimpleTestRequest2 request2 = (SimpleTestRequest2) holderToObject.convert(holder);
+		assertThat(request2, notNullValue());
+		assertThat(request1.type, is(request2.type));
+		assertThat(request1.stringField, is(request2.stringField));
+	}
+
 
 }

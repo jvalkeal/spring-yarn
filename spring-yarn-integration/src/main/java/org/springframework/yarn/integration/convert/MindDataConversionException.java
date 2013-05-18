@@ -26,8 +26,23 @@ import org.springframework.core.convert.ConversionException;
 @SuppressWarnings("serial")
 public class MindDataConversionException extends ConversionException {
 
+	/**
+	 * Construct a new mind data conversion exception.
+	 *
+	 * @param message the exception message
+	 * @param cause the cause
+	 */
 	public MindDataConversionException(String message, Throwable cause) {
 		super(message, cause);
+	}
+
+	/**
+	 * Construct a new mind data conversion exception.
+	 *
+	 * @param message the exception message
+	 */
+	public MindDataConversionException(String message) {
+		super(message);
 	}
 
 }
