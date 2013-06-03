@@ -81,7 +81,7 @@ public class StaticEventingAppmaster extends AbstractEventingAppmaster implement
 				notifyCompleted();
 			}
 		} else {
-			if (!getMonitor().hasRunning()) {
+			if (isComplete()) {
 				notifyCompleted();
 			}
 		}
@@ -98,6 +98,17 @@ public class StaticEventingAppmaster extends AbstractEventingAppmaster implement
 	 */
 	protected boolean onContainerFailed(ContainerId containerId) {
 		return false;
+	}
+
+	/**
+	 * Returns state telling if application is considered
+	 * as complete. Default implementation is delegating
+	 * call to container monitor.
+	 *
+	 * @return True if application is complete
+	 */
+	protected boolean isComplete() {
+		return getMonitor().hasRunning();
 	}
 
 }

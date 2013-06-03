@@ -54,7 +54,7 @@ public class DefaultContainerMonitor extends AbstractMonitor implements Containe
 			ContainerState state = status.getState();
 
 			if (state.equals(ContainerState.COMPLETE)) {
-				if (exitStatus != 0) {
+				if (exitStatus > 0) {
 					failed.add(containerId);
 				} else {
 					completed.add(containerId);
@@ -75,7 +75,7 @@ public class DefaultContainerMonitor extends AbstractMonitor implements Containe
 		ContainerState state = completedContainer.getState();
 
 		if (state.equals(ContainerState.COMPLETE)) {
-			if (exitStatus != 0) {
+			if (exitStatus > 0) {
 				failed.add(containerId);
 			} else {
 				completed.add(containerId);
