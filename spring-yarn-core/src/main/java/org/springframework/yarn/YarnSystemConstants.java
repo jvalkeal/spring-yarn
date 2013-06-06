@@ -68,4 +68,10 @@ public class YarnSystemConstants {
 	/** Env variable for container id. */
 	public static final String SYARN_CONTAINER_ID = "syarn.containerid";
 
+	/** Default staging directory base name. */
+	public static final String DEFAULT_STAGING_BASE_DIR_NAME = "syarn";
+
+	/** Default staging directory name. */
+	public static final String DEFAULT_STAGING_DIR_NAME = "staging";
+
 }

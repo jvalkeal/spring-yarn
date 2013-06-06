@@ -49,9 +49,31 @@ public interface ResourceLocalizer {
 	void distribute();
 
 	/**
-	 * Sets the staging directory.
+	 * Sets the staging directory. If not set, path is
+	 * determined by the implementation. Default value
+	 * can i.e. be user's hadoop home directory.
 	 *
 	 * @param stagingDirectory the new staging directory
 	 */
 	void setStagingDirectory(Path stagingDirectory);
+
+	/**
+	 * Sets the staging id. Id is used together with {@link Path}
+	 * set in {@link #setStagingDirectory(Path)} to post fix unique
+	 * runtime staging path. If not set simultaneous instances of
+	 * same application may override files.
+	 *
+	 * @param stagingId the new staging id
+	 */
+	void setStagingId(String stagingId);
+
+	/**
+	 * Cleans all leftovers what has been created during
+	 * the distribute process. These can i.e. be files
+	 * in staging directory.
+	 *
+	 * @return true, if successful
+	 */
+	boolean clean();
+
 }

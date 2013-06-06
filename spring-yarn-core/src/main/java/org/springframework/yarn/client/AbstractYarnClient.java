@@ -103,16 +103,20 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 
 	@Override
 	public ApplicationId submitApplication() {
-		ApplicationSubmissionContext submissionContext = getSubmissionContext();
-		ApplicationId applicationId = submissionContext.getApplicationId();
+
+		// we get app id here instead in getSubmissionContext(). Otherwise
+		// localizer distribute will kick off too early
+		ApplicationId applicationId = clientRmOperations.getNewApplication().getApplicationId();
 
 		// if not already set, get it from application id
 		if (applicationDirName == null) {
 			applicationDirName = Integer.toString(applicationId.getId());
 		}
 
-		resourceLocalizer.setStagingDirectory(getStagingPath());
+		resourceLocalizer.setStagingId(applicationDirName);
 		resourceLocalizer.distribute();
+
+		ApplicationSubmissionContext submissionContext = getSubmissionContext(applicationId);
 		clientRmOperations.submitApplication(submissionContext);
 		return applicationId;
 	}
@@ -260,7 +264,7 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	 * @return the staging path
 	 */
 	protected Path getStagingPath() {
-		if (stagingDirPath != null &&  applicationDirName != null) {
+		if (stagingDirPath != null && applicationDirName != null) {
 			return new Path(stagingDirPath, applicationDirName);
 		} else {
 			return null;
@@ -272,9 +276,9 @@ public abstract class AbstractYarnClient implements YarnClient, InitializingBean
 	 *
 	 * @return the submission context
 	 */
-	protected ApplicationSubmissionContext getSubmissionContext() {
+	protected ApplicationSubmissionContext getSubmissionContext(ApplicationId applicationId) {
 		ApplicationSubmissionContext context = Records.newRecord(ApplicationSubmissionContext.class);
-		context.setApplicationId(clientRmOperations.getNewApplication().getApplicationId());
+		context.setApplicationId(applicationId);
 		context.setApplicationName(appName);
 		context.setAMContainerSpec(getMasterContainerLaunchContext());
 		if(user != null) {

@@ -315,6 +315,10 @@ public abstract class AbstractAppmaster extends LifecycleObjectSupport {
 	 * @return the finish application master response
 	 */
 	protected FinishApplicationMasterResponse finishAppmaster() {
+
+		boolean clean = getResourceLocalizer().clean();
+		log.info("Status of resource localizer clean operation is " + clean);
+
 		Assert.notNull(applicationAttemptId, "applicationAttemptId must be set");
 		if(!applicationRegistered) {
 			log.warn("Not sending finish request because we're not registered");

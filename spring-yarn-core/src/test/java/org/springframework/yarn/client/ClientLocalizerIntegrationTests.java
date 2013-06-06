@@ -62,10 +62,10 @@ public class ClientLocalizerIntegrationTests {
 	public void testDistributeWithCopy() throws IOException {
 		assertThat(client, notNullValue());
 
-		localizer.setStagingDirectory(new Path("/syarn-tmp/foo/1"));
+		localizer.setStagingDirectory(new Path("/syarn-tmp/ClientLocalizerIntegrationTests/1"));
 		localizer.distribute();
 
-		FileStatus fileStatus = fs.getFileStatus(new Path("/syarn-tmp/foo/1/hadoop.properties"));
+		FileStatus fileStatus = fs.getFileStatus(new Path("/syarn-tmp/ClientLocalizerIntegrationTests/1/hadoop.properties"));
 		assertThat(fileStatus, notNullValue());
 		assertThat(fileStatus.isFile(), is(true));
 
@@ -75,7 +75,7 @@ public class ClientLocalizerIntegrationTests {
 		assertThat(localResource, notNullValue());
 		URL resource = localResource.getResource();
 		assertThat(resource, notNullValue());
-		assertThat(resource.getFile(), is("/syarn-tmp/foo/1/hadoop.properties"));
+		assertThat(resource.getFile(), is("/syarn-tmp/ClientLocalizerIntegrationTests/1/hadoop.properties"));
 	}
 
 }

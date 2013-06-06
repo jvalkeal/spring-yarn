@@ -19,6 +19,7 @@
 
 	<yarn:localresources>
 		<yarn:copy src="hadoop.properties" staging="true"/>
+		<yarn:copy src="test-site-*.properties" staging="true"/>
 		<yarn:hdfs path="/hadoop.properties" staging="true"/>
 	</yarn:localresources>
 

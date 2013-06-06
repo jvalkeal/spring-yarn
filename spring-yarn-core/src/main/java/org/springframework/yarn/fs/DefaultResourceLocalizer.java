@@ -38,6 +38,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.yarn.YarnSystemConstants;
 import org.springframework.yarn.YarnSystemException;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean.CopyEntry;
 import org.springframework.yarn.fs.LocalResourcesFactoryBean.TransferEntry;
@@ -74,6 +75,9 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 
 	/** Staging directory */
 	private Path stagingDirectory;
+
+	/** The staging id. */
+	private String stagingId;
 
 	/** Resolve copy resources */
 	private PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -120,6 +124,11 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	}
 
 	@Override
+	public void setStagingId(String stagingId) {
+		this.stagingId = stagingId;
+	}
+
+	@Override
 	public void distribute() {
 		// guard by lock to distribute only once
 		distributeLock.lock();
@@ -141,6 +150,11 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 		}
 	}
 
+	@Override
+	public boolean clean() {
+		return deleteStagingEntries();
+	}
+
 	/**
 	 * Do file copy.
 	 *
@@ -149,9 +163,11 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	 */
 	protected void doFileCopy(FileSystem fs) throws IOException {
 		for (CopyEntry e : copyEntries) {
-			for (Resource res : resolver.getResources(e.src)) {
-				FSDataOutputStream os = fs.create(getDestinationPath(e, res));
-				FileCopyUtils.copy(res.getInputStream(), os);
+			for (String pattern : StringUtils.commaDelimitedListToStringArray(e.src)) {
+				for (Resource res : resolver.getResources(pattern)) {
+					FSDataOutputStream os = fs.create(getDestinationPath(e, res));
+					FileCopyUtils.copy(res.getInputStream(), os);
+				}
 			}
 		}
 	}
@@ -162,13 +178,15 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	 * @param entry the entry
 	 * @param res the res
 	 * @return the destination path
+	 * @throws IOException
 	 */
-	private Path getDestinationPath(CopyEntry entry, Resource res) {
-		if (stagingDirectory != null) {
+	private Path getDestinationPath(CopyEntry entry, Resource res) throws IOException {
+		Path resolvedStagingDirectory = resolveStagingDirectory();
+		if (resolvedStagingDirectory != null) {
 			if (StringUtils.hasText(entry.dest)) {
-				return new Path(stagingDirectory, entry.dest);
+				return new Path(resolvedStagingDirectory, entry.dest);
 			} else {
-				return new Path(stagingDirectory, res.getFilename());
+				return new Path(resolvedStagingDirectory, res.getFilename());
 			}
 		} else {
 			return new Path(entry.dest);
@@ -185,10 +203,14 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 	 */
 	protected Map<String, LocalResource> doFileTransfer(FileSystem fs) throws IOException, URISyntaxException {
 		Map<String, LocalResource> returned =  new HashMap<String, LocalResource>();
+		Path resolvedStagingDirectory = resolveStagingDirectory();
 		for (TransferEntry e : transferEntries) {
-			Path remotePath = (stagingDirectory == null && !e.staging) ?
+			Path remotePath = (!e.staging) ?
 					new Path(e.remote + e.path) :
-					new Path(e.remote + stagingDirectory.toUri().getPath() + e.path);
+					new Path(e.remote + resolvedStagingDirectory.toUri().getPath() + e.path);
+			if(log.isDebugEnabled()) {
+				log.debug("Trying path " + remotePath);
+			}
 			URI localUri = new URI(e.local);
 			FileStatus[] fileStatuses = fs.globStatus(remotePath);
 			if (!ObjectUtils.isEmpty(fileStatuses)) {
@@ -212,6 +234,35 @@ public class DefaultResourceLocalizer implements ResourceLocalizer {
 			}
 		}
 		return returned;
+	}
+
+	/**
+	 * Resolve runtime staging directory.
+	 *
+	 * @return the resolved path of runtime stagind directory
+	 */
+	private Path resolveStagingDirectory() {
+		Path base = stagingDirectory != null ?
+			stagingDirectory :
+			new Path("/" + YarnSystemConstants.DEFAULT_STAGING_BASE_DIR_NAME, YarnSystemConstants.DEFAULT_STAGING_DIR_NAME);
+		return stagingId != null ?
+			new Path(base, stagingId) :
+			base;
+	}
+
+	/**
+	 * Removes staging entries.
+	 *
+	 * @return true, if successful
+	 */
+	private boolean deleteStagingEntries() {
+		try {
+			FileSystem fs = FileSystem.get(configuration);
+			Path resolvedStagingDirectory = resolveStagingDirectory();
+			return fs.delete(resolvedStagingDirectory, true);
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 }
